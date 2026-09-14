@@ -81,8 +81,8 @@ contains exact certificate-bound trusts, separate permission policies and SDK re
 Its write-only draft repeats the local encrypted archive upload for the daily copy; operator
 reads perform independent verification. CA custody is selected and automatic leaf renewal
 is required; the CA and its encrypted Mac/S3 recovery bundle are now enrolled/verified,
-with a public checkpoint on home ([record](ISSUER-ENROLLMENT.md)). No workload identity,
-leaf certificate or scheduler is deployed yet. Never copy Mac admin
+with a public checkpoint on home ([record](ISSUER-ENROLLMENT.md)). Workload identity is now
+[provisioned but disabled](IDENTITY-APPLIED.md); no leaf certificate or scheduler is deployed. Never copy Mac admin
 credentials or static IAM keys onto home. No AWS Private CA charges are introduced.
 
 ## Recovery and failure behavior

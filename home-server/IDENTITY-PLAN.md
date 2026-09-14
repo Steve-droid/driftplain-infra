@@ -1,5 +1,9 @@
 # HM2 disabled-first identity plan — September 14, 2026
 
+**Subsequent result:** a refreshed equivalent plan was separately approved, then
+[applied and verified disabled](IDENTITY-APPLIED.md) on September 14. The review below
+is historical; do not reuse either already-applied or superseded saved plans.
+
 **Source and PR/merge publication approved September 14; cloud apply not approved or performed.** The fresh complete plan at
 **18:14:39 Asia/Jerusalem (15:14:39 UTC)** proposes **8 creates, 0 updates, 0 deletes**.
 [Proposed inputs](identity/dev.tfvars) enable resource creation, keep sessions disabled,

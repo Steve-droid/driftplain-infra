@@ -1,0 +1,741 @@
+{
+  "recorded_at": "2026-09-14T17:14:48.639019+00:00",
+  "status": "Disabled AWS identity provisioning applied and verified; new source evidence review pending",
+  "approval": {
+    "user_response": "Yes",
+    "scope": "Exact saved eight-create plan and disabled resource verification; leaves/CRL/enablement/scheduling excluded",
+    "approved_plan_sha256": "56db2b95c4aca77bbe39d7f58a6735a8e501c62a13c475ef5c6802aea686c929",
+    "source_commit_approved": false
+  },
+  "source_revision": "ceb964e26f4d1a131916f60381325d9446ec6744",
+  "source_sha256": {
+    "home-server/identity/backend.tf": "54c949459d7d5e73898c04790ae8d0b9055be59ba68af190b509770fe796ab9a",
+    "home-server/identity/main.tf": "4fbf85890c965b62b6fc8cc922100023fe2be57c108735e61982779e02269b25",
+    "home-server/identity/outputs.tf": "999e2d75d536e0675abf77fd26e49605147c23936088a7101157230f3aa05981",
+    "home-server/identity/providers.tf": "10c8a706d069ea5bb7e23f2eeea7e2a08531f3f5850358ea869c3ac65daa4802",
+    "home-server/identity/variables.tf": "91c644135214e68d825789e9349267d5ae0eef59afeeac0c4be7709a6d9df6bf",
+    "home-server/identity/versions.tf": "2a17daffd8d489e9b939b5fcfb379122ecd823480c07891f4fcfdeac678f58be",
+    "home-server/identity/.terraform.lock.hcl": "d0b4597b478fffe7f49c61272f79d056ef3efdf5a8457d58fb5c146213089e67",
+    "home-server/identity/tests/home-server-disabled-first.tftest.hcl": "6a14ce0132725689d775ae4a8769bdbbc3b97a5dbfef1fb41d562873bacf96e9",
+    "home-server/identity/tests/home-server-identity.tftest.hcl": "c1f8ba3518dd091604175c5d89a0aee9256448d76eb12de39fd4dc0fc5afb390"
+  },
+  "input_sha256": "d7ec9f25a13b0b8d6fb7027187d4f9165d7dfa6a6605c4b0a94446e0ddc1389a",
+  "terraform_version": "1.15.5",
+  "aws_provider_version": "5.100.0",
+  "backend": {
+    "bucket": "modelmatch-tfstate-957261948820",
+    "key": "home-server/identity/terraform.tfstate",
+    "region": "ap-south-1",
+    "encrypt": true,
+    "use_lockfile": true
+  },
+  "operator": {
+    "Account": "957261948820",
+    "Arn": "arn:aws:iam::957261948820:user/steve"
+  },
+  "preapply": {
+    "checked_at": "2026-09-14T17:10:09.774658+00:00",
+    "operator": {
+      "Account": "957261948820",
+      "Arn": "arn:aws:iam::957261948820:user/steve"
+    },
+    "trustAnchors": [],
+    "profiles": [],
+    "crls": [],
+    "backup_role": {
+      "exists": false
+    },
+    "bedrock_role": {
+      "exists": false
+    },
+    "teardown_role": {
+      "arn": "arn:aws:iam::957261948820:role/modelmatch-platform-teardown-codebuild",
+      "inline_policies": [
+        "guardrails"
+      ],
+      "attached_policies": [
+        {
+          "PolicyName": "AdministratorAccess",
+          "PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess"
+        }
+      ],
+      "guardrails_match_previous": true
+    },
+    "identity_backend": {
+      "objects": {
+        "home-server/identity/terraform.tfstate": false,
+        "home-server/identity/terraform.tfstate.tflock": false
+      },
+      "history": [
+        {
+          "kind": "Versions",
+          "ETag": "\"4b424f24f43dd3b54edb2bffa94dc7bc\"",
+          "ChecksumAlgorithm": [
+            "SHA256"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 265,
+          "StorageClass": "STANDARD",
+          "Key": "home-server/identity/terraform.tfstate.tflock",
+          "VersionId": "zWw6qQgFT70yaHNP2HjQleQ7QWjDd0Id",
+          "IsLatest": false,
+          "LastModified": "2026-09-14 16:05:36+00:00",
+          "Owner": {
+            "ID": "cd16d3085ffb541105dbaf9ddaf3117c7721fba5371797ba441d6325f38f51d7"
+          }
+        },
+        {
+          "kind": "Versions",
+          "ETag": "\"db79d0cf9d41b1ab5484d6240f4200a8\"",
+          "ChecksumAlgorithm": [
+            "SHA256"
+          ],
+          "ChecksumType": "FULL_OBJECT",
+          "Size": 265,
+          "StorageClass": "STANDARD",
+          "Key": "home-server/identity/terraform.tfstate.tflock",
+          "VersionId": "A2fhFrIPJs7kRUGackkxiA1HawmrA34L",
+          "IsLatest": false,
+          "LastModified": "2026-09-14 15:14:38+00:00",
+          "Owner": {
+            "ID": "cd16d3085ffb541105dbaf9ddaf3117c7721fba5371797ba441d6325f38f51d7"
+          }
+        },
+        {
+          "kind": "DeleteMarkers",
+          "Owner": {
+            "ID": "cd16d3085ffb541105dbaf9ddaf3117c7721fba5371797ba441d6325f38f51d7"
+          },
+          "Key": "home-server/identity/terraform.tfstate.tflock",
+          "VersionId": ".ceIMrYSQAYAOrIvYMihSeJNHb6DTH8C",
+          "IsLatest": true,
+          "LastModified": "2026-09-14 16:05:39+00:00"
+        },
+        {
+          "kind": "DeleteMarkers",
+          "Owner": {
+            "ID": "cd16d3085ffb541105dbaf9ddaf3117c7721fba5371797ba441d6325f38f51d7"
+          },
+          "Key": "home-server/identity/terraform.tfstate.tflock",
+          "VersionId": "lkXXpOOYYVV2NbdPI2YgXCmpgIxomCfv",
+          "IsLatest": false,
+          "LastModified": "2026-09-14 15:14:41+00:00"
+        }
+      ],
+      "region": "ap-south-1",
+      "versioning": "Enabled",
+      "encryption": {
+        "Rules": [
+          {
+            "ApplyServerSideEncryptionByDefault": {
+              "SSEAlgorithm": "AES256"
+            },
+            "BucketKeyEnabled": false,
+            "BlockedEncryptionTypes": {
+              "EncryptionType": [
+                "SSE-C"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "budget": {
+      "dry_run": "1",
+      "state": "Active"
+    },
+    "backup_bucket_region": "ap-south-1"
+  },
+  "plan_timestamp": "2026-09-14T16:05:36Z",
+  "plan_comparison": {
+    "previous_plan_timestamp": "2026-09-14T15:14:39Z",
+    "fresh_plan_timestamp": "2026-09-14T16:05:36Z",
+    "changed_top_level_fields": [
+      "timestamp"
+    ],
+    "resource_configuration_variable_policy_changes": false,
+    "previous_saved_plan_hash_verified": true
+  },
+  "apply": {
+    "exit_code": 0,
+    "counts": {
+      "create": 8,
+      "update": 0,
+      "delete": 0
+    },
+    "resource_created_at": {
+      "backup": "2026-09-14 17:10:27.760027+00:00",
+      "bedrock": "2026-09-14 17:10:27.759618+00:00"
+    },
+    "normal_locking": true,
+    "plan_directory": "/Users/steve/.local/share/driftplain/home-server-identity/plans/20260914T160413Z-disabled-provisioning"
+  },
+  "flags": {
+    "resources_enabled": true,
+    "sessions_enabled": false
+  },
+  "resources": [
+    {
+      "address": "aws_iam_role.home_server[\"backup\"]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-backup"
+    },
+    {
+      "address": "aws_iam_role.home_server[\"bedrock\"]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-bedrock"
+    },
+    {
+      "address": "aws_iam_role_policy.home_server[\"backup\"]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-backup"
+    },
+    {
+      "address": "aws_iam_role_policy.home_server[\"bedrock\"]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-bedrock"
+    },
+    {
+      "address": "aws_iam_role_policy.home_server_teardown_protection[0]",
+      "actions": [
+        "create"
+      ],
+      "name": "home-server-identity-protection"
+    },
+    {
+      "address": "aws_rolesanywhere_profile.home_server[\"backup\"]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-backup",
+      "enabled": false
+    },
+    {
+      "address": "aws_rolesanywhere_profile.home_server[\"bedrock\"]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-bedrock",
+      "enabled": false
+    },
+    {
+      "address": "aws_rolesanywhere_trust_anchor.home_server[0]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-issuer-v1",
+      "enabled": false
+    }
+  ],
+  "outputs": {
+    "backup": {
+      "certificate_cn": "driftplain-home-server-backup",
+      "profile_arn": "arn:aws:rolesanywhere:ap-south-1:957261948820:profile/f3ec8cc6-34eb-4464-b962-4e38c09848ef",
+      "region": "ap-south-1",
+      "role_arn": "arn:aws:iam::957261948820:role/modelmatch-home-server-backup",
+      "trust_anchor_arn": "arn:aws:rolesanywhere:ap-south-1:957261948820:trust-anchor/913f6b1b-d09a-41be-8715-e41e04ecda90"
+    },
+    "bedrock": {
+      "certificate_cn": "driftplain-home-server-bedrock",
+      "profile_arn": "arn:aws:rolesanywhere:ap-south-1:957261948820:profile/8e7d719a-d658-4edb-8c47-dbb9bd7d1184",
+      "region": "ap-south-1",
+      "role_arn": "arn:aws:iam::957261948820:role/modelmatch-home-server-bedrock",
+      "trust_anchor_arn": "arn:aws:rolesanywhere:ap-south-1:957261948820:trust-anchor/913f6b1b-d09a-41be-8715-e41e04ecda90"
+    }
+  },
+  "ca_der_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+  "ca_not_after": "2028-09-12T01:38:19+00:00",
+  "readback": {
+    "checked_at": "2026-09-14T17:12:38.594406+00:00",
+    "verification": {
+      "disabled_anchor_and_profiles": true,
+      "enrolled_ca_bound": true,
+      "exact_role_trust_policies": true,
+      "exact_workload_and_session_policies": true,
+      "subject_and_issuer_cn_mappings": true,
+      "matching_single_role_per_profile": true,
+      "one_hour_duration": true,
+      "existing_teardown_guards_preserved": true,
+      "new_teardown_guard_installed": true,
+      "all_eight_owned_by_persistent_state": true,
+      "tags_verified": true,
+      "crls_absent": true
+    },
+    "role_trust_policies": {
+      "backup": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "rolesanywhere.amazonaws.com"
+            },
+            "Action": [
+              "sts:AssumeRole",
+              "sts:TagSession",
+              "sts:SetSourceIdentity"
+            ],
+            "Condition": {
+              "StringEquals": {
+                "aws:PrincipalTag/x509Issuer/CN": "driftplain-home-server-issuer-v1",
+                "aws:PrincipalTag/x509Subject/CN": "driftplain-home-server-backup",
+                "aws:SourceAccount": "957261948820"
+              },
+              "ArnEquals": {
+                "aws:SourceArn": "arn:aws:rolesanywhere:ap-south-1:957261948820:trust-anchor/913f6b1b-d09a-41be-8715-e41e04ecda90"
+              }
+            }
+          }
+        ]
+      },
+      "bedrock": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "rolesanywhere.amazonaws.com"
+            },
+            "Action": [
+              "sts:AssumeRole",
+              "sts:TagSession",
+              "sts:SetSourceIdentity"
+            ],
+            "Condition": {
+              "StringEquals": {
+                "aws:PrincipalTag/x509Issuer/CN": "driftplain-home-server-issuer-v1",
+                "aws:SourceAccount": "957261948820",
+                "aws:PrincipalTag/x509Subject/CN": "driftplain-home-server-bedrock"
+              },
+              "ArnEquals": {
+                "aws:SourceArn": "arn:aws:rolesanywhere:ap-south-1:957261948820:trust-anchor/913f6b1b-d09a-41be-8715-e41e04ecda90"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "workload_policies": {
+      "backup": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Action": [
+              "s3:PutObject"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+              "arn:aws:s3:::modelmatch-home-server-backups-957261948820/postgres/hourly/*",
+              "arn:aws:s3:::modelmatch-home-server-backups-957261948820/postgres/daily/*",
+              "arn:aws:s3:::modelmatch-home-server-backups-957261948820/recovery/*"
+            ],
+            "Sid": "UploadEncryptedBackups"
+          }
+        ]
+      },
+      "bedrock": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Action": [
+              "bedrock:InvokeModel"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+              "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/apac.amazon.nova-lite-v1:0",
+              "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/global.amazon.nova-2-lite-v1:0"
+            ],
+            "Sid": "InvokeNovaProfiles"
+          },
+          {
+            "Action": [
+              "bedrock:InvokeModel"
+            ],
+            "Condition": {
+              "StringEquals": {
+                "bedrock:InferenceProfileArn": [
+                  "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/apac.amazon.nova-lite-v1:0",
+                  "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/global.amazon.nova-2-lite-v1:0"
+                ]
+              }
+            },
+            "Effect": "Allow",
+            "Resource": [
+              "arn:aws:bedrock:*::foundation-model/amazon.nova-lite-v1:0",
+              "arn:aws:bedrock:*::foundation-model/amazon.nova-2-lite-v1:0"
+            ],
+            "Sid": "InvokeNovaModelsViaProfile"
+          }
+        ]
+      }
+    },
+    "session_policies": {
+      "backup": {
+        "Statement": [
+          {
+            "Action": [
+              "s3:PutObject"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+              "arn:aws:s3:::modelmatch-home-server-backups-957261948820/postgres/hourly/*",
+              "arn:aws:s3:::modelmatch-home-server-backups-957261948820/postgres/daily/*",
+              "arn:aws:s3:::modelmatch-home-server-backups-957261948820/recovery/*"
+            ],
+            "Sid": "UploadEncryptedBackups"
+          }
+        ],
+        "Version": "2012-10-17"
+      },
+      "bedrock": {
+        "Statement": [
+          {
+            "Action": [
+              "bedrock:InvokeModel"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+              "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/apac.amazon.nova-lite-v1:0",
+              "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/global.amazon.nova-2-lite-v1:0"
+            ],
+            "Sid": "InvokeNovaProfiles"
+          },
+          {
+            "Action": [
+              "bedrock:InvokeModel"
+            ],
+            "Condition": {
+              "StringEquals": {
+                "bedrock:InferenceProfileArn": [
+                  "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/apac.amazon.nova-lite-v1:0",
+                  "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/global.amazon.nova-2-lite-v1:0"
+                ]
+              }
+            },
+            "Effect": "Allow",
+            "Resource": [
+              "arn:aws:bedrock:*::foundation-model/amazon.nova-lite-v1:0",
+              "arn:aws:bedrock:*::foundation-model/amazon.nova-2-lite-v1:0"
+            ],
+            "Sid": "InvokeNovaModelsViaProfile"
+          }
+        ],
+        "Version": "2012-10-17"
+      }
+    },
+    "attribute_mappings": {
+      "backup": [
+        {
+          "certificateField": "x509Issuer",
+          "mappingRules": [
+            {
+              "specifier": "*"
+            }
+          ]
+        },
+        {
+          "certificateField": "x509SAN",
+          "mappingRules": [
+            {
+              "specifier": "DNS"
+            },
+            {
+              "specifier": "URI"
+            },
+            {
+              "specifier": "Name/*"
+            }
+          ]
+        },
+        {
+          "certificateField": "x509Subject",
+          "mappingRules": [
+            {
+              "specifier": "*"
+            }
+          ]
+        }
+      ],
+      "bedrock": [
+        {
+          "certificateField": "x509Issuer",
+          "mappingRules": [
+            {
+              "specifier": "*"
+            }
+          ]
+        },
+        {
+          "certificateField": "x509SAN",
+          "mappingRules": [
+            {
+              "specifier": "DNS"
+            },
+            {
+              "specifier": "URI"
+            },
+            {
+              "specifier": "Name/*"
+            }
+          ]
+        },
+        {
+          "certificateField": "x509Subject",
+          "mappingRules": [
+            {
+              "specifier": "*"
+            }
+          ]
+        }
+      ]
+    },
+    "trust_anchor_notification_settings": [
+      {
+        "enabled": true,
+        "event": "CA_CERTIFICATE_EXPIRY",
+        "threshold": 45,
+        "channel": "ALL",
+        "configuredBy": "rolesanywhere.amazonaws.com"
+      },
+      {
+        "enabled": true,
+        "event": "END_ENTITY_CERTIFICATE_EXPIRY",
+        "threshold": 45,
+        "channel": "ALL",
+        "configuredBy": "rolesanywhere.amazonaws.com"
+      }
+    ],
+    "teardown_policy": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Action": [
+            "rolesanywhere:*"
+          ],
+          "Effect": "Deny",
+          "Resource": "*",
+          "Sid": "DenyRolesAnywhereAdministration"
+        },
+        {
+          "Action": [
+            "iam:*",
+            "sts:AssumeRole"
+          ],
+          "Effect": "Deny",
+          "Resource": [
+            "arn:aws:iam::957261948820:role/modelmatch-home-server-backup",
+            "arn:aws:iam::957261948820:role/modelmatch-home-server-bedrock"
+          ],
+          "Sid": "DenyHomeServerRoleAccess"
+        },
+        {
+          "Action": [
+            "s3:*"
+          ],
+          "Effect": "Deny",
+          "Resource": "arn:aws:s3:::modelmatch-tfstate-957261948820/home-server/identity/*",
+          "Sid": "DenyHomeServerIdentityStateAccess"
+        }
+      ]
+    },
+    "existing_teardown_guardrails_preserved": true,
+    "api_observations": {
+      "requireInstanceProperties": "Optional unused API field omitted for both profiles; configured and Terraform state value false; not an authentication control",
+      "default_attribute_mappings": "AWS default wildcard subject/issuer mappings include CN; SAN defaults DNS, URI, Name/*",
+      "notification_settings": "AWS defaults enabled at 45 days for CA and end-entity certificate expiry; not a tested independent monitor"
+    }
+  },
+  "state": {
+    "bucket": "modelmatch-tfstate-957261948820",
+    "key": "home-server/identity/terraform.tfstate",
+    "version_id": "xzk8dUNZMnwZqmJtb1JEVt0cBSezHoE_",
+    "server_side_encryption": "AES256",
+    "sha256": "3b5a63cd74fb8b9bd64bf5f3f6b372a9fa20a95dd1a3685ea75e66d4581b6816",
+    "lineage": "e9fc1e96-446f-00a6-f93f-db67983943ab",
+    "serial": 1
+  },
+  "applied_policy_simulations": {
+    "checked_at": "2026-09-14T17:13:08.491512+00:00",
+    "scope": "Read-only IAM evaluation of actual deployed teardown role policies; no proposed PolicyInputList and no authentication exchange",
+    "cases": [
+      {
+        "action": "rolesanywhere:CreateTrustAnchor",
+        "resource": "*",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "rolesanywhere:DeleteTrustAnchor",
+        "resource": "*",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "rolesanywhere:EnableProfile",
+        "resource": "*",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "iam:DeleteRole",
+        "resource": "arn:aws:iam::957261948820:role/modelmatch-home-server-backup",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "iam:PutRolePolicy",
+        "resource": "arn:aws:iam::957261948820:role/modelmatch-home-server-bedrock",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "sts:AssumeRole",
+        "resource": "arn:aws:iam::957261948820:role/modelmatch-home-server-backup",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::modelmatch-tfstate-957261948820/home-server/identity/terraform.tfstate",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "s3:DeleteObject",
+        "resource": "arn:aws:s3:::modelmatch-tfstate-957261948820/home-server/identity/terraform.tfstate.tflock",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::modelmatch-tfstate-957261948820/platform/terraform.tfstate",
+        "expected": "allowed",
+        "decision": "allowed",
+        "missing_context": []
+      },
+      {
+        "action": "s3:PutObject",
+        "resource": "arn:aws:s3:::modelmatch-tfstate-957261948820/platform/terraform.tfstate",
+        "expected": "allowed",
+        "decision": "allowed",
+        "missing_context": []
+      },
+      {
+        "action": "s3:DeleteObject",
+        "resource": "arn:aws:s3:::modelmatch-home-server-backups-957261948820/recovery/simulation.age",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "secretsmanager:GetSecretValue",
+        "resource": "arn:aws:secretsmanager:ap-south-1:957261948820:secret:modelmatch/home-server/recovery-key-v1-ABCDEF",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      }
+    ]
+  },
+  "follow_up_plan": {
+    "timestamp": "2026-09-14T17:13:06Z",
+    "exit_code": 0,
+    "complete": true,
+    "all_eight_resources_no_op": true,
+    "all_outputs_no_op": true,
+    "resource_drift": [
+      {
+        "address": "aws_iam_role.home_server[\"backup\"]",
+        "fields": [
+          "inline_policy",
+          "tags"
+        ],
+        "explanation": "Role read now includes its exact separately created inline policy; tags normalize null to empty map."
+      },
+      {
+        "address": "aws_iam_role.home_server[\"bedrock\"]",
+        "fields": [
+          "inline_policy",
+          "tags"
+        ],
+        "explanation": "Role read now includes its exact separately created inline policy; tags normalize null to empty map."
+      },
+      {
+        "address": "aws_rolesanywhere_profile.home_server[\"backup\"]",
+        "fields": [
+          "managed_policy_arns",
+          "tags"
+        ],
+        "explanation": "Empty optional fields normalize from null to empty collections; no policy or tag change."
+      },
+      {
+        "address": "aws_rolesanywhere_profile.home_server[\"bedrock\"]",
+        "fields": [
+          "managed_policy_arns",
+          "tags"
+        ],
+        "explanation": "Empty optional fields normalize from null to empty collections; no policy or tag change."
+      },
+      {
+        "address": "aws_rolesanywhere_trust_anchor.home_server[0]",
+        "fields": [
+          "tags"
+        ],
+        "explanation": "Empty optional fields normalize from null to empty collections; no policy or tag change."
+      }
+    ],
+    "resource_drift_classification": "Post-create provider readback only; exact separately managed policies and null-to-empty normalization; no proposed infrastructure change",
+    "var_file": "dev.tfvars",
+    "normal_locking": true
+  },
+  "postchecks": {
+    "checked_at": "2026-09-14T17:14:48.639680+00:00",
+    "lock_released": true,
+    "budget_dry_run": "1",
+    "identity_state_version_unchanged_by_follow_up_plan": true,
+    "both_preexisting_umbrella_edits_preserved_before_append": true,
+    "canonical_revisions_unchanged": true
+  },
+  "artifact_sha256": {
+    "reviewed.tfplan": "56db2b95c4aca77bbe39d7f58a6735a8e501c62a13c475ef5c6802aea686c929",
+    "plan.json": "da3c4fa301546b353b576e693975dc234a1c7b699a2135551a7c4b485b00de0c",
+    "apply.txt": "5f606615b3880ec1df54c428da4326fedaab2d7c76cce8789e5ac4bce64820f5",
+    "aws-readback.json": "cfbe0bc7a2e3d271ff54c80eb96e3e0ffdeef52ad799a86db65a99f959ead153",
+    "applied-state.json": "3b5a63cd74fb8b9bd64bf5f3f6b372a9fa20a95dd1a3685ea75e66d4581b6816",
+    "follow-up.tfplan": "826dacb410404b525baae9fc24e1aa993f05cecc3605f2fe3ddd18bcf9937d29",
+    "follow-up.json": "bd0ef9f6edd69932551bd91461c27c9182fe5f3f026503908b96fbda2c3c80d9",
+    "applied-simulations.json": "9c68eee87bbdf1df970fcc92b99d8b9bce2865387273fe403d36ced7b6d02143",
+    "readback.py": "2c13f073a4810432d4e5ed6d862170cbba525ca43305da9b7a6b227ab49d29df",
+    "simulate-applied.py": "6b05b0310774749c0dbeb230580afb57d80ecfa3b7146984753a53a909876ea0"
+  },
+  "limits": [
+    "No leaf issuance, CRL import, authentication exchange, session enablement or scheduler installation",
+    "No Keychain/age custody read or change, production export, host drill, public routing, teardown or paid LLM call",
+    "AWS default mapping/notification details were unknown at plan time; observed defaults require no policy change",
+    "IAM simulations verify actual policies, not a live certificate exchange or CRL enforcement",
+    "Optional unused requireInstanceProperties omitted by AWS; configured and Terraform-state false, not an authentication control",
+    "Existing teardown AdministratorAccess can remove its own deny; routine-teardown protection only",
+    "Unchanged Terraform/issuer/renewal/SDK suites and completed custody/recovery drills not repeated",
+    "New source records uncommitted; HM2 remains open and HM3 has not started"
+  ],
+  "subsequent_source_approval": {
+    "date": "2026-09-14",
+    "user_response": "Approved. PR and merge to `main`. What is left for HM2?",
+    "scope": "Commit the reviewed applied evidence/status records and publish via PR/merge to main; no further cloud, leaf, CRL, session or scheduling operation"
+  }
+}

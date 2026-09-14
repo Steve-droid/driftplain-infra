@@ -5,7 +5,8 @@ and 30-day daily retention and a four-hour restore target. The backup bucket is 
 provisioned and verified. Recovery-key custody is AWS Secrets Manager plus a local-only Mac
 Keychain copy, selected September 13; see [the custody runbook](RECOVERY-KEY.md).
 IAM Roles Anywhere is selected for separate backup and Bedrock identities. The local
-[identity implementation](IDENTITY.md) is merged but not deployed; additional
+[identity implementation](IDENTITY.md) is provisioned with authentication disabled;
+[applied verification](IDENTITY-APPLIED.md) records the September 14 result. Additional
 [issuer tooling](ISSUER.md) is merged, and separately approved issuer enrollment/independent
 empty-ledger recovery now pass. Public route and remaining
 service choices are proposals.
@@ -108,12 +109,12 @@ Steve approved CA-key custody in local Mac Keychain plus an age-encrypted issuer
 bundle in S3/on the Mac. He then required automatic certificate renewal. The local draft
 uses a Mac launchd renewal job for 90-day leaves at 30 days remaining, with retries/failure
 notifications and independent expiry monitoring required before use. The issuer is now
-enrolled with encrypted S3/Mac recovery and a home-held public checkpoint; no AWS identity,
-leaf certificate or renewal job is deployed. See [enrollment evidence](ISSUER-ENROLLMENT.md)
+enrolled with encrypted S3/Mac recovery and a home-held public checkpoint. AWS identity
+is provisioned but disabled; no leaf certificate or renewal job is deployed. See [enrollment evidence](ISSUER-ENROLLMENT.md)
 and [identity design/code/tests](IDENTITY.md).
-The September 14 [fresh disabled-first identity plan](IDENTITY-PLAN.md) proposes eight
-creates, no updates/deletes, with the enrolled public CA and authentication disabled.
-Source/publication was approved September 14; separate cloud apply remains pending. HM2 is open.
+The September 14 [identity plan](IDENTITY-PLAN.md) was refreshed, separately approved and
+[applied](IDENTITY-APPLIED.md): eight creates, no updates/deletes, with the enrolled public CA
+and authentication disabled. The full follow-up plan proposes no changes. HM2 is open.
 App secrets and image distribution remain independent choices; neither runtime role gets
 Secrets Manager or ECR permissions. Existing ESO/app-secret custody remains intact on AWS.
 
