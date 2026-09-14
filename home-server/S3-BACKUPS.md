@@ -80,7 +80,9 @@ IAM Roles Anywhere is selected. The [bounded local identity implementation](IDEN
 contains exact certificate-bound trusts, separate permission policies and SDK refresh tests.
 Its write-only draft repeats the local encrypted archive upload for the daily copy; operator
 reads perform independent verification. CA custody is selected and automatic leaf renewal
-is required; no identity/CA/certificate or scheduler is deployed yet. Never copy Mac admin
+is required; the CA and its encrypted Mac/S3 recovery bundle are now enrolled/verified,
+with a public checkpoint on home ([record](ISSUER-ENROLLMENT.md)). No workload identity,
+leaf certificate or scheduler is deployed yet. Never copy Mac admin
 credentials or static IAM keys onto home. No AWS Private CA charges are introduced.
 
 ## Recovery and failure behavior

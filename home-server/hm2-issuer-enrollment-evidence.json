@@ -1,0 +1,191 @@
+{
+  "recorded_at": "2026-09-13T01:43:15.323492+00:00",
+  "status": "approved operational issuer enrollment and independent empty-ledger recovery verified; source review pending",
+  "approval": {
+    "date": "2026-09-13",
+    "user_response": "Yes",
+    "scope": "one CA enrollment; encrypted Mac/S3 backup; public home checkpoint; independent verification with existing AWS recovery key",
+    "commits_or_publication_authorized": false
+  },
+  "infra_source_revision": "e94f2b111a64670b3aeccf69f6743a8cf272ab84",
+  "operator_root": "/Users/steve/.local/share/driftplain/home-server-identity",
+  "preflight": {
+    "checked_at": "2026-09-13T01:38:13.817833+00:00",
+    "installed_hashes_match": true,
+    "issuer_public_state_absent": true,
+    "operator_arn": "arn:aws:iam::957261948820:user/steve",
+    "bucket": "modelmatch-home-server-backups-957261948820",
+    "region": "ap-south-1",
+    "versioning": "Enabled",
+    "lifecycle_rules_absent": true,
+    "issuer_versions_before_enrollment": 0,
+    "recovery_secret_id": "modelmatch/home-server/recovery-key-v1",
+    "recovery_secret_current_version": "abd5ad3c-3ff5-5d47-91b0-aff63b2df616",
+    "recovery_secret_not_rotating_or_deleted": true,
+    "budget_dry_run": "1",
+    "secret_value_read": false
+  },
+  "enrollment": {
+    "command": "enroll",
+    "ca_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+    "ledger_sha256": "e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "issued_count": 0,
+    "revoked_count": 0,
+    "crl_number": 0
+  },
+  "fresh_noninteractive_readback": {
+    "command": "enroll",
+    "ca_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+    "ledger_sha256": "e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "issued_count": 0,
+    "revoked_count": 0,
+    "crl_number": 0
+  },
+  "issuer_custody": {
+    "keychain": "/Users/steve/Library/Keychains/login.keychain-db",
+    "service": "modelmatch/home-server/issuer-v1",
+    "account": "steve",
+    "stable_interpreter": "/Users/steve/.local/share/driftplain/home-server-identity/venv/bin/python3",
+    "native_default_creator_access_control": true,
+    "password_prompt_or_all_apps_authorization": false
+  },
+  "receipt": {
+    "version_id": "kmhfg7PTVEoi6rAehXkepa2dbnmq8_pn",
+    "ciphertext_sha256": "7284b1e10fe3bfedb93acac792c59f99645906662b1af452f138e0ee5aa99be4",
+    "object_key": "recovery/issuer-v1/b034b0e2cbeed365e81e866fac143d12dbdc7f6ab303aa17ee2c968b80ca1ced.age",
+    "bucket": "modelmatch-home-server-backups-957261948820",
+    "ca_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+    "ledger_sha256": "e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "recovery_key_id": "modelmatch/home-server/recovery-key-v1",
+    "recovery_recipient": "age1vcy5ynjmhrv587m5e8pvgm42gwrwxj4smzzcywhxckrl47xqea8qcewa7m",
+    "verified_at": "2026-09-13T01:39:15.227766+00:00"
+  },
+  "checkpoint": {
+    "selected_at": "2026-09-13T01:38:42.183279+00:00",
+    "ca_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+    "ledger_sha256": "e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "issued_count": 0,
+    "pending_count": 0,
+    "revoked_count": 0,
+    "crl_number": 0,
+    "checkpoint_source": "public ledger before backup; CA DER fingerprint independently verified with OpenSSL",
+    "checkpoint_id": "20260913T014016Z-e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "retained_at": "2026-09-13T01:40:16.273520+00:00",
+    "bucket": "modelmatch-home-server-backups-957261948820",
+    "object_key": "recovery/issuer-v1/b034b0e2cbeed365e81e866fac143d12dbdc7f6ab303aa17ee2c968b80ca1ced.age",
+    "version_id": "kmhfg7PTVEoi6rAehXkepa2dbnmq8_pn",
+    "ciphertext_sha256": "7284b1e10fe3bfedb93acac792c59f99645906662b1af452f138e0ee5aa99be4",
+    "recovery_key_id": "modelmatch/home-server/recovery-key-v1",
+    "recovery_recipient": "age1vcy5ynjmhrv587m5e8pvgm42gwrwxj4smzzcywhxckrl47xqea8qcewa7m",
+    "recovery_secret_version_at_enrollment": "abd5ad3c-3ff5-5d47-91b0-aff63b2df616",
+    "infra_source_revision": "e94f2b111a64670b3aeccf69f6743a8cf272ab84"
+  },
+  "home_transfer": {
+    "checkpoint_id": "20260913T014016Z-e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "directory": "/home/steve/.local/share/driftplain/home-server-issuer-checkpoints/20260913T014016Z-e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "owner_uid": 1000,
+    "directory_mode": "0700",
+    "file_mode": "0600",
+    "files_written": 10,
+    "verified_sha256": {
+      "checkpoint.json": "997bbbd637a5e8c642c6eb7242c87820abca506ba7ba148ae8eeb23c74adf59b",
+      "issuer.crt": "2575957e5a645c0bfe7d1ae1dc309f76f13ced2dcffef9b5ed37d4fd4c0fba33",
+      "issuer.sha256": "d402f0ee5680526a5b2a304a91e857c179c154f21a22abac4ea457edf4bb4d6a",
+      "ledger.json": "e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+      "openssl-verification.txt": "0581a1e8959bd43e428915d6f7e117443364ad8f3ed1769706615b06906ff230",
+      "preparation-manifest.json": "3c95ee07120a31eb94d0e905ce1e02f645421c80e9ad54012cd36c168dc0c6ab",
+      "receipt.json": "233ea9626a38a7c82edb37b239a7d5194700a5b2830856475fe9aa7503ec8034",
+      "recovery-key-v1.recipient": "8f98c0411c1d0c8138eba2f5deb69938e6a562fb49bb6cc588f6b88b14b5a465",
+      "requirements.lock.txt": "b2444b8e3e39303004f7a8c891e09960563a474e0a44a5924ca9251aee836553"
+    }
+  },
+  "independent_checkpoint_retrieval": {
+    "checkpoint_id": "20260913T014016Z-e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "source": "/home/steve/.local/share/driftplain/home-server-issuer-checkpoints/20260913T014016Z-e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "local_directory": "/Users/steve/.local/share/driftplain/home-server-identity/recovery-inputs/20260913T014016Z-e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "retrieved_public_files": 10,
+    "hashes_match": true,
+    "openssl_public_ca_verified": true,
+    "expected_ledger_sha256": "e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "original_issuer_paths_not_used_for_recovery_config": true
+  },
+  "independent_recovery": {
+    "started_at": "2026-09-13T01:41:40.418090+00:00",
+    "completed_at": "2026-09-13T01:41:45.672224+00:00",
+    "result": {
+      "command": "verify-recovery",
+      "ca_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+      "ledger_sha256": "e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+      "issued_count": 0,
+      "revoked_count": 0,
+      "crl_number": 0
+    },
+    "recovery_source": "aws",
+    "recovery_secret_version": "abd5ad3c-3ff5-5d47-91b0-aff63b2df616",
+    "checkpoint_source": "/home/steve/.local/share/driftplain/home-server-issuer-checkpoints/20260913T014016Z-e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "receipt_source": "/Users/steve/.local/share/driftplain/home-server-identity/recovery-inputs/20260913T014016Z-e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed/receipt.json",
+    "exact_s3_version": "kmhfg7PTVEoi6rAehXkepa2dbnmq8_pn",
+    "s3_history_reconciled": true,
+    "issuer_object_versions": 1,
+    "isolated_issuer_keychain_certificate_ledger_archive_paths_absent_before_and_after": true,
+    "only_isolated_ledger_lock_created": true,
+    "original_issuer_keychain_not_used_by_verifier": true,
+    "original_issuer_files_not_used_by_verifier": true,
+    "decrypted_bundle_in_memory_only": true,
+    "native_restore_performed": false,
+    "populated_history_proven": false
+  },
+  "postchecks": {
+    "checked_at": "2026-09-13T01:42:42.991059+00:00",
+    "production_readyz": {
+      "status": "ready",
+      "db": "ok"
+    },
+    "budget_dry_run": "1",
+    "renewal_disabled": true,
+    "renewal_job_not_registered": true,
+    "identity_source_creation_and_sessions_disabled": true,
+    "original_ledger_unchanged_by_backup_and_recovery": true,
+    "installed_runtime_hashes_unchanged": true,
+    "issuer_subject": "CN=driftplain-home-server-issuer-v1",
+    "issuer_serial": "303370052491960717673615861148019815507344089551",
+    "issuer_not_before": "2026-09-13T01:33:19+00:00",
+    "issuer_not_after": "2028-09-12T01:38:19+00:00",
+    "config_sha256": {
+      "renewal.json": "9e11f7ab87e7d8340d5e7fc9bfc6cc2b81dbc4d744bd3cd91e92bac9f70b26fb",
+      "recovery-drill.json": "e1d2c75557f4736bab6ea2208f6575d7e9ec7d91eeb9c787ac6552b2138c83c2"
+    }
+  },
+  "mutation_scope": {
+    "issuer_created": true,
+    "issuer_ca_count": 1,
+    "issuer_leaf_count": 0,
+    "recovery_key_created_or_rotated": false,
+    "local_recovery_key_read": false,
+    "existing_aws_recovery_key_read": true,
+    "issuer_ciphertext_s3_versions": 1,
+    "public_home_checkpoint_files": 10,
+    "native_replacement_restore": false,
+    "iam_or_roles_anywhere_mutations": false,
+    "crl_generated_or_imported": false,
+    "home_runtime_installation": false,
+    "scheduler_installed": false,
+    "production_data_export_or_mutation": false,
+    "paid_llm_calls": 0,
+    "committed": false,
+    "pushed": false
+  },
+  "limitations": [
+    "Initial ledger has no issued/pending/revoked leaves; full-history recovery must be reverified later.",
+    "Recovery validates the complete decrypted bundle in memory; replacement-Mac native restoration was not performed.",
+    "Home checkpoint protects against Mac loss only while home checkpoint and operator AWS access survive; no account/MFA recovery or compromise-resilience claim.",
+    "Native readback was tested in a fresh noninteractive process; actual scheduled renewal remains uninstalled and untested."
+  ],
+  "next_gates": [
+    "Steve source review before committing this slice",
+    "Fresh disabled-first identity plan and separate cloud-apply review",
+    "Initial leaf bootstrap with complete ledger and repeated full-history recovery",
+    "CRL import, authentication enablement and live negative/session-containment checks",
+    "Home GitOps/image/Secret integration and scheduled renewal with independent alerts"
+  ]
+}

@@ -1,19 +1,24 @@
 # HM2 home-server AWS identity — September 13, 2026
 
-**IAM Roles Anywhere is selected. Source merged in PR #18; enrollment and deployment
-remain pending. Future slices retain commit/cloud review gates.** No operational CA, leaf certificate, AWS identity resource, credential or runtime installation
-has been created. Existing recovery-key custody is complete and is not repeated here.
+**IAM Roles Anywhere is selected. Source merged in PR #18; AWS identity and leaf deployment
+remain pending. Future slices retain commit/cloud review gates.** The operational CA is
+now enrolled in local Keychain, with independent empty-ledger recovery verified from S3
+and a public checkpoint retrieved from home. No leaf certificate, AWS identity resource,
+workload credential or runtime installation has been created. Existing recovery-key custody
+is preserved. [Enrollment record](ISSUER-ENROLLMENT.md).
 
 **Next slice prepared locally, September 13:** [issuer enrollment/recovery/CRL tooling](ISSUER.md)
 adds native no-overwrite enrollment, independent complete-ledger recovery and signed CRLs
-with public AWS readback validation. Its source is approved for local commits; no operational enrollment
-or cloud/scheduler action has occurred. It introduces bundle/ledger schema 2 before first use.
+with public AWS readback validation. Source merged in PR #21; separately approved enrollment
+and S3 recovery verification are complete. No CRL/cloud identity/scheduler action has occurred.
+It introduced bundle/ledger schema 2 before first use.
 
 Steve approved the certificate operating design in this session: a private CA signing key
 in the Mac's local Keychain, an age-encrypted issuer recovery bundle in S3 and on the Mac,
 and 90-day workload certificates. Steve then required automatic renewal 30 days before
 expiry; a Mac launchd job now replaces the manual-renewal proposal. This approval
-selects the design; it does not deploy it. E21 still precedes P39; AWS remains production.
+selected the design; the later bounded operational approval enrolled only the issuer and
+proved its initial recovery. E21 still precedes P39; AWS remains production.
 
 ## Identity and permissions
 
@@ -115,7 +120,7 @@ Keychain is off the Ubuntu host, not an air-gapped system. Mac compromise can ex
 authority. S3 and the AWS-held recovery key share an account; the Mac copy is the independent
 location. No additional Secrets Manager secret or AWS Private CA is selected.
 
-Prepared issuance parameters, awaiting enrollment review: dedicated self-signed RSA-3072
+Enrolled CA parameters (leaf issuance remains pending): dedicated self-signed RSA-3072
 CA, SHA-256, two-year validity, X.509v3 `CA:true,pathlen:0`, `keyCertSign,cRLSign`; directly
 issued RSA-3072 leaves with `CA:false`, `digitalSignature`, one exact CN and 90-day validity.
 Verify leaves never outlive the CA. Keep a ledger of serial, subject, public-key fingerprint,
@@ -300,6 +305,7 @@ An additional fresh-fixture age round trip verifies issuer-bundle encryption, ve
 S3 readback through a fake client, and absence of plaintext CA keys in output files.
 
 Limits: mocked policies are not live IAM enforcement proof; fake credentials are not a signed
-Roles Anywhere exchange. No issuer, certificate renewal, imported CRL, container installation,
-scheduled backup or alert has been verified live. Those gates remain explicit above. See
+Roles Anywhere exchange. Operational issuer custody and empty-ledger recovery now pass in
+the separate enrollment record. Certificate renewal, imported CRL, container installation,
+scheduled backup and alerts remain unverified live. Those gates remain explicit above. See
 [sanitized local evidence](hm2-identity-local-evidence.json).

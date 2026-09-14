@@ -15,11 +15,13 @@ it preserves a disposable witness across separately coordinated actions. Runtime
 is recorded in [RESULTS.md](RESULTS.md). The [budget safeguard](BUDGET-SAFEGUARD.md) was
 approved and applied September 13: automatic teardown is now dry-run, with budget alerts
 retained. Steve selected S3 for hourly backups; [the protected bucket and recovery design](S3-BACKUPS.md)
-were approved and applied September 13; the bucket is empty pending the first encrypted export.
+were approved and applied September 13; the bucket now holds the issuer recovery archive,
+while the first production export remains pending.
 [Recovery-key custody](RECOVERY-KEY.md) now uses AWS Secrets Manager plus a local-only Mac
 Keychain copy. Roles Anywhere and automatic certificate renewal are selected, with source
-merged in PR #18; [issuer enrollment/recovery/CRL preparation](ISSUER.md) is approved for local
-commits, with operational enrollment/deployment still pending. Image, app-secret, public-route
+merged in PR #18; [issuer tooling](ISSUER.md) is merged in PR #21. Separately approved
+[CA enrollment and independent empty-ledger recovery](ISSUER-ENROLLMENT.md) now pass;
+AWS identity/leaf deployment and scheduling remain pending. Image, app-secret, public-route
 and rollback choices remain open. Key-custody proof does not complete the production restore gate.
 
 ## Completed private cluster foundation

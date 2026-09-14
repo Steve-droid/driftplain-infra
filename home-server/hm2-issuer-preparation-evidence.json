@@ -1,0 +1,108 @@
+{
+  "prepared_at": "2026-09-13T01:31:11.583452+00:00",
+  "status": "local prerequisites prepared; operational approval pending",
+  "infra_source_revision": "e94f2b111a64670b3aeccf69f6743a8cf272ab84",
+  "umbrella_source_revision": "4947171f633388c4535508d36a61770ab4711a8b",
+  "operator_directory": "/Users/steve/.local/share/driftplain/home-server-identity",
+  "python": {
+    "version": "3.12.13",
+    "executable": "/Users/steve/.local/share/driftplain/home-server-identity/venv/bin/python3",
+    "base_prefix": "/Users/steve/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none",
+    "executable_is_symlink": false,
+    "base_executable_sha256": "a395f264e5612a2819662ed3e37fd30d39ed61179b98e5f86c3c783a008d8623"
+  },
+  "packages": {
+    "boto3": "1.43.24",
+    "botocore": "1.43.24",
+    "cffi": "2.1.1",
+    "cryptography": "50.0.1",
+    "jmespath": "1.1.0",
+    "pycparser": "3.0",
+    "python-dateutil": "2.9.0.post0",
+    "s3transfer": "0.18.0",
+    "six": "1.17.0",
+    "urllib3": "2.7.0"
+  },
+  "files": {
+    "home-server-issuer.py": {
+      "sha256": "3b5b7e1d21621e9d0d970fc75c0e28e877905a2cdcc499e17bcd88479a184078",
+      "mode": "0o600"
+    },
+    "home-server-renew.py": {
+      "sha256": "ced0e757131c0e676b0a49b5e809b339f6d2dc8e50d72c09bcf0954d1b21c40b",
+      "mode": "0o600"
+    },
+    "recovery-key.py": {
+      "sha256": "a96ed1b2cc745afe9d1c49ccfa942fe2b22fbe30e9f1e1dab82bde514b3633e8",
+      "mode": "0o600"
+    },
+    "recovery-key-v1.recipient": {
+      "sha256": "8f98c0411c1d0c8138eba2f5deb69938e6a562fb49bb6cc588f6b88b14b5a465",
+      "mode": "0o600"
+    },
+    "renewal.json": {
+      "sha256": "b9d9b77dcac20c85bf15b898b3af3885eab45e7b5ab7cdd3eff10c474c0c2a09",
+      "mode": "0o600"
+    },
+    "recovery-drill.json": {
+      "sha256": "e11a9c1a3b772dac6abb092c8c38bc41719bac5a0044195ef145f65930f7e763",
+      "mode": "0o600"
+    },
+    "operator.env": {
+      "sha256": "d311de75de3e893f97719d981484bfe19da8fc132e7661c27826655fd96a7be0",
+      "mode": "0o600"
+    },
+    "bin/age": {
+      "sha256": "dceadbf3efeda083d24cd03f77fda2ede1aede07721cc8ba43dd3c50ab110d6c",
+      "mode": "0o700"
+    },
+    "bin/age-keygen": {
+      "sha256": "c5a0271391b7e510ceda76426fb4f93c861084fdafb4e75943ebef5a70a503d7",
+      "mode": "0o700"
+    },
+    "venv/bin/python3": {
+      "sha256": "a395f264e5612a2819662ed3e37fd30d39ed61179b98e5f86c3c783a008d8623",
+      "mode": "0o755"
+    },
+    "requirements.lock.txt": {
+      "sha256": "b2444b8e3e39303004f7a8c891e09960563a474e0a44a5924ca9251aee836553",
+      "mode": "0o600"
+    }
+  },
+  "checks": {
+    "issuer_help": "pass",
+    "renewer_disabled": "home-server renewal disabled; enrollment review required",
+    "age_version": "v1.3.2",
+    "age_keygen_version": "v1.3.2",
+    "scripts_match_merged_source": true,
+    "prior_runtime_and_test_hashes_match": true,
+    "native_security_symbols_available_no_calls": true,
+    "keychain_and_ssh_paths_exist_no_contents_read": true,
+    "operational_issuer_files_absent": true,
+    "renewal_enabled": false,
+    "dependency_compatibility": "uv pip check --offline: all 10 packages compatible"
+  },
+  "operational_actions": {
+    "ca_created": false,
+    "keychain_item_accessed": false,
+    "recovery_key_accessed": false,
+    "s3_upload": false,
+    "aws_calls": false,
+    "home_changes": false,
+    "scheduler_installed": false,
+    "unchanged_test_suites_rerun": false,
+    "paid_llm_calls": 0
+  },
+  "external_binaries": {
+    "aws": {
+      "path": "/opt/homebrew/bin/aws",
+      "resolved_path": "/opt/homebrew/Cellar/awscli/2.36.18/libexec/bin/aws",
+      "sha256": "cedc6ddcbe81fb62d52d2f239dab47f0d26434f9b3addb4143f1e7bf6b273c0f"
+    },
+    "openssl": {
+      "path": "/opt/homebrew/bin/openssl",
+      "resolved_path": "/opt/homebrew/Cellar/openssl@3/3.6.3/bin/openssl",
+      "sha256": "5d8f84484b7317ec5639ce68ccecc1d6f565ca6df483c8ae731e25265d83466d"
+    }
+  }
+}
