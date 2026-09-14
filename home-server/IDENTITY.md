@@ -1,9 +1,11 @@
 # HM2 home-server AWS identity — September 13, 2026
 
-**IAM Roles Anywhere is selected. Source merged in PR #18; AWS identity and leaf deployment
-remain pending. Future slices retain commit/cloud review gates.** The operational CA is
+**IAM Roles Anywhere is provisioned with authentication disabled, September 14.**
+[Applied verification](IDENTITY-APPLIED.md) records eight creates and a no-change follow-up
+plan. Leaves, CRL, authentication enablement and scheduling remain separately gated.
+Future slices retain commit/cloud review gates. The operational CA is
 now enrolled in local Keychain, with independent empty-ledger recovery verified from S3
-and a public checkpoint retrieved from home. No leaf certificate, AWS identity resource,
+and a public checkpoint retrieved from home. No leaf certificate,
 workload credential or runtime installation has been created. Existing recovery-key custody
 is preserved. [Enrollment record](ISSUER-ENROLLMENT.md).
 
@@ -71,10 +73,11 @@ the exact existing backup bucket name as a validated input, without importing th
 reading all bootstrap state. It owns only identity resources and an additive teardown deny.
 `stack=home-server-identity` tags distinguish them from retired compute.
 
-The proposed [dev.tfvars](identity/dev.tfvars) now sets creation **true** and session
+The applied [dev.tfvars](identity/dev.tfvars) sets creation **true** and session
 enablement **false**, using the verified enrolled public CA. The fresh September 14
-[plan review](IDENTITY-PLAN.md) confirms **8 creates, 0 updates, 0 deletes**; nothing has
-been applied. Source/publication was approved September 14; cloud apply remains a separate gate.
+[plan review](IDENTITY-PLAN.md) confirmed **8 creates, 0 updates, 0 deletes**. After separate
+approval, an equivalent refreshed saved plan was applied and [verified](IDENTITY-APPLIED.md).
+The complete follow-up plan proposes no changes; authentication remains disabled.
 The eight creates are one trust anchor, two
 roles, two inline workload policies, two profiles and one extra policy on the existing
 teardown role. That last resource changes an existing principal's effective permissions.
@@ -98,8 +101,8 @@ not changing the resource-creation flag (which would propose protected destructi
 2. Obtain a reviewed live plan from this root, with explicit `-var-file=dev.tfvars`, normal
    state locking, account `957261948820`, region `ap-south-1`; approve before applying.
    Initial resources can be provisioned with authentication disabled.
-3. After separately approved disabled provisioning, verify actual role/profile policies,
-   default attribute mappings and teardown denials. Initial leaf bootstrap is a later
+3. Disabled provisioning, actual role/profile policies, default attribute mappings and
+   teardown denials are now verified in the applied record. Initial leaf bootstrap is a later
    approved operation; record the complete history and repeat independent recovery.
    Prepare and test CRL import/update plus emergency session denial before enabling sessions.
 4. Separately approve enablement and prove a valid exchange, cross-role rejection,
