@@ -1,12 +1,21 @@
 # HM2 issuer enrollment, recovery and revocation
 
-September 13, 2026. **Source approved for local commits. Nothing enrolled or deployed.**
+September 13, 2026. **Source merged in PR #21. Operational CA enrollment and independent
+empty-ledger recovery verified after separate approval; no leaf/identity/scheduler deployed.**
 The selected Roles Anywhere/Keychain/automatic leaf-renewal design is unchanged.
 [home-server-issuer.py](home-server-issuer.py) adds operator commands and shares validation
 with [the renewer](home-server-renew.py). It performs no IAM/CRL API writes, SSH, leaf
 installation or scheduler installation. `backup`, `crl` and `revoke` do upload issuer
 ciphertext to S3 when explicitly invoked. `enroll` and `restore` can add the Keychain item.
 Those operational invocations require the handoff's separate approval.
+
+**Operational preparation — September 13:** the merged scripts, stable interpreter and
+disabled configs are now staged on the Mac. [Concrete enrollment approval package](ISSUER-ENROLLMENT.md)
+records exact paths, the approved independent home-held public checkpoint and the bounded
+recovery drill. [Operational evidence](hm2-issuer-enrollment-evidence.json) records native
+readback, exact S3-version verification and independent recovery success. Steve approved
+this operational record and its PR/merge publication on September 14; later
+IAM/CRL/leaf/scheduler gates remain.
 
 ## Custody and transaction rules
 
@@ -249,9 +258,11 @@ uv run --offline --no-project --python 3.12 --with boto3==1.43.24 --with botocor
 ```
 
 [Sanitized evidence](hm2-issuer-local-evidence.json) records the exact tested source hashes.
-Live Keychain ACL behavior, operational independent recovery, disabled-first cloud plan,
-live role/anchor/CRL proof, initial leaf bootstrap, home GitOps Secret/annotation ownership,
-runtime helper image, scheduled leaf renewal and independent monitoring remain gates.
+Native noninteractive Keychain access and operational independent empty-ledger recovery
+now pass; see the separate operational record above. Full-history recovery after initial
+leaves, replacement-Mac native restoration, disabled-first cloud plan, live role/anchor/CRL
+proof, home GitOps Secret/annotation ownership, runtime helper image, scheduled leaf renewal
+and independent monitoring remain gates.
 Install this new issuer module alongside the renewer and custody helper in the eventual
 stable runtime; a source merge alone does not install it. Existing age custody, AWS
 production, budget `DRY_RUN=1`, application identifiers and paid-call restrictions remain.

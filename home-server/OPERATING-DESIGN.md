@@ -6,7 +6,8 @@ provisioned and verified. Recovery-key custody is AWS Secrets Manager plus a loc
 Keychain copy, selected September 13; see [the custody runbook](RECOVERY-KEY.md).
 IAM Roles Anywhere is selected for separate backup and Bedrock identities. The local
 [identity implementation](IDENTITY.md) is merged but not deployed; additional
-[issuer enrollment/recovery/CRL preparation](ISSUER.md) is approved for local commits. Public route and remaining
+[issuer tooling](ISSUER.md) is merged, and separately approved issuer enrollment/independent
+empty-ledger recovery now pass. Public route and remaining
 service choices are proposals.
 The approved budget safeguard is applied; AWS is still production. HM2 is not yet accepted.
 
@@ -106,8 +107,10 @@ same AWS account; no immutability/account-compromise guarantee is claimed.
 Steve approved CA-key custody in local Mac Keychain plus an age-encrypted issuer recovery
 bundle in S3/on the Mac. He then required automatic certificate renewal. The local draft
 uses a Mac launchd renewal job for 90-day leaves at 30 days remaining, with retries/failure
-notifications and independent expiry monitoring required before use. No issuer, AWS identity,
-leaf certificate or renewal job is deployed. See [identity design/code/tests](IDENTITY.md).
+notifications and independent expiry monitoring required before use. The issuer is now
+enrolled with encrypted S3/Mac recovery and a home-held public checkpoint; no AWS identity,
+leaf certificate or renewal job is deployed. See [enrollment evidence](ISSUER-ENROLLMENT.md)
+and [identity design/code/tests](IDENTITY.md).
 App secrets and image distribution remain independent choices; neither runtime role gets
 Secrets Manager or ECR permissions. Existing ESO/app-secret custody remains intact on AWS.
 
