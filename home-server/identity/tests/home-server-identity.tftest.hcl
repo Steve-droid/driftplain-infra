@@ -18,6 +18,11 @@ override_resource {
 
 run "draft_creates_nothing" {
   command = plan
+  variables {
+    home_server_identity_enabled   = false
+    home_server_sessions_enabled   = false
+    home_server_ca_certificate_pem = ""
+  }
   assert {
     condition = (length(aws_iam_role.home_server) == 0 &&
       length(aws_rolesanywhere_profile.home_server) == 0 &&
@@ -104,7 +109,10 @@ run "separate_trust_and_permissions" {
 
 run "reject_missing_ca" {
   command = plan
-  variables { home_server_identity_enabled = true }
+  variables {
+    home_server_identity_enabled   = true
+    home_server_ca_certificate_pem = ""
+  }
   expect_failures = [var.home_server_ca_certificate_pem]
 }
 run "reject_private_key_input" {
@@ -124,6 +132,9 @@ run "reject_model_wildcard" {
 }
 run "reject_sessions_without_identity" {
   command = plan
-  variables { home_server_sessions_enabled = true }
+  variables {
+    home_server_identity_enabled = false
+    home_server_sessions_enabled = true
+  }
   expect_failures = [var.home_server_sessions_enabled]
 }

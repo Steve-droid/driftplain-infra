@@ -1,0 +1,395 @@
+{
+  "recorded_at": "2026-09-14T15:16:59.301449+00:00",
+  "status": "fresh disabled-first plan verified; source review and cloud apply pending",
+  "plan_timestamp": "2026-09-14T15:14:39Z",
+  "plan_exit_code": 2,
+  "terraform_version": "1.15.5",
+  "aws_provider_version": "5.100.0",
+  "provider_lock_unchanged": true,
+  "plan_directory": "/Users/steve/.local/share/driftplain/home-server-identity/plans/20260914T151300Z-disabled-first",
+  "backend": {
+    "bucket": "modelmatch-tfstate-957261948820",
+    "key": "home-server/identity/terraform.tfstate",
+    "region": "ap-south-1",
+    "encrypt": true,
+    "use_lockfile": true
+  },
+  "normal_locking": true,
+  "lock_timeout": "60s",
+  "var_file": "dev.tfvars",
+  "source_revision": "cce35f8b5678eb88afeabf5d4320db1f90f19819",
+  "source_sha256": {
+    "home-server/identity/backend.tf": "54c949459d7d5e73898c04790ae8d0b9055be59ba68af190b509770fe796ab9a",
+    "home-server/identity/main.tf": "4fbf85890c965b62b6fc8cc922100023fe2be57c108735e61982779e02269b25",
+    "home-server/identity/outputs.tf": "999e2d75d536e0675abf77fd26e49605147c23936088a7101157230f3aa05981",
+    "home-server/identity/providers.tf": "10c8a706d069ea5bb7e23f2eeea7e2a08531f3f5850358ea869c3ac65daa4802",
+    "home-server/identity/variables.tf": "91c644135214e68d825789e9349267d5ae0eef59afeeac0c4be7709a6d9df6bf",
+    "home-server/identity/versions.tf": "2a17daffd8d489e9b939b5fcfb379122ecd823480c07891f4fcfdeac678f58be",
+    "home-server/identity/.terraform.lock.hcl": "d0b4597b478fffe7f49c61272f79d056ef3efdf5a8457d58fb5c146213089e67",
+    "home-server/identity/tests/home-server-disabled-first.tftest.hcl": "6a14ce0132725689d775ae4a8769bdbbc3b97a5dbfef1fb41d562873bacf96e9",
+    "home-server/identity/tests/home-server-identity.tftest.hcl": "c1f8ba3518dd091604175c5d89a0aee9256448d76eb12de39fd4dc0fc5afb390"
+  },
+  "input_sha256": "d7ec9f25a13b0b8d6fb7027187d4f9165d7dfa6a6605c4b0a94446e0ddc1389a",
+  "resolved_variables_sha256": "4f61127259d60073194486659906305360ce91a9e75837530c964fe7688ec816",
+  "plan_sha256": "0c71a5b85ffc7217b1adb2f4e6191999950bbd3ad1d23c2b6bfd6e3771af24a0",
+  "plan_json_sha256": "533ca6d07ae871f7c0c9e7b24c2ce6de60af48a9a97190b0e857df3cf332ead4",
+  "ca_der_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+  "ca_pem_sha256": "2575957e5a645c0bfe7d1ae1dc309f76f13ced2dcffef9b5ed37d4fd4c0fba33",
+  "ca_not_after": "2028-09-12T01:38:19+00:00",
+  "flags": {
+    "resources_enabled": true,
+    "sessions_enabled": false
+  },
+  "counts": {
+    "create": 8,
+    "update": 0,
+    "delete": 0
+  },
+  "resources": [
+    {
+      "address": "aws_iam_role.home_server[\"backup\"]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-backup"
+    },
+    {
+      "address": "aws_iam_role.home_server[\"bedrock\"]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-bedrock"
+    },
+    {
+      "address": "aws_iam_role_policy.home_server[\"backup\"]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-backup"
+    },
+    {
+      "address": "aws_iam_role_policy.home_server[\"bedrock\"]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-bedrock"
+    },
+    {
+      "address": "aws_iam_role_policy.home_server_teardown_protection[0]",
+      "actions": [
+        "create"
+      ],
+      "name": "home-server-identity-protection"
+    },
+    {
+      "address": "aws_rolesanywhere_profile.home_server[\"backup\"]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-backup",
+      "enabled": false
+    },
+    {
+      "address": "aws_rolesanywhere_profile.home_server[\"bedrock\"]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-bedrock",
+      "enabled": false
+    },
+    {
+      "address": "aws_rolesanywhere_trust_anchor.home_server[0]",
+      "actions": [
+        "create"
+      ],
+      "name": "modelmatch-home-server-issuer-v1",
+      "enabled": false
+    }
+  ],
+  "policies": {
+    "backup": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "UploadEncryptedBackups",
+          "Effect": "Allow",
+          "Action": [
+            "s3:PutObject"
+          ],
+          "Resource": [
+            "arn:aws:s3:::modelmatch-home-server-backups-957261948820/postgres/hourly/*",
+            "arn:aws:s3:::modelmatch-home-server-backups-957261948820/postgres/daily/*",
+            "arn:aws:s3:::modelmatch-home-server-backups-957261948820/recovery/*"
+          ]
+        }
+      ]
+    },
+    "bedrock": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "InvokeNovaProfiles",
+          "Effect": "Allow",
+          "Action": [
+            "bedrock:InvokeModel"
+          ],
+          "Resource": [
+            "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/apac.amazon.nova-lite-v1:0",
+            "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/global.amazon.nova-2-lite-v1:0"
+          ]
+        },
+        {
+          "Sid": "InvokeNovaModelsViaProfile",
+          "Effect": "Allow",
+          "Action": [
+            "bedrock:InvokeModel"
+          ],
+          "Resource": [
+            "arn:aws:bedrock:*::foundation-model/amazon.nova-lite-v1:0",
+            "arn:aws:bedrock:*::foundation-model/amazon.nova-2-lite-v1:0"
+          ],
+          "Condition": {
+            "StringEquals": {
+              "bedrock:InferenceProfileArn": [
+                "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/apac.amazon.nova-lite-v1:0",
+                "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/global.amazon.nova-2-lite-v1:0"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "teardown_protection": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "DenyRolesAnywhereAdministration",
+          "Effect": "Deny",
+          "Action": [
+            "rolesanywhere:*"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Sid": "DenyHomeServerRoleAccess",
+          "Effect": "Deny",
+          "Action": [
+            "iam:*",
+            "sts:AssumeRole"
+          ],
+          "Resource": [
+            "arn:aws:iam::957261948820:role/modelmatch-home-server-backup",
+            "arn:aws:iam::957261948820:role/modelmatch-home-server-bedrock"
+          ]
+        },
+        {
+          "Sid": "DenyHomeServerIdentityStateAccess",
+          "Effect": "Deny",
+          "Action": [
+            "s3:*"
+          ],
+          "Resource": "arn:aws:s3:::modelmatch-tfstate-957261948820/home-server/identity/*"
+        }
+      ]
+    }
+  },
+  "verification": {
+    "all_plan_checks_pass": true,
+    "no_prior_state_or_drift": true,
+    "full_resource_action_set_matches": true,
+    "certificate_signature_constraints_validity_and_fingerprint_pass": true,
+    "saved_plan_source_matches_checkout": true,
+    "exact_workload_and_session_policies_match": true,
+    "defaultless_inputs": true,
+    "anchor_depends_on_teardown_guard": true,
+    "prevent_destroy_on_anchor_roles_profiles_guard": true,
+    "terraform_validate_pass": true,
+    "new_test_red_then_green": true,
+    "terraform_contracts_pass": 8
+  },
+  "unknowns": [
+    "AWS-generated trust-anchor/profile IDs and ARNs, IAM role IDs and ARNs",
+    "Role assume_role_policy is wholly unknown in the live plan because it references the new anchor ARN; exact account/issuer/workload/anchor binding verified in unchanged source and mocked contract",
+    "Profile role_arns resolves from exactly its corresponding role; verify AWS readback after apply",
+    "Default attribute mappings and trust-anchor notification settings require AWS readback; not live acceptance yet"
+  ],
+  "applied": false,
+  "committed": false,
+  "preflight": {
+    "checked_at": "2026-09-14T15:13:00.992400+00:00",
+    "operator": {
+      "Account": "957261948820",
+      "Arn": "arn:aws:iam::957261948820:user/steve"
+    },
+    "plan_directory": "/Users/steve/.local/share/driftplain/home-server-identity/plans/20260914T151300Z-disabled-first",
+    "trustAnchors": [],
+    "profiles": [],
+    "crls": [],
+    "workload_roles": {
+      "modelmatch-home-server-backup": {
+        "exists": false
+      },
+      "modelmatch-home-server-bedrock": {
+        "exists": false
+      }
+    },
+    "teardown_role": {
+      "arn": "arn:aws:iam::957261948820:role/modelmatch-platform-teardown-codebuild",
+      "inline_policies": [
+        "guardrails"
+      ],
+      "attached_policies": [
+        {
+          "PolicyName": "AdministratorAccess",
+          "PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess"
+        }
+      ]
+    },
+    "identity_state_versions": [],
+    "backup_bucket_region": "ap-south-1",
+    "budget_dry_run": "1"
+  },
+  "postchecks": {
+    "checked_at": "2026-09-14T15:17:40.085617+00:00",
+    "identity_state_object_absent": true,
+    "lock_released": true,
+    "lock_object_history": [
+      {
+        "kind": "Versions",
+        "key": "home-server/identity/terraform.tfstate.tflock",
+        "latest": false
+      },
+      {
+        "kind": "DeleteMarkers",
+        "key": "home-server/identity/terraform.tfstate.tflock",
+        "latest": true
+      }
+    ],
+    "budget_dry_run": "1"
+  },
+  "teardown_policy_simulation": {
+    "checked_at": "2026-09-14T15:17:39.298023+00:00",
+    "scope": "read-only IAM simulation of live teardown role plus proposed additional inline policy; policy not installed",
+    "cases": [
+      {
+        "action": "rolesanywhere:CreateTrustAnchor",
+        "resource": "*",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "rolesanywhere:DeleteTrustAnchor",
+        "resource": "*",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "rolesanywhere:EnableProfile",
+        "resource": "*",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "iam:DeleteRole",
+        "resource": "arn:aws:iam::957261948820:role/modelmatch-home-server-backup",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "iam:PutRolePolicy",
+        "resource": "arn:aws:iam::957261948820:role/modelmatch-home-server-bedrock",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "sts:AssumeRole",
+        "resource": "arn:aws:iam::957261948820:role/modelmatch-home-server-backup",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::modelmatch-tfstate-957261948820/home-server/identity/terraform.tfstate",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "s3:DeleteObject",
+        "resource": "arn:aws:s3:::modelmatch-tfstate-957261948820/home-server/identity/terraform.tfstate.tflock",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::modelmatch-tfstate-957261948820/platform/terraform.tfstate",
+        "expected": "allowed",
+        "decision": "allowed",
+        "missing_context": []
+      },
+      {
+        "action": "s3:PutObject",
+        "resource": "arn:aws:s3:::modelmatch-tfstate-957261948820/platform/terraform.tfstate",
+        "expected": "allowed",
+        "decision": "allowed",
+        "missing_context": []
+      },
+      {
+        "action": "s3:DeleteObject",
+        "resource": "arn:aws:s3:::modelmatch-home-server-backups-957261948820/recovery/simulation.age",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      },
+      {
+        "action": "secretsmanager:GetSecretValue",
+        "resource": "arn:aws:secretsmanager:ap-south-1:957261948820:secret:modelmatch/home-server/recovery-key-v1-ABCDEF",
+        "expected": "explicitDeny",
+        "decision": "explicitDeny",
+        "missing_context": []
+      }
+    ]
+  },
+  "local_verifier_sha256": "2e58e473b519293df5fdda944eaea2bc7336e65c4b5aaa00812ac989cf399bb9",
+  "existing_teardown_guardrails_sha256": "024ade9cd86a72a7cfbbe66af6903123e00051a05e2294085af1ec9aabb59e43",
+  "plan_command": "AWS_PROFILE=saa AWS_REGION=ap-south-1 AWS_PAGER= AWS_CLI_AUTO_PROMPT=off terraform -chdir=home-server/identity plan -input=false -var-file=dev.tfvars -lock-timeout=60s -out=/Users/steve/.local/share/driftplain/home-server-identity/plans/20260914T151300Z-disabled-first/reviewed.tfplan -no-color -detailed-exitcode",
+  "plan_directory_mode": "0o700",
+  "plan_file_mode": "0o600",
+  "repo_revisions": {
+    "driftplain-portfolio": "2fcc3e38e901b8b079430857350cd6427adedd96",
+    "driftplain-infra": "cce35f8b5678eb88afeabf5d4320db1f90f19819",
+    "driftplain-backend": "4ce8ca0fb3351e010446e475aa8b2f9e4f593273",
+    "driftplain-frontend": "a9a7368ac525ad3622f932ac58843cb7789cd8b3",
+    "driftplain-gitops": "db4e98f3aa3f6193f19e9a947ef242eab96d7655"
+  },
+  "scope": {
+    "source_review_approved": false,
+    "cloud_apply_approved": false,
+    "iam_rolesanywhere_crl_writes": false,
+    "certificate_or_key_operations": false,
+    "scheduling": false,
+    "paid_llm_calls": 0,
+    "remote_git_writes": false,
+    "s3_mutations": "Terraform native lock acquisition/release only; one retained noncurrent lock version and current delete marker; no identity state object"
+  },
+  "limitations": [
+    "IAM simulations evaluate the proposed policy with the existing role; they do not install it or prove live workload authentication.",
+    "Existing teardown role has AdministratorAccess and can remove its own inline guard; this protects routine teardown, not a compromised administrator. No broad IAM hardening is included.",
+    "Terraform saved-plan lock metadata comments are normalized internally; provider version, constraints and all checksums match the unchanged tracked lock.",
+    "No complete retained-services monthly bill is established; this plan contains only identity resources and the additive deny.",
+    "No production health or home recovery drill was repeated in this planning slice."
+  ],
+  "subsequent_source_approval": {
+    "date": "2026-09-14",
+    "user_response": "Approved, you can PR and merge, then handoff to the next slice",
+    "scope": "source commit and PR/merge publication only; separate cloud-apply approval remains pending",
+    "cloud_apply_authorized": false
+  }
+}

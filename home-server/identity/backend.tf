@@ -1,5 +1,5 @@
 # Persistent identity lifecycle, independent of platform/ and bootstrap/.
-# Local tests use init -backend=false; no remote state has been initialized/applied.
+# Local tests use init -backend=false; live plans use this backend with normal locking.
 terraform {
   backend "s3" {
     bucket       = "modelmatch-tfstate-957261948820"

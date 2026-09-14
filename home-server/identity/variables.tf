@@ -14,7 +14,7 @@ variable "home_server_account_id" {
 }
 variable "home_server_identity_enabled" {
   type        = bool
-  description = "Create the reviewed identity resources; false in the local-only draft. Never use false to retire an existing identity."
+  description = "Create the reviewed identity resources independently of session enablement. Never use false to retire an existing identity."
 }
 variable "home_server_sessions_enabled" {
   type        = bool
