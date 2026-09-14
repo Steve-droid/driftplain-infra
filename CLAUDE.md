@@ -10,8 +10,10 @@ Retain policy and tested off-machine backup/restore before cutover. Keep AWS Ter
 and public DNS unchanged until their separately reviewed steps. Stop before commits.
 
 IAM Roles Anywhere is selected for home AWS identity. The separate persistent root
-`home-server/identity/` and [identity runbook](home-server/IDENTITY.md) describe merged source with enrollment/deployment still pending;
-creation/session flags are disabled. Use its explicit `-var-file=dev.tfvars`; never include
+`home-server/identity/` and [identity runbook](home-server/IDENTITY.md) describe the enrolled
+issuer and pending AWS deployment. The [September 14 proposed plan](home-server/IDENTITY-PLAN.md)
+sets creation on and sessions off with the verified public CA; source/publication approved
+September 14, separate cloud-apply approval pending. Use its explicit `-var-file=dev.tfvars`; never include
 it in platform retirement. Automatic leaf renewal is staged on the Mac, not installed.
 
 > Driftplain was previously Modicum / ModelMatch. The four public repositories use `driftplain-*`; existing infrastructure, images, database names, metrics and CI credential/environment identifiers retain `modelmatch` for compatibility. Modicum DNS is live; P38r added and delegated Driftplain without replacing that zone. Public Google ownership TXT proof lives in the same DNS state.

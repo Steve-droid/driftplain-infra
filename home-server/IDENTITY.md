@@ -71,8 +71,11 @@ the exact existing backup bucket name as a validated input, without importing th
 reading all bootstrap state. It owns only identity resources and an additive teardown deny.
 `stack=home-server-identity` tags distinguish them from retired compute.
 
-The explicit [dev.tfvars](identity/dev.tfvars) leaves both creation and session enablement
-false, with no CA certificate. The enabled shape is **8 creates**: one trust anchor, two
+The proposed [dev.tfvars](identity/dev.tfvars) now sets creation **true** and session
+enablement **false**, using the verified enrolled public CA. The fresh September 14
+[plan review](IDENTITY-PLAN.md) confirms **8 creates, 0 updates, 0 deletes**; nothing has
+been applied. Source/publication was approved September 14; cloud apply remains a separate gate.
+The eight creates are one trust anchor, two
 roles, two inline workload policies, two profiles and one extra policy on the existing
 teardown role. That last resource changes an existing principal's effective permissions.
 It denies Roles Anywhere administration, access to both home-server roles and access to the
@@ -87,14 +90,17 @@ stays `DRY_RUN=1`; source publication does not apply cloud changes.
 After deployment, disabling authentication means `home_server_sessions_enabled=false`,
 not changing the resource-creation flag (which would propose protected destruction).
 
-1. Before any provisioning: implement and verify issuer custody, issue the public CA/leaf
-   material, and review the CA fingerprint/constraints. No private material goes into HCL,
+1. Before disabled provisioning: verify issuer custody and independent empty-ledger
+   recovery, then review the enrolled public CA fingerprint/constraints. This is complete;
+   do not re-enroll or issue leaves to prepare this plan. No private material goes into HCL,
    tfvars or state. The PEM variable validates framing only; AWS and a local X.509 check must
    validate actual signatures, validity, issuer and key usage. Test placeholders are not CAs.
 2. Obtain a reviewed live plan from this root, with explicit `-var-file=dev.tfvars`, normal
    state locking, account `957261948820`, region `ap-south-1`; approve before applying.
    Initial resources can be provisioned with authentication disabled.
-3. Verify actual role/profile policies, default attribute mappings and teardown denials.
+3. After separately approved disabled provisioning, verify actual role/profile policies,
+   default attribute mappings and teardown denials. Initial leaf bootstrap is a later
+   approved operation; record the complete history and repeat independent recovery.
    Prepare and test CRL import/update plus emergency session denial before enabling sessions.
 4. Separately approve enablement and prove a valid exchange, cross-role rejection,
    wrong-anchor rejection and revoked-leaf rejection. STS identity checks do not invoke an
@@ -180,15 +186,16 @@ broken Python/job installation can still prevent execution. An independent expir
 heartbeat monitor is a mandatory HM5 backstop. [Apple launchd behavior](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html).
 AWS session refresh does **not** renew certificates or access the Mac signing key.
 
-**Enrollment/install gate:** no task is registered now. After review, provision the issuer
-Keychain item/public certificate, initial leaves and a ledger containing `pending`, `issued`
-and `revoked` collections. Verify recovery before enabling authentication. Install the Mac
+**Enrollment/install gate:** no task is registered now. Preserve the enrolled issuer,
+stable Mac runtime and verified empty ledger. Initial leaves and populated-ledger recovery
+remain separately approved steps before enabling authentication. The prepared Mac
 scripts (including `recovery-key.py`, imported only for native API/pipe utilities, and the
 public `recovery-key-v1.recipient` used to reject an unexpected encryption recipient) and a
 stable Python 3.12 environment with `boto3==1.43.24`, `botocore==1.43.24`,
-`cryptography==50.0.1`; use [the disabled config](home-server-renewal.example.json), replacing
-the public CA fingerprint. Preserve these installed files independently of working-tree
-changes. Install the root-owned home script/public issuer certificate; verify exact Secret,
+`cryptography==50.0.1` are installed; the operator config already pins the public CA
+fingerprint. Preserve these installed files independently of working-tree changes; see
+[the operational record](ISSUER-ENROLLMENT.md). Install the root-owned home script/public
+issuer certificate only under its later scope; verify exact Secret,
 namespace and Deployment names against the future home GitOps render. The script requires
 existing Secrets and never bootstraps missing identity state itself. Only then approve
 `enabled=true`, the launchd enable/install and its scoped recurring S3/Secret/annotation

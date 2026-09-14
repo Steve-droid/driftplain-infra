@@ -111,6 +111,9 @@ notifications and independent expiry monitoring required before use. The issuer 
 enrolled with encrypted S3/Mac recovery and a home-held public checkpoint; no AWS identity,
 leaf certificate or renewal job is deployed. See [enrollment evidence](ISSUER-ENROLLMENT.md)
 and [identity design/code/tests](IDENTITY.md).
+The September 14 [fresh disabled-first identity plan](IDENTITY-PLAN.md) proposes eight
+creates, no updates/deletes, with the enrolled public CA and authentication disabled.
+Source/publication was approved September 14; separate cloud apply remains pending. HM2 is open.
 App secrets and image distribution remain independent choices; neither runtime role gets
 Secrets Manager or ECR permissions. Existing ESO/app-secret custody remains intact on AWS.
 
