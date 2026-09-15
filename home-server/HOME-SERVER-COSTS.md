@@ -1,7 +1,10 @@
 # Home-server recurring costs — September 15, 2026
 
-**Review worksheet, no credits. Not an approved spending cap or complete bill.**
-Existing AWS production keeps accruing compute charges until HM8 approval. The proposed
+**HM2 planning envelope accepted September 15, no credits:** **$10/month** for retained
+services/domains plus **₪36/month** electricity. Steve accepted conservative assumptions
+pending exact pre-cutover readings/renewal checks. This excludes AWS overlap and paid LLM
+use; it is not an enforced billing cap or an assertion of the measured complete bill.
+Existing AWS production keeps accruing compute charges until HM8 approval. The selected
 home service choices are in [HM2 decisions](HM2-DECISIONS.md); none adds a paid subscription
 here. No paid LLM calls occurred or are authorized.
 
@@ -22,9 +25,9 @@ not a whole-account orphan audit or a current production-health claim.
 | Ingestion-source S3 | Zero objects/versions | Zero current object storage; future source bytes/requests if durable ingestion selected |
 | CloudWatch logs | Teardown log group 18,006 stored bytes, 90-day retention | Meter ingestion/storage; this size does not price future logs or us-east-1 Lambda logs |
 | IAM Roles Anywhere / local CA | Existing operator-managed issuer; no AWS Private CA | No additional Roles Anywhere service charge; ordinary AWS operations still billed |
-| Public GHCR | Proposed public image packages | $0 under current public-package/container policy; CI runner/build costs are separate |
-| Cloudflare | Proposed Free DNS/Tunnel, no paid add-ons | $0 plan assumption, verify selected account plan before provisioning |
-| Monitoring/notifications | HM5 provider still to select | Unknown; do not hide this in a completed subtotal |
+| Public GHCR | Selected public image packages | $0 under current public-package/container policy; CI runner/build costs are separate |
+| Cloudflare | Selected Free DNS/Tunnel, no paid add-ons | $0 plan assumption, verify selected account plan before provisioning |
+| Monitoring/notifications | HM5 will provision/test a free external HTTP and heartbeat monitor; UptimeRobot Free is a current candidate | $0 planning basis; no paid plan/SMS; account setup/delivery not yet proven |
 
 Rates: [Route 53](https://aws.amazon.com/route53/pricing/),
 [Secrets Manager](https://aws.amazon.com/secrets-manager/pricing/),
@@ -86,8 +89,22 @@ The $110 AWS gross alert and `DRY_RUN=1` remain. No automatic teardown or paid B
 allowance is introduced. The earlier proposed $2 LLM allowance is still unapproved and
 the hourly token ceiling is not a monthly dollar cap.
 
-**HM2 cost acceptance still needs:** account-specific domain facts; measured power/tariff
-or Steve's explicit acceptance of a stated planning assumption; service selections and
-funding envelope including monitoring/LLM policy. HM3/HM5 supply actual export size, backup
-retention behavior and restore-transfer measurements. These dependencies must not be
-misrepresented as an already measured complete bill.
+**HM2 cost-design acceptance:** Steve chose the conservative envelope above on September 15.
+Its electricity component is **50 W × 720 h = 36 kWh/month**, budgeted at an intentionally
+conservative **₪1/kWh assumption**. Neither figure is a wall measurement or his actual tariff.
+Verify wall power and registrar renewal
+settings/dates/prices before cutover. HM3/HM5 measure real export size, retention behavior
+and recovery transfer; adjust forecasts and alert thresholds from those results.
+
+A current free monitoring candidate supports HTTP and heartbeat/cron checks at five-minute
+intervals with 50 monitors: [UptimeRobot Free eligibility/features](https://help.uptimerobot.com/en/articles/11604710-who-should-use-uptimerobot-s-free-plan)
+and [pricing](https://uptimerobot.com/pricing/), checked September 15. HM5 must verify the
+selected account's actual notification delivery and heartbeat behavior; this budget does
+not assume paid SSL/domain checks, SMS, voice calls or a paid plan. Custom expiry checks
+can send sanitized heartbeat success/failure. Provider/account setup is not performed here.
+
+Retained-service/domain forecasts remain about $4.84 before measured backup usage; the
+$10 allowance adds planning headroom, not a guarantee against arbitrary API/storage use.
+Existing $110 AWS alerts and DRY_RUN=1 stay until HM8's separately scoped budget transition.
+No paid-LLM allowance is introduced. Steve owns monthly invoice review and changes to the
+funding envelope. Actual charges and the remaining AWS compute bill must remain visible.

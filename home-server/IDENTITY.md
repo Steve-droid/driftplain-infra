@@ -5,9 +5,9 @@
 plan. Initial backup/Bedrock leaves and Secrets were separately approved and
 [bootstrapped September 15](IDENTITY-BOOTSTRAP.md), with independent populated-ledger
 recovery from S3 using a home-held public checkpoint. Original CA/age custody is preserved.
-CRL, authentication enablement and scheduling remain separately gated. No AWS workload
-session or application deployment has occurred. Future slices retain commit/cloud review
-gates. [Original enrollment record](ISSUER-ENROLLMENT.md).
+[HM2 acceptance](HM2-ACCEPTANCE.md) subsequently verified current CRL import, live
+authentication/negative tests and containment; authentication is disabled again. No app
+deployment or scheduler was installed. Runtime enablement and scheduling remain later-slice work. [Original enrollment record](ISSUER-ENROLLMENT.md).
 
 **Next slice prepared locally, September 13:** [issuer enrollment/recovery/CRL tooling](ISSUER.md)
 adds native no-overwrite enrollment, independent complete-ledger recovery and signed CRLs

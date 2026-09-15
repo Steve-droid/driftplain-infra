@@ -1,6 +1,6 @@
 # HM2 operating choices — September 12, 2026
 
-**Operating design in progress.** Steve selected S3 and hourly backups, with one-day hourly
+**Operating design accepted September 15.** Steve selected S3 and hourly backups, with one-day hourly
 and 30-day daily retention and a four-hour restore target. The backup bucket is approved,
 provisioned and verified. Recovery-key custody is AWS Secrets Manager plus a local-only Mac
 Keychain copy, selected September 13; see [the custody runbook](RECOVERY-KEY.md).
@@ -8,16 +8,20 @@ IAM Roles Anywhere is selected for separate backup and Bedrock identities. The l
 [identity implementation](IDENTITY.md) is provisioned with authentication disabled;
 [applied verification](IDENTITY-APPLIED.md) records the September 14 result. Additional
 [issuer tooling](ISSUER.md) is merged, and separately approved issuer enrollment/independent
-empty-ledger recovery now pass. Public route and remaining
-service choices are proposals.
-The approved budget safeguard is applied; AWS is still production. HM2 is not yet accepted.
+empty-ledger recovery now pass. The September 15 selections below complete the service
+architecture choices; runtime implementation remains in later slices.
+The approved budget safeguard is applied; AWS is still production. **HM2 is accepted
+September 15:** see [complete acceptance and later-slice dependencies](HM2-ACCEPTANCE.md).
 
 **September 15 continuation:** [concrete service decisions](HM2-DECISIONS.md),
 [measured cost worksheet](HOME-SERVER-COSTS.md) and [initial identity bootstrap package](IDENTITY-BOOTSTRAP.md)
 were published in infra PR #25 after review. The separately approved initial bootstrap
 and independent populated-ledger recovery now pass; AWS authentication remains disabled.
-Service choices remain pending. The worksheet adds actual ECR/S3 sizes and current public
-domain-renewal rates; account-specific renewals, power and WAN facts remain open.
+Steve selected GHCR, Sealed Secrets, durable S3 ingestion, Cloudflare full-DNS Tunnel,
+the 48-hour minimum rollback policy and the conservative cost envelope. The worksheet adds actual ECR/S3 sizes and current public
+domain-renewal rates. Steve accepted conservative cost assumptions, with exact power and
+account renewals checked before cutover. CGNAT remains unknown; the selected tunnel does
+not require inbound public addressing.
 
 ## Fresh baseline
 
@@ -101,7 +105,7 @@ same AWS account; no immutability/account-compromise guarantee is claimed.
 
 ## External services and credential ownership
 
-| Component | Proposed home design | Ownership / verification still required |
+| Component | Selected home design | Ownership / verification still required |
 |---|---|---|
 | Public app/API | Cloudflare outbound tunnel with exact existing hostnames | Steve owns account/MFA; scoped connector credential in Kubernetes; test restart, streaming/chat, CORS and TLS before cutover |
 | DNS and OAuth | Preserve both domains, all verification TXT records and original Google client/subjects | Steve retains Porkbun/Google ownership; export and compare complete zones before any DNS move |
@@ -123,8 +127,9 @@ in [the bootstrap record](IDENTITY-BOOTSTRAP.md). No renewal job is deployed. Se
 and [identity design/code/tests](IDENTITY.md).
 The September 14 [identity plan](IDENTITY-PLAN.md) was refreshed, separately approved and
 [applied](IDENTITY-APPLIED.md): eight creates, no updates/deletes, with the enrolled public CA
-and authentication disabled. The full follow-up plan proposes no changes. HM2 is open.
-App secrets and image distribution remain independent choices; neither runtime role gets
+and authentication disabled. The final follow-up plan proposes no changes. HM2 identity acceptance is complete;
+authentication remains disabled until the later runtime integration.
+App secrets and image distribution are selected independently; neither runtime role currently gets
 Secrets Manager or ECR permissions. Existing ESO/app-secret custody remains intact on AWS.
 
 [Public GHCR images support anonymous pulls](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
@@ -138,7 +143,7 @@ forwards public HTTP traffic back over it. It avoids inbound router forwarding a
 on a fixed residential IPv4 address. WAN/CGNAT status is still unknown; direct ingress would
 need ISP reachability, router port-forwarding, dynamic DNS and certificate-renewal verification.
 
-Recommend Cloudflare's standard full DNS setup for the registered domains. Free/Pro requires
+Selected: Cloudflare's standard full DNS setup for the registered domains. Free/Pro requires
 Cloudflare authoritative DNS; keeping Route 53 authoritative via partial CNAME setup requires
 Business/Enterprise. This is a material DNS ownership change, **not** just adding a CNAME.
 [Cloudflare setup requirements](https://developers.cloudflare.com/dns/zone-setups/).
@@ -151,8 +156,8 @@ app/API names change origin only at approved HM7. TLS terminates at Cloudflare; 
 choose/verify the connector-to-ingress transport and HM6 must accurately disclose providers.
 Do not place interactive Cloudflare Access in front of public CI/OAuth API flows.
 
-Propose **48 hours of AWS overlap** after successful home cutover, with an additional paid
-extension only by decision. One authoritative writable database: freeze writes, final export,
+Selected: **at least 48 healthy hours of AWS overlap** after successful home cutover,
+then review retirement; any failure extends the window. Price the actual overlap before HM7. One authoritative writable database: freeze writes, final export,
 restore/compare, route, validate, then release the freeze. After home accepts writes, rollback
 must first freeze again and transfer/verify the newest data to AWS. DNS reversal alone loses data.
 
@@ -204,5 +209,5 @@ until approved HM8 retirement; delayed budget actuals are not its future run-rat
 
 The approved reboot and service-interruption checks passed; [results](RESULTS.md) include
 the 150-second recovery and shutdown/DNS transients. DHCP reservation and router power-cycle
-recovery are also verified. HM2 remains open for WAN facts needed by the route choice and
-the material service decisions. The approved budget safeguard is applied. HM3 must not be represented as complete by this disposable witness.
+recovery are also verified. The service/rollback/cost decisions and live identity
+acceptance are complete; the selected outbound route avoids an inbound WAN dependency. The approved budget safeguard is applied. HM3 must not be represented as complete by this disposable witness.

@@ -1,11 +1,16 @@
-# HM2 remaining operating decisions — September 15, 2026
+# HM2 selected operating decisions — September 15, 2026
 
-**Prepared for Steve's decisions; recommendations are not approvals.** Source review,
-image publication, DNS changes, leaf issuance, CRL writes, authentication and scheduling
-remain separate gates. HM3 has not started. [Operating design](OPERATING-DESIGN.md) remains
-the baseline; this package makes its unresolved choices concrete.
+**September 15 selections:** Steve selected public GHCR for all four images, Sealed Secrets
+with encrypted controller-key recovery, durable S3 ingestion, and Cloudflare Tunnel with
+full DNS for both domains. These are architecture selections; HM4/HM5/HM7 own implementation.
+Steve also authorized continued routine HM2 work, pausing only for critical architecture decisions.
+Routine HM2 publication and bounded identity acceptance proceeded under that instruction.
+Image publication, actual DNS/routing and installed schedules remain later-slice work;
+public cutover and production teardown remain outside this scope. HM3 has not started.
+[Operating design](OPERATING-DESIGN.md) and [HM2 acceptance](HM2-ACCEPTANCE.md) record the
+selected architecture, completed verification and exact remaining implementation boundaries.
 
-## Images: recommend public GHCR for all four images
+## Images: selected public GHCR for all four images
 
 Publish reviewed releases under Steve's existing GitHub ownership, retaining compatibility
 names: `ghcr.io/steve-droid/modelmatch-frontend`, `modelmatch-backend`, `modelmatch-agent`,
@@ -30,7 +35,7 @@ more ownership work for these public project images. [GitHub documents anonymous
 pulls](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
 and [current free public-package/container billing](https://docs.github.com/en/billing/concepts/product-billing/github-packages).
 
-## App configuration secrets: recommend Sealed Secrets
+## App configuration secrets: selected Sealed Secrets
 
 Sealed Secrets encrypts a Kubernetes Secret into a Git-storable resource; its in-cluster
 controller decrypts it. Preserve `app/modelmatch-app-secrets` and all four existing values
@@ -66,7 +71,7 @@ The actual gap is [ingestion source storage](../../driftplain-backend/app/ingest
 `POST /benchmarks/ingest` can leave a DB source reference whose bytes exist only in process
 memory. The current source bucket is verified empty on September 15; this is not a DB export.
 
-Recommend retaining the ingestion capability with a durable S3 adapter in HM4, using the
+Selected: retain the ingestion capability with a durable S3 adapter in HM4, using the
 existing `modelmatch-ingestion-sources-957261948820` bucket. Content-hash keys, SSE-S3,
 idempotent retries, bounded reads and failure-before-catalog-commit need focused tests.
 This requires a separately reviewed Bedrock-role/profile permission addition for the exact
@@ -77,7 +82,7 @@ Alternative: explicitly disable ingestion in the home profile before any model i
 or mutation; existing catalog/recommender/CI/savings/chat remain. This removes a demonstrated
 capability and needs Steve's product decision. An in-memory production store is not acceptable.
 
-## Public routing: recommend an outbound Cloudflare Tunnel
+## Public routing: selected outbound Cloudflare Tunnel
 
 Keep both registrars/domains and the original Google OAuth identity. Choose Cloudflare Free
 with full authoritative DNS for both domains, stage the DNS move while AWS remains the
@@ -99,7 +104,7 @@ address compared with the public egress address is needed to diagnose NAT; Tails
 ISP reachability, forwarding, dynamic DNS and renewal are demonstrated. The outbound route
 avoids requiring a public inbound address, but still needs working outbound connectivity.
 
-## Rollback: recommend at least 48 verified hours, then review retirement
+## Rollback: selected at least 48 verified hours, then review retirement
 
 Start the window only after HM7 home acceptance. Keep AWS deployable and its database
 read-only. A failed monitor, backup or identity check extends the window until resolved;
@@ -128,7 +133,15 @@ this into tested monitoring and operating procedures. Domain checks at 60/30/7 d
 expiry; Tailscale reauthentication before March 13, 2027; issuer replacement planning at
 180 days before September 12, 2028. Do not install any schedule in this slice.
 
-Unresolved acceptance: Steve's service choices and rollback/legacy policy; WAN evidence;
-account-specific domain renewal dates/prices; wall power/tariff or an explicitly accepted
-budget assumption; retained-service budget and future paid-LLM spending policy. No paid
-LLM calls are authorized. A partial subtotal is not HM2 cost acceptance.
+**Accepted September 15:** Steve selected the 48-hour minimum/verified reverse-transfer
+rollback policy and a conservative planning envelope of **$10/month retained services and
+domains plus ₪36/month electricity** (50 W × 720 h × ₪1/kWh). This excludes AWS overlap and
+paid LLM use and is not a hard billing cap. He explicitly accepted using these assumptions
+for HM2, with actual wall readings and account-specific renewal verification before cutover.
+No paid LLM call or subscription was authorized. The selected outbound route does not need
+an inbound public WAN address; ISP/CGNAT classification remains unknown and is not claimed
+as proven. HM5 must verify real tunnel operation, restart/reconnect behavior and public-path
+staging. The read-only home DNS/TCP-7844 witness is in the identity-acceptance evidence.
+
+All material HM2 service/rollback/cost choices are now selected. Remaining implementations
+are explicit HM3/HM4/HM5/HM7 dependencies, not unfinished architecture decisions.
