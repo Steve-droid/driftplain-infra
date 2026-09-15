@@ -98,15 +98,24 @@ Roles Anywhere helper image and live Bedrock — a separate approval (HM5), not 
 ## 6. Home umbrella + validation (pending part 2b)
 
 After the digests are recorded: merge `values-home-server.yaml` + `apps/modelmatch.yaml`; wait
-(bounded) for `modelmatch` Synced/Healthy; validate over an SSH port-forward to the ClusterIP
-ingress with curl host mapping (`--connect-to api.home-server.driftplain.dev:443:127.0.0.1:8443`,
-`--cacert` = the `home-server-ca` public cert): `/healthz`, `/readyz`, password login for an
-existing user, owner isolation, CI ingest with an existing project token, savings/quality reads.
-No seeds, no minted users/tokens, no writes that could be mistaken for production.
+(bounded) for `modelmatch` Synced/Healthy; then run `home-server-validate.py` (tests:
+`test-home-server-validate.py`, 6). It opens one bounded SSH port-forward to the ClusterIP
+ingress, maps the private hostnames onto it (`curl --resolve`, `--cacert` = the `home-server-ca`
+public cert) and checks: `/healthz`, `/readyz`, the frontend index + `config.js` → private API
+host, unauthenticated `/projects` → 401, password login for the EXISTING demo user (password read
+from the home Secret into memory only), `/auth/me`, the user's projects, owner isolation (every
+foreign id → 403/404), the savings dashboard + a run's findings drill-in, a bogus CI token → 401,
+and — only if an existing project token is supplied via `HOME_SERVER_CI_TOKEN` — one clearly
+labelled CI run (`hm4-validation-<stamp>`); otherwise that check is recorded as skipped, never
+faked. No seeds, no minted users/tokens. The JSON result (booleans/ids/aggregates) lands in the
+private backups root and is summarized in the evidence.
 
 ## Open items
 
 - Steve: GitHub token packages scope, then package visibility → Public (section 3).
+- Steve (optional): an EXISTING project CI token (from your Jenkins credential) exported as
+  `HOME_SERVER_CI_TOKEN` when running the validation, for the positive ingest check; tokens are
+  stored only as hashes and are never re-shown by the API, and none is minted for this.
 - After each sealing-key renewal: `backup` again (HM5 automates + alerts).
 - Google sign-in at the private home hosts is not authorized in the Google client (password
   login is the HM4 check); real hostnames arrive with HM7.
