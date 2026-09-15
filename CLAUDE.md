@@ -1,5 +1,40 @@
 # CLAUDE.md — driftplain-infra
 
+## Claude Code continuation — HM3 backup/restore — September 15, 2026
+
+Read [the HM3 handoff](../docs/session-handoffs/E21-home-hosting/2026-09-15-hm3-backup-restore.md)
+first and follow [umbrella instructions](../CLAUDE.md). HM2 is complete; source/evidence in
+[home-server/HM2-ACCEPTANCE.md](home-server/HM2-ACCEPTANCE.md) supersedes earlier pending
+leaf/CRL/authentication prose below. Do not rerun unchanged acceptance or re-enroll the CA.
+
+HM3 owns export/restore orchestration, secure original-credential recovery and sanitized
+results in `home-server/`. Reuse [S3 design](home-server/S3-BACKUPS.md) and
+[age custody](home-server/RECOVERY-KEY.md). Bucket `modelmatch-home-server-backups-957261948820`
+is protected/versioned/SSE-S3; encrypt archives with the existing age recipient and retain
+exact versions/checksums, plus a Mac ciphertext copy. No expiry/lifecycle schedule yet.
+Mac operator profile `saa`, account 957261948820, ap-south-1 may upload/download for HM3;
+never copy its credentials or the private recovery key persistently to home. Do not enable
+home AWS authentication just to perform the operator rehearsal.
+
+Use strict `ssh home-server`, existing host-key binding and `sudo -n`. Keep Tailscale/UFW
+and existing K3s kubeconfig/context explicit and separate from AWS. The original identity
+Secrets/keys remain; anchor/profiles disabled, CRL 3 enabled until October 20, no renewal
+job. Preserve the stable Mac runtime/Keychain/issuer ledger and encrypted archives. All
+previous enable/disable plans are consumed; any new Terraform operation requires a fresh,
+complete normally locked plan with explicit `-var-file`. Keep DRY_RUN=1 and AWS production.
+
+Home persistence is Samsung-backed explicit Retain, not the old EBS/Delete chart. The
+GitOps repo owns the DB/operator/storage profile; coordinate its minimal HM3 scope without
+pulling in HM4 app rollout or HM5 schedules. Never restore into the production context.
+
+**Current working preference (Steve, September 15):** keep progressing and pause only
+for critical architectural decisions. Plan, use focused tests for new behavior, verify and
+self-review before routine commits/PRs; do not reintroduce the generic approval loops or
+full-suite repetition below for unchanged work. This supersedes those older instructions
+for this continuation. No paid LLM calls, public cutover, production teardown or destructive
+source changes without explicit scope. No subagents/review agents, unsolicited diagrams
+or additional tasks. Keep answers concise.
+
 ## Home migration override — September 12, 2026
 
 See `home-server/README.md` and `home-server/RESULTS.md` for the isolated home profile and live evidence.
