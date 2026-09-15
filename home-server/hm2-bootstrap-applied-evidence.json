@@ -1,0 +1,146 @@
+{
+  "recorded_at": "2026-09-15T13:06:11.987710+00:00",
+  "status": "Initial bootstrap and independent populated-ledger recovery verified; evidence source review pending",
+  "approval": {
+    "approved_at_recorded": "2026-09-15T13:02:19.583724+00:00",
+    "user_response": "Approved",
+    "scope": "Reviewed helper install, two namespaces and initial backup/Bedrock certificate Secrets; encrypted backup and independent populated-ledger recovery; no CRL/authentication/scheduling"
+  },
+  "source_revision": "b12449e6a2d03c56b19560013c65d7528a74f337",
+  "source_sha256": {
+    "home-server-bootstrap.py": "bf8642c701c1b1a29dc661e10477e80db45e8c7ccb9eca3af3df902a7c6ba49d",
+    "home-server-bootstrap-leaf.py": "85b841bc72909b29c68706458fc307d3c5791330fe20ac97ae9e7e71ef91b9ff",
+    "test-home-server-bootstrap.py": "79ef4bd2cd3db5c488414d46411cac4e82f8b303f8e871ef9395182ef78a1ed3"
+  },
+  "installation": {
+    "installed_sha256": {
+      "/opt/home-server/home-server-bootstrap-leaf.py": "85b841bc72909b29c68706458fc307d3c5791330fe20ac97ae9e7e71ef91b9ff",
+      "/opt/home-server/home-server-leaf.py": "68df2a6f5dd2c8a8267ab067aa787165b50475c47f73d8ea5ef6f7997cf31430",
+      "/var/lib/driftplain/home-server-identity/issuer.crt": "2575957e5a645c0bfe7d1ae1dc309f76f13ced2dcffef9b5ed37d4fd4c0fba33"
+    },
+    "namespaces": [
+      "app",
+      "home-server-backups"
+    ],
+    "identity_secrets_absent": true
+  },
+  "bootstrap_results": {
+    "backup": {
+      "identity": "backup",
+      "serial": "188550183090849239859899631588670510961450592200",
+      "not_after": "2026-12-14T13:02:39+00:00",
+      "receipt": {
+        "version_id": "iHikibfjr91J8vpYlpOlmAvf4CV6qfG0",
+        "ciphertext_sha256": "72e0248443704d4058cbed651943fddc730ac61e39d851360417c65cc062e4dc",
+        "object_key": "recovery/issuer-v1/5be25ecf1efb362aa9b84ec181f6744d2e4aad79869409093e9e65b9ab3a2418.age",
+        "bucket": "modelmatch-home-server-backups-957261948820",
+        "ca_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+        "ledger_sha256": "d38db1c40eaddbc9ad2afe8a3b5640ea972e06834222699906e5e793ad9ce86d",
+        "recovery_key_id": "modelmatch/home-server/recovery-key-v1",
+        "recovery_recipient": "age1vcy5ynjmhrv587m5e8pvgm42gwrwxj4smzzcywhxckrl47xqea8qcewa7m",
+        "verified_at": "2026-09-15T13:02:49.428094+00:00"
+      }
+    },
+    "bedrock": {
+      "identity": "bedrock",
+      "serial": "308719772415312223547387245572677494936844969648",
+      "not_after": "2026-12-14T13:02:57+00:00",
+      "receipt": {
+        "version_id": "Kv3GT32UtyEOt0rB51FgVGGfXDYljWur",
+        "ciphertext_sha256": "2589d8a3e1b433519d5e00aa9e7e1b427f2886247d2e6b23cf5a1c4a6bfa1156",
+        "object_key": "recovery/issuer-v1/9e0b54c5ef01d6a3d813cdeb8eaad35df844802a345fb6040c1eb37c391982e3.age",
+        "bucket": "modelmatch-home-server-backups-957261948820",
+        "ca_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+        "ledger_sha256": "07671c3b9827534cad840a763aa41029a1387f543c63930d8ae4fe4dbf6a5cac",
+        "recovery_key_id": "modelmatch/home-server/recovery-key-v1",
+        "recovery_recipient": "age1vcy5ynjmhrv587m5e8pvgm42gwrwxj4smzzcywhxckrl47xqea8qcewa7m",
+        "verified_at": "2026-09-15T13:03:06.854186+00:00"
+      }
+    }
+  },
+  "checkpoint": {
+    "checked_at": "2026-09-15T13:04:09.148796+00:00",
+    "remote_checkpoint": "/home/steve/.local/share/driftplain/home-server-issuer-checkpoints/20260915T130406Z-07671c3b9827534cad840a763aa41029a1387f543c63930d8ae4fe4dbf6a5cac",
+    "retrieved_directory": "/Users/steve/.local/share/driftplain/home-server-identity/bootstrap-20260915/independent-checkpoint",
+    "ledger_sha256": "07671c3b9827534cad840a763aa41029a1387f543c63930d8ae4fe4dbf6a5cac",
+    "exact_public_checkpoint_match": true,
+    "file_sha256": {
+      "ledger.json": "d56d6f3cd960dd91ee574bd4ff9b8d4f41c7fe791852bc2d793fe1e1d45b965e",
+      "receipt.json": "17b2a59e8e10e1aae912616a9da5a285998230075374d4c7debe42cb53d4c105",
+      "issuer.crt": "2575957e5a645c0bfe7d1ae1dc309f76f13ced2dcffef9b5ed37d4fd4c0fba33",
+      "issuer.sha256": "d402f0ee5680526a5b2a304a91e857c179c154f21a22abac4ea457edf4bb4d6a"
+    }
+  },
+  "independent_recovery": {
+    "command": "verify-recovery",
+    "ca_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+    "ledger_sha256": "07671c3b9827534cad840a763aa41029a1387f543c63930d8ae4fe4dbf6a5cac",
+    "issued_count": 2,
+    "revoked_count": 0,
+    "crl_number": 0
+  },
+  "final_archive_bytes": 9782,
+  "postchecks": {
+    "checked_at": "2026-09-15T13:05:24.894064+00:00",
+    "identities": {
+      "backup": {
+        "serial": "188550183090849239859899631588670510961450592200",
+        "subject": "CN=driftplain-home-server-backup",
+        "not_before": "2026-09-15T12:57:39+00:00",
+        "not_after": "2026-12-14T13:02:39+00:00",
+        "ca_signature_valid": true,
+        "exact_ledger_match": true,
+        "key_pair_verified_on_home": true,
+        "certificate_der_sha256": "03ceda208cdc19b5bbb44f69e4810a05ad063776a0d8f8b2440d151577889464"
+      },
+      "bedrock": {
+        "serial": "308719772415312223547387245572677494936844969648",
+        "subject": "CN=driftplain-home-server-bedrock",
+        "not_before": "2026-09-15T12:57:57+00:00",
+        "not_after": "2026-12-14T13:02:57+00:00",
+        "ca_signature_valid": true,
+        "exact_ledger_match": true,
+        "key_pair_verified_on_home": true,
+        "certificate_der_sha256": "976cf69b1fcc8430a5a1b83b900c8eb61df3b19dee345fc2fd3e99ba09aeeed9"
+      }
+    },
+    "home": {
+      "staging": {
+        "backup": {
+          "root_owned": true,
+          "mode": "0700",
+          "private_staging_removed": true
+        },
+        "bedrock": {
+          "root_owned": true,
+          "mode": "0700",
+          "private_staging_removed": true
+        }
+      },
+      "no_app_backup_workloads": true
+    },
+    "anchor_profiles_disabled": true,
+    "anchor_crls_absent": true,
+    "budget_dry_run": "1",
+    "renewal_configs_disabled": true,
+    "launchd_label": "dev.driftplain.home-server-renewal",
+    "launchd_job_absent": true,
+    "recovery_original_paths_absent": true,
+    "age_secret_version_preserved": true,
+    "ledger_sha256": "07671c3b9827534cad840a763aa41029a1387f543c63930d8ae4fe4dbf6a5cac",
+    "issued_count": 2,
+    "pending_count": 0,
+    "revoked_count": 0,
+    "crl_number": 0,
+    "backup_required": true
+  },
+  "raw_evidence_directory": "/Users/steve/.local/share/driftplain/home-server-identity/bootstrap-20260915",
+  "source_review_approved": false,
+  "no_crl_authentication_scheduler_or_paid_llm_action": true,
+  "hm3_started": false,
+  "later_approval": {
+    "date": "2026-09-15",
+    "instruction": "Approved. Compact then continue, and only stop working if you need me to make some critical architectural decision please.",
+    "scope": "Evidence publication and continued already-designed HM2 work; pause for critical architectural decisions; no paid LLM calls or public cutover"
+  }
+}

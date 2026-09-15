@@ -1,7 +1,10 @@
 # HM2 initial identity bootstrap — September 15, 2026
 
-**Prepared and locally tested; source review and operational approval pending.**
-No operational leaf, namespace, Secret, CRL, AWS session or scheduler was created.
+**Operational bootstrap approved and verified September 15; new evidence source review pending.**
+Source was approved and merged through infra PR #25. Steve separately approved helper
+installation, the two namespaces/leaf Secrets, encrypted backup and independent recovery.
+[Applied evidence](hm2-bootstrap-applied-evidence.json) records the result below.
+No CRL, AWS session or scheduler was created.
 The ten focused tests use disposable crypto, fake remote/AWS boundaries and forbidden
 network/Keychain access. They include a real local age round trip of the new bootstrap
 history. This does not replace the required operational populated-ledger recovery.
@@ -34,7 +37,7 @@ wrapper and renewal files are unchanged. Bootstrap is explicit, requires a disab
 renewal config and cannot replace existing identities. It does not install a schedule or
 enable AWS authentication.
 
-After source review, propose this separate operational scope:
+The separately approved operational scope was:
 
 1. Fresh preflight: inspect current Git/source hashes, operator account, exact disabled
    anchor/profiles from [applied evidence](hm2-identity-applied-evidence.json), absence of
@@ -84,7 +87,53 @@ Acceptance: two matching Secret/key pairs with the expected public subjects; ful
 and final encrypted archive readback; independent complete populated-ledger recovery;
 unchanged disabled AWS authentication and renewal/scheduler state. Record exact times,
 serials, expiries, source hashes, S3 version/checkpoint and postcheck results. Ordinary
-S3 upload/read costs apply; no paid LLM request is included. This operation has not run.
+S3 upload/read costs apply; no paid LLM request is included.
+
+## Verified operational result
+
+Executed September 15 with the merged, hash-verified code and original stable runtime.
+Native CA readback succeeded without interaction. The original CA and age custody,
+disabled configs and existing issuer/renewal scripts were preserved. Only the new Mac
+bootstrap command, two root-owned home scripts/public CA and the two namespaces were added.
+
+| Identity | Certificate serial | Expiry (UTC) |
+|---|---|---|
+| Backup | `188550183090849239859899631588670510961450592200` | December 14, 2026, 13:02:39 |
+| Bedrock | `308719772415312223547387245572677494936844969648` | December 14, 2026, 13:02:57 |
+
+Both root-only home key-pair checks and Mac public certificate signature/ledger comparisons
+passed. The staging keys/CSRs/candidate certificates were removed after verified installation;
+root-owned mode-0700 identity directories retain only their locks. Neither namespace has
+an app/backup Pod, Deployment, StatefulSet, Job or CronJob.
+
+Final complete ledger SHA-256:
+`07671c3b9827534cad840a763aa41029a1387f543c63930d8ae4fe4dbf6a5cac`.
+It contains **two issued leaves, zero pending deliveries, zero revocations, CRL number 0**.
+The conservative `backup_required=true` flag is preserved so the receipt matches the exact
+ledger; it does not indicate a failed upload. Existing renewal can reconcile that flag
+when its later installation is approved. No repeated bootstrap/test/drill was needed.
+
+Final encrypted archive: **9,782 bytes**, bucket `modelmatch-home-server-backups-957261948820`,
+key `recovery/issuer-v1/9e0b54c5ef01d6a3d813cdeb8eaad35df844802a345fb6040c1eb37c391982e3.age`,
+version `Kv3GT32UtyEOt0rB51FgVGGfXDYljWur`; ciphertext SHA-256
+`2589d8a3e1b433519d5e00aa9e7e1b427f2886247d2e6b23cf5a1c4a6bfa1156`.
+Exact-version S3 readback passed, and all prior ciphertext/receipts were retained.
+
+Independent public checkpoint on home:
+`/home/steve/.local/share/driftplain/home-server-issuer-checkpoints/20260915T130406Z-07671c3b9827534cad840a763aa41029a1387f543c63930d8ae4fe4dbf6a5cac/`.
+Separate retrieval at **13:04:09 UTC** matched every public-file hash. The retrieved
+receipt/digest then drove `verify-recovery --recovery-source aws` using the existing
+isolated config and AWS recovery-key version. Recovery validated the original CA/key,
+signing settings and exact complete populated ledger without the original issuer
+Keychain item or original files. The isolated original paths remained absent; no native
+replacement-Mac restoration was performed. This proves initial two-leaf history recovery,
+not a live revoked-leaf history or production DB restore.
+
+Postchecks at **13:05:24 UTC** confirm anchor/profiles disabled, no imported CRL, renewal
+configs disabled and launchd job absent; original recovery-key version and `DRY_RUN=1`
+are preserved. Normal renewal becomes due November 14, 2026; HM5 must install and verify
+the schedule/independent monitor before production use. Raw operator receipts remain under
+`/Users/steve/.local/share/driftplain/home-server-identity/bootstrap-20260915/`.
 
 ## Subsequent separate gates
 
@@ -97,6 +146,6 @@ S3 upload/read costs apply; no paid LLM request is included. This operation has 
 | HM4 | Reviewed helper/image and real SDK exchange/refresh; home app/Secret mounts; GitOps annotation ownership and sync survival. Names above are a contract, not installed workloads |
 | HM5 | Renewal/CRL refresh/backup schedules; independent expiry/heartbeat/availability alerts with tested delivery. Mac renewal currently uses LAN SSH; any away-renewal transport change needs its own verification. Bootstrap's use of the verified SSH alias does not modify renewal |
 
-Do not mark HM2 accepted merely because bootstrap is prepared. CRL and authentication
+Initial bootstrap acceptance is verified. Do not mark HM2 accepted from that alone. CRL and authentication
 remain required identity evidence under the handoff; actual workload integration and
 installed recurring schedules stay in HM4/HM5. HM3 production export/restore is unstarted.
