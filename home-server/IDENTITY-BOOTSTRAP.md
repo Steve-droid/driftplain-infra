@@ -139,13 +139,13 @@ the schedule/independent monitor before production use. Raw operator receipts re
 
 | Gate | Concrete acceptance and boundary |
 |---|---|
-| CRL | Separately approve initial full CRL creation/backup and enabled AWS import against anchor `913f6b1b-d09a-41be-8715-e41e04ecda90`; retain returned CRL ID, compare exact public readback using `verify-crl`; do not enable anchor/profiles yet |
+| CRL | Completed during continued HM2 acceptance: nonempty full CRL creation/backup and enabled AWS import against anchor `913f6b1b-d09a-41be-8715-e41e04ecda90`; retain returned CRL ID, compare exact public readback using `verify-crl`; do not enable anchor/profiles yet |
 | Authentication | Prepare a fresh complete Terraform enablement plan and bounded disposable-leaf procedure, then obtain approval; prove valid matching roles, cross-role/profile rejection, wrong-anchor rejection and fresh revoked-leaf rejection. Credentials stay in pipes; STS checks use no LLM tokens |
 | Disposable revocation witness | Requires a separately recorded extra test leaf and full-history backup, never accidental revocation of one of the two operational leaves. The initial bootstrap command intentionally cannot issue extra leaves after initialization. Prepare that bounded issuance/retirement tooling before requesting its operational approval |
 | Existing-session containment | Preserve [the incident procedure](ISSUER.md#compromise-containment-and-live-acceptance). A previously allowed tiny backup PUT is the live denial witness after an approved temporary deny. Bedrock uses installed-policy evaluation and the one-hour expiry boundary unless paid-call-risk approval is separately given; `GetCallerIdentity` does not prove denial |
 | HM4 | Reviewed helper/image and real SDK exchange/refresh; home app/Secret mounts; GitOps annotation ownership and sync survival. Names above are a contract, not installed workloads |
 | HM5 | Renewal/CRL refresh/backup schedules; independent expiry/heartbeat/availability alerts with tested delivery. Mac renewal currently uses LAN SSH; any away-renewal transport change needs its own verification. Bootstrap's use of the verified SSH alias does not modify renewal |
 
-Initial bootstrap acceptance is verified. Do not mark HM2 accepted from that alone. CRL and authentication
-remain required identity evidence under the handoff; actual workload integration and
+Initial bootstrap acceptance is verified. [Subsequent CRL/authentication acceptance](HM2-ACCEPTANCE.md)
+records the live proofs and complete revoked history; actual workload integration and
 installed recurring schedules stay in HM4/HM5. HM3 production export/restore is unstarted.

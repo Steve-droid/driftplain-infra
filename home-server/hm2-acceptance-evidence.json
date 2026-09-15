@@ -1,0 +1,366 @@
+{
+  "recorded_at": "2026-09-15T13:52:07.443444+00:00",
+  "status": "HM2 accepted; identity proof and operating decisions complete; HM3 unstarted",
+  "authorization": {
+    "date": "2026-09-15",
+    "instruction": "Approved. Compact then continue, and only stop working if you need me to make some critical architectural decision please.",
+    "scope": "Continue routine HM2 operations and publication; pause for critical architecture; no paid LLM, public cutover or production teardown"
+  },
+  "decisions": {
+    "image_distribution": "Public GHCR, all four images, immutable digest refs",
+    "app_secrets": "Sealed Secrets, encrypted controller-key recovery",
+    "ingestion_sources": "Durable S3 adapter in HM4; separate scoped IAM addition",
+    "public_route": "Cloudflare Tunnel, full DNS for both domains, keep Porkbun/OAuth",
+    "rollback": "At least 48 healthy hours, failures extend, reverse newest-data transfer before reversing writes, Modicum retained, sslip retirement HM8 after integration migration",
+    "monthly_planning_envelope": {
+      "services_domains_usd": 10,
+      "electricity_ils": 36,
+      "power_assumption_watts": 50,
+      "hours": 720,
+      "tariff_assumption_ils_kwh": 1,
+      "excludes": [
+        "AWS overlap",
+        "paid LLM use"
+      ],
+      "actual_meter_and_registrar_checks": "Before cutover",
+      "hard_billing_cap": false
+    }
+  },
+  "initial_empty_crl_import_failure": {
+    "aws_error": "ValidationException",
+    "message": "At least one of the included CRLs does not include a revoked certificate",
+    "resource_created": false,
+    "resolution": "Issue/journal/revoke a disposable test leaf before nonempty import; preserve operational leaves and failed CRL-1 history"
+  },
+  "crl": {
+    "id": "346c7fd3-e782-4500-a72c-53b8741ff543",
+    "enabled": true,
+    "number": 3,
+    "revoked_test_serials": [
+      "517933271547206468676772142300805663327053611682",
+      "146669769643444471910834356540355106435297546538"
+    ],
+    "next_update": "2026-10-20T13:28:36+00:00"
+  },
+  "enable_plan": {
+    "plan_timestamp": "2026-09-15T13:24:25Z",
+    "plan_sha256": "2ff34c072f1891b6646dc236b14281669a994ad065ca008c137f09042d89a7d6",
+    "changed_resources": [
+      "aws_rolesanywhere_profile.home_server[\"backup\"]",
+      "aws_rolesanywhere_profile.home_server[\"bedrock\"]",
+      "aws_rolesanywhere_trust_anchor.home_server[0]"
+    ],
+    "creates": 0,
+    "updates": 3,
+    "deletes": 0,
+    "only_enabled_flag_changes": true,
+    "normal_locking": true,
+    "explicit_var_file": "dev.tfvars",
+    "scope": "Temporary authentication acceptance; restore disabled state afterward"
+  },
+  "disable_plan": {
+    "plan_timestamp": "2026-09-15T13:30:55Z",
+    "plan_sha256": "43e6a9f4c741ac5983c8f82be65c7ed7f542000d0dfea732f0b9497636cd6af4",
+    "updates": 3,
+    "creates": 0,
+    "deletes": 0,
+    "only_enabled_flag_changes": true,
+    "temporary_denies_preserved": true
+  },
+  "live_results": [
+    {
+      "at": "2026-09-15T13:27:49.216383+00:00",
+      "phase": "valid",
+      "identity": "backup",
+      "assumed_role_arn": "arn:aws:sts::957261948820:assumed-role/modelmatch-home-server-backup/2106e1f3acac3dcf33755364d3622f5d8c54a7c8",
+      "expiration": "2026-09-15T13:42:46Z"
+    },
+    {
+      "at": "2026-09-15T13:27:49.928493+00:00",
+      "phase": "valid",
+      "identity": "bedrock",
+      "assumed_role_arn": "arn:aws:sts::957261948820:assumed-role/modelmatch-home-server-bedrock/3613792f27423cecaff72ab780f60b62255526b0",
+      "expiration": "2026-09-15T13:42:47Z"
+    },
+    {
+      "at": "2026-09-15T13:27:50.638664+00:00",
+      "phase": "valid",
+      "identity": "revocation",
+      "assumed_role_arn": "arn:aws:sts::957261948820:assumed-role/modelmatch-home-server-backup/19b0e6622174c54045d3fd814741273584cd912a",
+      "expiration": "2026-09-15T13:42:48Z"
+    },
+    {
+      "at": "2026-09-15T13:27:51.507718+00:00",
+      "phase": "wrong-role",
+      "denied": true,
+      "aws_error": "AccessDeniedException"
+    },
+    {
+      "at": "2026-09-15T13:27:52.337266+00:00",
+      "phase": "wrong-profile",
+      "denied": true,
+      "aws_error": "AccessDeniedException"
+    },
+    {
+      "at": "2026-09-15T13:27:53.228488+00:00",
+      "phase": "wrong-anchor",
+      "denied": true,
+      "aws_error": "AccessDeniedException"
+    },
+    {
+      "at": "2026-09-15T13:27:54.280557+00:00",
+      "phase": "before-deny",
+      "allowed": true,
+      "version_id": "ih7oovcWl4Yt04w8mWZzqauUDVY7nsTS"
+    },
+    {
+      "at": "2026-09-15T13:27:54.280623+00:00",
+      "phase": "ready",
+      "latest_session_expiration": "2026-09-15T13:42:48Z"
+    },
+    {
+      "at": "2026-09-15T13:29:15.442680+00:00",
+      "phase": "after-deny",
+      "allowed": false,
+      "aws_error": "AccessDenied"
+    },
+    {
+      "at": "2026-09-15T13:30:26.427045+00:00",
+      "phase": "revoked-leaf",
+      "denied": true,
+      "aws_error": "AccessDeniedException"
+    },
+    {
+      "at": "2026-09-15T13:30:28.050577+00:00",
+      "phase": "unrevoked-control",
+      "identity": "backup",
+      "assumed_role_arn": "arn:aws:sts::957261948820:assumed-role/modelmatch-home-server-backup/2106e1f3acac3dcf33755364d3622f5d8c54a7c8",
+      "expiration": "2026-09-15T13:45:27Z"
+    },
+    {
+      "at": "2026-09-15T13:32:45.386059+00:00",
+      "phase": "disabled",
+      "identity": "backup",
+      "denied": true,
+      "aws_error": "AccessDeniedException"
+    },
+    {
+      "at": "2026-09-15T13:32:46.219673+00:00",
+      "phase": "disabled",
+      "identity": "bedrock",
+      "denied": true,
+      "aws_error": "AccessDeniedException"
+    },
+    {
+      "at": "2026-09-15T13:43:18.753134+00:00",
+      "phase": "old-session-after-expiry",
+      "allowed": false,
+      "aws_error": "ExpiredToken"
+    },
+    {
+      "at": "2026-09-15T13:47:27.713334+00:00",
+      "phase": "old-session-after-expiry",
+      "allowed": false,
+      "aws_error": "ExpiredToken"
+    },
+    {
+      "at": "2026-09-15T13:47:37.935479+00:00",
+      "phase": "exiting"
+    }
+  ],
+  "installed_containment_simulations": [
+    {
+      "role": "modelmatch-home-server-backup",
+      "action": "s3:PutObject",
+      "resource": "arn:aws:s3:::modelmatch-home-server-backups-957261948820/recovery/identity-acceptance/20260915/witness.age",
+      "decision": "explicitDeny"
+    },
+    {
+      "role": "modelmatch-home-server-bedrock",
+      "action": "bedrock:InvokeModel",
+      "resource": "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/apac.amazon.nova-lite-v1:0",
+      "decision": "explicitDeny"
+    }
+  ],
+  "cloud_cleanup": {
+    "checked_at": "2026-09-15T13:47:01.792379+00:00",
+    "temporary_denies_removed": [
+      "modelmatch-home-server-backup",
+      "modelmatch-home-server-bedrock"
+    ],
+    "alternate_anchor_removed": {
+      "trust_anchor_arn": "arn:aws:rolesanywhere:ap-south-1:957261948820:trust-anchor/46c5a72d-4712-45ed-92f6-1cd3e572c03c",
+      "trust_anchor_id": "46c5a72d-4712-45ed-92f6-1cd3e572c03c"
+    },
+    "authentication_still_disabled": true,
+    "latest_test_expiration": "2026-09-15T13:45:27Z",
+    "safety_margin_seconds": 94.7924
+  },
+  "checkpoint": {
+    "checked_at": "2026-09-15T13:32:48.101657+00:00",
+    "remote_checkpoint": "/home/steve/.local/share/driftplain/home-server-issuer-checkpoints/20260915T133245Z-ed94ca9e8b4fd846aadcc4eb36d61bd1f32cb74cd23e5446a387e9b537f2a2b4",
+    "retrieved_directory": "/Users/steve/.local/share/driftplain/home-server-identity/acceptance-20260915/independent-checkpoint",
+    "ledger_sha256": "ed94ca9e8b4fd846aadcc4eb36d61bd1f32cb74cd23e5446a387e9b537f2a2b4",
+    "file_sha256": {
+      "ledger.json": "acbd20688125563b7e5a98fd0dcdceb9d88ad59f60fefe606b1530a4ba1fc105",
+      "receipt.json": "df4fa9afa9159db05699eb01c55dccdffc8e06e832738671d5111e6082761e01",
+      "issuer.crt": "2575957e5a645c0bfe7d1ae1dc309f76f13ced2dcffef9b5ed37d4fd4c0fba33",
+      "issuer.sha256": "d402f0ee5680526a5b2a304a91e857c179c154f21a22abac4ea457edf4bb4d6a"
+    },
+    "issued_count": 4,
+    "revoked_count": 2,
+    "crl_number": 3
+  },
+  "independent_recovery": {
+    "command": "verify-recovery",
+    "ca_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+    "ledger_sha256": "ed94ca9e8b4fd846aadcc4eb36d61bd1f32cb74cd23e5446a387e9b537f2a2b4",
+    "issued_count": 4,
+    "revoked_count": 2,
+    "crl_number": 3
+  },
+  "final_receipt": {
+    "version_id": "OgYzVHUZ6sC4QVvix7AZkGS7wjvaKxlw",
+    "ciphertext_sha256": "b04876dfb3cd531e400af8688e57747fd1c131c955c97341342c7a93e6ec7825",
+    "object_key": "recovery/issuer-v1/691054fb88d53b71856b295deccaf2a2d12a25206610e3417a98dc31ba75f1de.age",
+    "bucket": "modelmatch-home-server-backups-957261948820",
+    "ca_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+    "ledger_sha256": "ed94ca9e8b4fd846aadcc4eb36d61bd1f32cb74cd23e5446a387e9b537f2a2b4",
+    "recovery_key_id": "modelmatch/home-server/recovery-key-v1",
+    "recovery_recipient": "age1vcy5ynjmhrv587m5e8pvgm42gwrwxj4smzzcywhxckrl47xqea8qcewa7m",
+    "verified_at": "2026-09-15T13:28:38.971639+00:00"
+  },
+  "final_archive_bytes": 14487,
+  "postchecks": {
+    "checked_at": "2026-09-15T13:49:58.871100+00:00",
+    "eight_terraform_resources_noop": true,
+    "plan_exit_code": 0,
+    "plan_timestamp": "2026-09-15T13:47:42Z",
+    "plan_readback_differences": [
+      {
+        "address": "aws_iam_role.home_server[\"backup\"]",
+        "actions": [
+          "update"
+        ],
+        "changed_top_level_attributes": [
+          "inline_policy"
+        ]
+      },
+      {
+        "address": "aws_iam_role.home_server[\"bedrock\"]",
+        "actions": [
+          "update"
+        ],
+        "changed_top_level_attributes": [
+          "inline_policy"
+        ]
+      }
+    ],
+    "original_trust_workload_session_policies_preserved": true,
+    "anchor_profiles_disabled": true,
+    "ca_preserved": true,
+    "crl_enabled": true,
+    "crl_number": 3,
+    "crl_next_update": "2026-10-20T13:28:36+00:00",
+    "original_workload_certificates_and_key_pairs_preserved": true,
+    "home_cleanup": {
+      "checked_at": "2026-09-15T13:48:31.832322+00:00",
+      "acceptance_runtime_removed": true,
+      "disposable_private_keys_removed": true,
+      "original_key_pairs_verified": true,
+      "no_app_or_backup_workloads": true
+    },
+    "configs_disabled_scheduler_absent": true,
+    "recovery_key_version_preserved": true,
+    "budget_dry_run": "1",
+    "ledger_sha256": "ed94ca9e8b4fd846aadcc4eb36d61bd1f32cb74cd23e5446a387e9b537f2a2b4"
+  },
+  "tunnel_egress": {
+    "checked_at": "2026-09-15T13:34:18.489602+00:00",
+    "endpoints": [
+      {
+        "hostname": "region1.v2.argotunnel.com",
+        "resolved_addresses": [
+          "198.41.192.107",
+          "198.41.192.167",
+          "198.41.192.227",
+          "198.41.192.27",
+          "198.41.192.37",
+          "198.41.192.47",
+          "198.41.192.57",
+          "198.41.192.67",
+          "198.41.192.7",
+          "198.41.192.77",
+          "2606:4700:a0::1",
+          "2606:4700:a0::10",
+          "2606:4700:a0::2",
+          "2606:4700:a0::3",
+          "2606:4700:a0::4",
+          "2606:4700:a0::5",
+          "2606:4700:a0::6",
+          "2606:4700:a0::7",
+          "2606:4700:a0::8",
+          "2606:4700:a0::9"
+        ],
+        "connected_address": "2606:4700:a0::8",
+        "tcp_port": 7844,
+        "connected": true
+      },
+      {
+        "hostname": "region2.v2.argotunnel.com",
+        "resolved_addresses": [
+          "198.41.200.113",
+          "198.41.200.13",
+          "198.41.200.193",
+          "198.41.200.23",
+          "198.41.200.233",
+          "198.41.200.33",
+          "198.41.200.43",
+          "198.41.200.53",
+          "198.41.200.63",
+          "198.41.200.73",
+          "2606:4700:a8::1",
+          "2606:4700:a8::10",
+          "2606:4700:a8::2",
+          "2606:4700:a8::3",
+          "2606:4700:a8::4",
+          "2606:4700:a8::5",
+          "2606:4700:a8::6",
+          "2606:4700:a8::7",
+          "2606:4700:a8::8",
+          "2606:4700:a8::9"
+        ],
+        "connected_address": "2606:4700:a8::5",
+        "tcp_port": 7844,
+        "connected": true
+      }
+    ],
+    "scope": "DNS and TCP egress only; no tunnel/account/route configured; UDP untested"
+  },
+  "runtime_manifest": {
+    "helper_sha256": "beec9ed1c492d93db809890f16713e3556353294b823c2184ad4e891f1b2b54d",
+    "archive_sha256": "8762fc94e419f1bb15c060b779e9e1dd3f9a84f90bf3fbeb2bd2d553a92d208a",
+    "source_sha256": {
+      "home-server-acceptance-host.py": "93c8d87f9b48725e8275343b47235d77bd4837097235b4c9ac4ce21c511af626",
+      "home-server-acceptance-issuer.py": "7f084e1ffd22dfb21544bd98fb7daaa1e30db63c71aa5d018d0ab126fd3ab104",
+      "test-home-server-acceptance.py": "72a6fcfff3d371dfcc1b685f8af37f09a6b7bd7f2f8ed18e280692014c712ee4"
+    }
+  },
+  "current_source_sha256": {
+    "home-server-acceptance-host.py": "00fad2aeb5d63390945a9c8125887b6aa985596fcb7310dfb70a7eef593bc2fc",
+    "home-server-acceptance-issuer.py": "7f084e1ffd22dfb21544bd98fb7daaa1e30db63c71aa5d018d0ab126fd3ab104",
+    "test-home-server-acceptance.py": "72a6fcfff3d371dfcc1b685f8af37f09a6b7bd7f2f8ed18e280692014c712ee4"
+  },
+  "verification": {
+    "focused_tests_passed": 5,
+    "unchanged_suites_repeated": false,
+    "host_startup_core_limit_guard": "Added after functional tests; CLI/syntax passed; the running Linux acceptance process core limit was explicitly set to zero before cleanup",
+    "first_runtime_readiness_probe": "Ran before file transfer completed; final completed-runtime helper/SDK checks passed",
+    "credentials_in_memory_only": true,
+    "no_paid_llm_calls": true,
+    "bedrock_live_action_denial_proven": false,
+    "bedrock_containment_basis": "Exact installed deny, policy simulation, session expiration; no InvokeModel attempted"
+  },
+  "raw_evidence_directory": "/Users/steve/.local/share/driftplain/home-server-identity/acceptance-20260915",
+  "hm3_started": false
+}

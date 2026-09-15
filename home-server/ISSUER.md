@@ -133,7 +133,7 @@ and trust anchor under incident review instead.
 
 ## Signed CRLs and AWS import/update
 
-A **CRL** is a CA-signed list of revoked certificate serials. Roles Anywhere requires an
+A **CRL** is a CA-signed list of revoked certificate serials. Roles Anywhere uses an
 imported CRL; it does not call certificate distribution-point URLs or OCSP.
 [AWS revocation behavior](https://docs.aws.amazon.com/rolesanywhere/latest/userguide/trust-model.html#revocation).
 
@@ -143,7 +143,14 @@ alert on the refresh deadline with tested delivery; leaf renewal does not refres
 Warn when seven days remain, escalate at one day, and treat expiry as a failed operating
 gate. Do not assume AWS's treatment of an expired CRL is an emergency containment control.
 
-After operational approval, `crl` creates a full list (including an initial empty list).
+**AWS import correction, verified September 15:** AWS rejects an empty CRL with
+`ValidationException`. The initial nonempty CRL was bootstrapped using a separately
+journaled disposable test leaf revoked before use; the operational leaves were unchanged.
+The current imported CRL contains both disposable test revocations. Preserve them in full
+history/refreshes. See [HM2 acceptance](HM2-ACCEPTANCE.md). Do not retry an empty import or
+revoke an operational leaf merely to satisfy the AWS requirement.
+
+After operational approval, `crl` creates a full list (which can be empty locally).
 `revoke --serial DECIMAL_SERIAL` records an issued serial as compromised. Unknown serials
 fail. Repeat revocation retains the original date and never duplicates the entry. CRL
 numbers increase on each generation, including retries; old CRLs/bundles are retained.
