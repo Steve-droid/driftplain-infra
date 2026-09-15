@@ -14,8 +14,9 @@ The approved budget safeguard is applied; AWS is still production. HM2 is not ye
 
 **September 15 continuation:** [concrete service decisions](HM2-DECISIONS.md),
 [measured cost worksheet](HOME-SERVER-COSTS.md) and [initial identity bootstrap package](IDENTITY-BOOTSTRAP.md)
-are prepared for review. Ten new bootstrap tests pass locally; no operational bootstrap
-or service selection occurred. The worksheet adds actual ECR/S3 sizes and current public
+were published in infra PR #25 after review. The separately approved initial bootstrap
+and independent populated-ledger recovery now pass; AWS authentication remains disabled.
+Service choices remain pending. The worksheet adds actual ECR/S3 sizes and current public
 domain-renewal rates; account-specific renewals, power and WAN facts remain open.
 
 ## Fresh baseline
@@ -117,7 +118,8 @@ bundle in S3/on the Mac. He then required automatic certificate renewal. The loc
 uses a Mac launchd renewal job for 90-day leaves at 30 days remaining, with retries/failure
 notifications and independent expiry monitoring required before use. The issuer is now
 enrolled with encrypted S3/Mac recovery and a home-held public checkpoint. AWS identity
-is provisioned but disabled; no leaf certificate or renewal job is deployed. See [enrollment evidence](ISSUER-ENROLLMENT.md)
+is provisioned but disabled; initial leaves/Secrets and populated-ledger recovery are verified
+in [the bootstrap record](IDENTITY-BOOTSTRAP.md). No renewal job is deployed. See [enrollment evidence](ISSUER-ENROLLMENT.md)
 and [identity design/code/tests](IDENTITY.md).
 The September 14 [identity plan](IDENTITY-PLAN.md) was refreshed, separately approved and
 [applied](IDENTITY-APPLIED.md): eight creates, no updates/deletes, with the enrolled public CA

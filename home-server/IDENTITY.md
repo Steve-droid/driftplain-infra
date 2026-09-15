@@ -2,12 +2,12 @@
 
 **IAM Roles Anywhere is provisioned with authentication disabled, September 14.**
 [Applied verification](IDENTITY-APPLIED.md) records eight creates and a no-change follow-up
-plan. Leaves, CRL, authentication enablement and scheduling remain separately gated.
-Future slices retain commit/cloud review gates. The operational CA is
-now enrolled in local Keychain, with independent empty-ledger recovery verified from S3
-and a public checkpoint retrieved from home. No leaf certificate,
-workload credential or runtime installation has been created. Existing recovery-key custody
-is preserved. [Enrollment record](ISSUER-ENROLLMENT.md).
+plan. Initial backup/Bedrock leaves and Secrets were separately approved and
+[bootstrapped September 15](IDENTITY-BOOTSTRAP.md), with independent populated-ledger
+recovery from S3 using a home-held public checkpoint. Original CA/age custody is preserved.
+CRL, authentication enablement and scheduling remain separately gated. No AWS workload
+session or application deployment has occurred. Future slices retain commit/cloud review
+gates. [Original enrollment record](ISSUER-ENROLLMENT.md).
 
 **Next slice prepared locally, September 13:** [issuer enrollment/recovery/CRL tooling](ISSUER.md)
 adds native no-overwrite enrollment, independent complete-ledger recovery and signed CRLs
@@ -129,7 +129,7 @@ Keychain is off the Ubuntu host, not an air-gapped system. Mac compromise can ex
 authority. S3 and the AWS-held recovery key share an account; the Mac copy is the independent
 location. No additional Secrets Manager secret or AWS Private CA is selected.
 
-Enrolled CA parameters (leaf issuance remains pending): dedicated self-signed RSA-3072
+Enrolled CA parameters (initial leaves verified September 15): dedicated self-signed RSA-3072
 CA, SHA-256, two-year validity, X.509v3 `CA:true,pathlen:0`, `keyCertSign,cRLSign`; directly
 issued RSA-3072 leaves with `CA:false`, `digitalSignature`, one exact CN and 90-day validity.
 Verify leaves never outlive the CA. Keep a ledger of serial, subject, public-key fingerprint,
