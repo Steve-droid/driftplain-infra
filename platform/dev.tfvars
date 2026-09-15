@@ -35,6 +35,8 @@ public_access_cidrs = [
   "87.71.201.222/32", # 2026-09-09 (P38e deploy network) — applied out-of-band via
                       # `aws eks update-cluster-config` (Steve's one-off OK); listed here so
                       # `terraform plan` stays clean. Prune when no longer used.
+  "46.210.169.119/32", # 2026-09-15 (HM3 export, personal hotspot) — applied out-of-band via
+                      # `aws eks update-cluster-config` with Steve's OK; existing entries kept.
 ]
 
 # --- IRSA (P7) ---
