@@ -73,8 +73,12 @@ run "separate_trust_and_permissions" {
   }
   assert {
     condition = (
-      length(jsondecode(aws_iam_role_policy.home_server["bedrock"].policy).Statement) == 2 &&
-      alltrue([for s in jsondecode(aws_iam_role_policy.home_server["bedrock"].policy).Statement : s.Action == ["bedrock:InvokeModel"] && s.Effect == "Allow"]) &&
+      length(jsondecode(aws_iam_role_policy.home_server["bedrock"].policy).Statement) == 3 &&
+      alltrue([for s in slice(jsondecode(aws_iam_role_policy.home_server["bedrock"].policy).Statement, 0, 2) : s.Action == ["bedrock:InvokeModel"] && s.Effect == "Allow"]) &&
+      jsondecode(aws_iam_role_policy.home_server["bedrock"].policy).Statement[2] == {
+        Sid = "IngestionSourceObjects", Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject"],
+        Resource = "arn:aws:s3:::modelmatch-ingestion-sources-957261948820/sources/*"
+      } &&
       toset(jsondecode(aws_iam_role_policy.home_server["bedrock"].policy).Statement[0].Resource) == toset([
         "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/apac.amazon.nova-lite-v1:0",
         "arn:aws:bedrock:ap-south-1:957261948820:inference-profile/global.amazon.nova-2-lite-v1:0"
@@ -85,7 +89,7 @@ run "separate_trust_and_permissions" {
       ]) &&
       jsondecode(aws_iam_role_policy.home_server["bedrock"].policy).Statement[1].Condition.StringEquals["bedrock:InferenceProfileArn"] == jsondecode(aws_iam_role_policy.home_server["bedrock"].policy).Statement[0].Resource
     )
-    error_message = "Bedrock must retain exact Nova/profile scope and deny bare-model invocation by omission."
+    error_message = "Bedrock must retain exact Nova/profile scope, deny bare-model invocation by omission, and hold only the object-level ingestion prefix grant."
   }
   assert {
     condition = (!aws_rolesanywhere_trust_anchor.home_server[0].enabled &&

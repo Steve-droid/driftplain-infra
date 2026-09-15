@@ -5,7 +5,7 @@ home_server_identity_enabled = true
 home_server_sessions_enabled = false
 # Public CA verified against the September 13 enrollment record; never a private key.
 # DER SHA-256: b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4
-home_server_ca_certificate_pem  = <<-PEM
+home_server_ca_certificate_pem = <<-PEM
 -----BEGIN CERTIFICATE-----
 MIIESjCCArKgAwIBAgIUNSOVaUhLeP+kEwY6SocztMk54c8wDQYJKoZIhvcNAQEL
 BQAwKzEpMCcGA1UEAwwgZHJpZnRwbGFpbi1ob21lLXNlcnZlci1pc3N1ZXItdjEw
@@ -32,7 +32,9 @@ G8A9PInFn9XRUP8LZXzV9qGvCk3LMSRObN6FkpAefJe8993gMUsQiP1+MfKn1115
 HIfMji7S+oXdjaj7QxR4tUznWkCR7PulbWmzJyLbG42qXiFBPfb1C19qDN9yLQ==
 -----END CERTIFICATE-----
 PEM
-home_server_backup_bucket_name  = "modelmatch-home-server-backups-957261948820"
-home_server_bedrock_profile_ids = ["apac.amazon.nova-lite-v1:0", "global.amazon.nova-2-lite-v1:0"]
-home_server_bedrock_model_ids   = ["amazon.nova-lite-v1:0", "amazon.nova-2-lite-v1:0"]
-home_server_teardown_role_name  = "modelmatch-platform-teardown-codebuild"
+home_server_backup_bucket_name = "modelmatch-home-server-backups-957261948820"
+# E21/HM4: the existing bootstrap ingestion bucket (durable S3 blob store); object-level only.
+home_server_ingestion_bucket_name = "modelmatch-ingestion-sources-957261948820"
+home_server_bedrock_profile_ids   = ["apac.amazon.nova-lite-v1:0", "global.amazon.nova-2-lite-v1:0"]
+home_server_bedrock_model_ids     = ["amazon.nova-lite-v1:0", "amazon.nova-2-lite-v1:0"]
+home_server_teardown_role_name    = "modelmatch-platform-teardown-codebuild"

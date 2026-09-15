@@ -42,6 +42,13 @@ variable "home_server_backup_bucket_name" {
     error_message = "Only the dedicated home-server backup bucket may be targeted."
   }
 }
+variable "home_server_ingestion_bucket_name" {
+  type = string
+  validation {
+    condition     = var.home_server_ingestion_bucket_name == "modelmatch-ingestion-sources-${var.home_server_account_id}"
+    error_message = "Only the existing ingestion-sources bucket may be targeted."
+  }
+}
 variable "home_server_bedrock_profile_ids" {
   type = list(string)
   validation {
