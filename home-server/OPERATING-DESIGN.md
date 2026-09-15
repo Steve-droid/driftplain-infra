@@ -12,6 +12,12 @@ empty-ledger recovery now pass. Public route and remaining
 service choices are proposals.
 The approved budget safeguard is applied; AWS is still production. HM2 is not yet accepted.
 
+**September 15 continuation:** [concrete service decisions](HM2-DECISIONS.md),
+[measured cost worksheet](HOME-SERVER-COSTS.md) and [initial identity bootstrap package](IDENTITY-BOOTSTRAP.md)
+are prepared for review. Ten new bootstrap tests pass locally; no operational bootstrap
+or service selection occurred. The worksheet adds actual ECR/S3 sizes and current public
+domain-renewal rates; account-specific renewals, power and WAN facts remain open.
+
 ## Fresh baseline
 
 Read at approximately 23:15–23:18 Asia/Jerusalem, September 12, 2026:
@@ -102,7 +108,8 @@ same AWS account; no immutability/account-compromise guarantee is claimed.
 | Images | Publish approved release images to public GHCR with immutable digest references | Requires separate publishing approval; prove anonymous pull from a clean client; retain ECR through rollback |
 | Bedrock | Retain Nova, existing scopes/caps and paid-feature restrictions; IAM Roles Anywhere for home | Dedicated short-lived AWS role credentials from a home certificate; never Mac admin credentials/static IAM keys; helper integration and automatic refresh must pass in HM4 |
 | Terraform state | Retain current protected S3 bucket | Operator-only access; version/lifecycle budget; no home runtime access required |
-| Blob/Jenkins/BYOK reference writes | Existing in-memory adapters are insufficient for durable operation | Implement persistent encrypted reference/blob adapters or explicitly disable unsupported write routes before public cutover; preserve the existing CI-token hashes |
+| Ingestion-source blobs | Existing in-memory blob adapter is insufficient for durable operation | Decide durable S3 source persistence versus explicit ingestion disablement; preserve existing catalog/data |
+| Jenkins/BYOK references | Current API is metadata-only and rejects secret fields; in-memory secret adapter is unused by that route | Preserve this existing contract, nullable legacy refs and CI-token hashes; no new backend secret vault is needed |
 
 **Selected identity:** IAM Roles Anywhere, with separate backup-upload and Bedrock roles.
 Steve approved CA-key custody in local Mac Keychain plus an age-encrypted issuer recovery
@@ -155,6 +162,8 @@ silent compatibility. Keep their current routes during overlap.
 ## Recurring cost worksheet (USD, no promotional credits)
 
 These are planning allowances, not a measured complete bill or approved subscriptions.
+The [September 15 worksheet](HOME-SERVER-COSTS.md) supersedes the unmeasured size/domain
+placeholders below with recorded quantities and explicit remaining unknowns.
 
 | Item | Basis / allowance |
 |---|---|

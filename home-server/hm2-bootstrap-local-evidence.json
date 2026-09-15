@@ -1,0 +1,53 @@
+{
+  "recorded_at": "2026-09-15T12:33:10.066894+00:00",
+  "status": "Local preparation verified; source and operational review pending",
+  "tests": {
+    "command": "venv/bin/python3 home-server/test-home-server-bootstrap.py",
+    "passed": 10,
+    "failed": 0,
+    "scope": "Disposable CA/leaf/age keys, fake SSH/Kubernetes/backup, socket connections and native Keychain construction forbidden; real local OpenSSL and age",
+    "initial_fixture_failures": "Corrected disposable CA interval and second-resolution CRL timestamp to match existing issuer contract; no production-source change needed"
+  },
+  "source_sha256": {
+    "home-server-bootstrap.py": "bf8642c701c1b1a29dc661e10477e80db45e8c7ccb9eca3af3df902a7c6ba49d",
+    "home-server-bootstrap-leaf.py": "85b841bc72909b29c68706458fc307d3c5791330fe20ac97ae9e7e71ef91b9ff",
+    "test-home-server-bootstrap.py": "79ef4bd2cd3db5c488414d46411cac4e82f8b303f8e871ef9395182ef78a1ed3"
+  },
+  "public_only_preflight": {
+    "renewal_enabled": false,
+    "ca_sha256": "b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4",
+    "canonical_ledger_sha256": "e3f61fb7ca3305f2b6446408295d754e68438de39747fefb59cbb0d43d9201ed",
+    "issued_count": 0,
+    "pending_count": 0,
+    "revoked_count": 0,
+    "crl_number": 0,
+    "home_namespaces": [
+      "default",
+      "kube-node-lease",
+      "kube-public",
+      "kube-system"
+    ],
+    "home_access": "Existing strict-key SSH alias; read namespaces only"
+  },
+  "not_performed": [
+    "custody read/write",
+    "operational leaf issuance",
+    "runtime script installation",
+    "namespace/Secret creation",
+    "CRL signing/import",
+    "AWS authentication/enablement",
+    "scheduler installation",
+    "paid LLM call",
+    "image publication",
+    "DNS or public routing change",
+    "production export/restore",
+    "commit/push"
+  ],
+  "source_review_approved": false,
+  "operational_bootstrap_approved": false,
+  "source_publication_approval": {
+    "date": "2026-09-15",
+    "user_instruction": "Approved. PR, merge to main and continue",
+    "scope": "Reviewed source publication; separate operational bootstrap, CRL, authentication and scheduling gates retained"
+  }
+}
