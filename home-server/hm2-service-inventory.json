@@ -1,0 +1,119 @@
+{
+  "recorded_at": "2026-09-14T19:07:17.589836+00:00",
+  "operator": "arn:aws:iam::957261948820:user/steve",
+  "ecr": [
+    {
+      "name": "modelmatch-backend",
+      "image_count": 10,
+      "sum_image_size_bytes_not_deduplicated": 981778271,
+      "release_images": [
+        {
+          "tags": [
+            "1.0.24"
+          ],
+          "digest": "sha256:027d9fef425c56e43bf9d637db043325d5ddf5fc9f23990cf048619d3a10e528",
+          "bytes": 110812026
+        }
+      ]
+    },
+    {
+      "name": "modelmatch-frontend",
+      "image_count": 10,
+      "sum_image_size_bytes_not_deduplicated": 259693777,
+      "release_images": [
+        {
+          "tags": [
+            "1.0.24"
+          ],
+          "digest": "sha256:c7b61ab3b642659073b659653836190a74f369475ff5732e6313c4489e6a6de2",
+          "bytes": 25972210
+        }
+      ]
+    },
+    {
+      "name": "modelmatch-agent-security",
+      "image_count": 4,
+      "sum_image_size_bytes_not_deduplicated": 503521455,
+      "release_images": [
+        {
+          "tags": [
+            "1.1.3"
+          ],
+          "digest": "sha256:0b1c0f73a4f0b6d5517be500fef7fda4e173b7307e1d95672961e2131031e0d2",
+          "bytes": 125432781
+        }
+      ]
+    },
+    {
+      "name": "modelmatch-agent",
+      "image_count": 5,
+      "sum_image_size_bytes_not_deduplicated": 353689084,
+      "release_images": [
+        {
+          "tags": [
+            "1.1.3"
+          ],
+          "digest": "sha256:064446aaca9611b0f7f55568cfda89b000f662bafe791bf34a4e95da431567be",
+          "bytes": 70629207
+        }
+      ]
+    }
+  ],
+  "s3": [
+    {
+      "bucket": "modelmatch-tfstate-957261948820",
+      "all_version_bytes": 1902401,
+      "version_count": 76,
+      "delete_marker_count": 48,
+      "current_bytes": 255796
+    },
+    {
+      "bucket": "modelmatch-home-server-backups-957261948820",
+      "all_version_bytes": 6378,
+      "version_count": 1,
+      "delete_marker_count": 0,
+      "current_bytes": 6378
+    },
+    {
+      "bucket": "modelmatch-ingestion-sources-957261948820",
+      "recorded_at": "2026-09-15T12:20:04.545901+00:00",
+      "all_version_bytes": 0,
+      "version_count": 0,
+      "delete_marker_count": 0,
+      "current_bytes": 0
+    }
+  ],
+  "route53": [
+    {
+      "name": "modicum.cloud.",
+      "record_count": 4,
+      "private": false
+    },
+    {
+      "name": "driftplain.dev.",
+      "record_count": 5,
+      "private": false
+    }
+  ],
+  "secrets_manager": [
+    {
+      "name": "modelmatch/app",
+      "last_changed": "2026-09-06 17:04:11.691000+03:00"
+    },
+    {
+      "name": "modelmatch/home-server/recovery-key-v1",
+      "last_changed": "2026-09-13 01:36:20.918000+03:00"
+    }
+  ],
+  "cloudwatch_logs": [
+    {
+      "name": "/aws/codebuild/modelmatch-platform-teardown",
+      "stored_bytes": 18006,
+      "retention_days": 90
+    }
+  ],
+  "inventory_notes": [
+    "Initial guessed ingestion bucket name returned NoSuchBucket; corrected from bootstrap/dev.tfvars. No object content or secret values read.",
+    "ECR image-size sums double-count shared layers and are not billed storage."
+  ]
+}
