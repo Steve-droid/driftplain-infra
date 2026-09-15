@@ -6,7 +6,15 @@ Driftplain will stay online and be maintained; it has no showcase expiry date. *
 cutover and Steve's explicit teardown approval.** Steve approved the completed foundation
 and workspace consolidation on September 12, 2026; subsequent slices retain their review gates.
 
-## Current slice: HM2 host recovery and operating design
+## Current slice: HM3 backup and restore rehearsal
+
+[HM3-RESTORE.md](HM3-RESTORE.md) is the export → S3 → independent download → home ArgoCD
+bootstrap → owner Secret → CNPG restore → full comparison runbook and result record, driven by
+`home-server-database.py` and `home-server-argocd.sh`; sanitized results are in
+[hm3-restore-evidence.json](hm3-restore-evidence.json). HM2 is complete
+([acceptance](HM2-ACCEPTANCE.md)); the section below is its historical summary.
+
+## HM2 host recovery and operating design (complete September 15)
 
 HM1 and the recovery source are approved for publication. HM2 includes
 [the recovery drill](RECOVERY.md), [operating choices and costs](OPERATING-DESIGN.md)

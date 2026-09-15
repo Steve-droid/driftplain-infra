@@ -219,6 +219,19 @@ class SessionAndRefusalTests(unittest.TestCase):
         with self.assertRaisesRegex(db.DatabaseError, "already contains relations"):
             db.run_restore(FakeShell(["true"]), b"AGE-SECRET-KEY-1" + b"Q" * 58 + b"\n", Path("/nonexistent"), 5)
 
+    def test_target_pod_shell_quotes_sql_for_the_remote_shell(self):
+        # ssh joins trailing arguments with spaces for the remote shell: SQL with quotes and
+        # parentheses must arrive as ONE psql argument there, never as shell syntax (exit 2).
+        import shlex
+        prefix = db.ssh_prefix(["sudo", "-n", "kubectl", "exec", "-i", "pod", "--"])
+        sql = "SELECT count(*) FROM pg_class WHERE relnamespace = 'public'::regnamespace;"
+        remote = db.PodShell(prefix, "target", remote=True).command(["psql", "-At", "-c", sql])
+        self.assertEqual(remote[:-1], prefix[:-1])
+        self.assertEqual(shlex.split(remote[-1]),
+                         ["sudo", "-n", "kubectl", "exec", "-i", "pod", "--", "psql", "-At", "-c", sql])
+        local = db.PodShell(["kubectl", "exec", "--"], "source").command(["psql", "-c", sql])
+        self.assertEqual(local, ["kubectl", "exec", "--", "psql", "-c", sql])
+
     def test_wrong_source_or_target_context_is_refused(self):
         wrong = {"contexts": [{"name": "orbstack"}], "clusters": [{"cluster": {"server": "https://127.0.0.1:26443"}}]}
         with patch.object(db, "kube_json", return_value=wrong):

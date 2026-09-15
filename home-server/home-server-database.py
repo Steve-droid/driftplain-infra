@@ -182,11 +182,17 @@ class PodShell:
     Output is captured, never relayed: it can contain rows or credential verifiers.
     """
 
-    def __init__(self, prefix, label):
+    def __init__(self, prefix, label, remote=False):
         self.prefix = list(prefix)
         self.label = label
+        # remote: the prefix ends with an ssh remote command string; ssh joins any further
+        # arguments with spaces and hands the result to the remote shell, so they must be
+        # shell-quoted there (SQL with quotes/parentheses would otherwise be parsed as shell).
+        self.remote = remote
 
     def command(self, argv):
+        if self.remote:
+            return self.prefix[:-1] + [self.prefix[-1] + " " + shlex.join(argv)]
         return self.prefix + list(argv)
 
     def run(self, argv, payload=None, timeout=300, error_file=None):
@@ -344,7 +350,7 @@ def target_shell():
     primary = status.get("currentPrimary")
     if not primary or status.get("phase") != "Cluster in healthy state" or status.get("instances") != 1:
         raise DatabaseError("home CNPG cluster is not one healthy instance; refusing")
-    shell = PodShell(remote_prefix(["-n", NAMESPACE, "exec", "-i", primary, "-c", "postgres", "--"]), "target")
+    shell = PodShell(remote_prefix(["-n", NAMESPACE, "exec", "-i", primary, "-c", "postgres", "--"]), "target", remote=True)
     return shell, remote_prefix, {"context": TARGET_CONTEXT, "server": TARGET_SERVER, "node": TARGET_NODE,
                                   "phase": status.get("phase"), "image": status.get("image"), "primary": primary}
 
