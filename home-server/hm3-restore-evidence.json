@@ -1,0 +1,294 @@
+{
+  "slice": "E21/HM3",
+  "kind": "driftplain-home-server-restore-evidence",
+  "recorded_at": "2026-09-15T16:17:13Z",
+  "result": "PASS \u2014 independent restore matches the export snapshot in every compared category",
+  "source": {
+    "cluster": "arn:aws:eks:ap-south-1:957261948820:cluster/modelmatch",
+    "namespace": "app",
+    "cnpg_cluster": "modelmatch-postgres",
+    "instances": 2,
+    "primary": "modelmatch-postgres-1",
+    "operator": "cloudnative-pg 1.29.1 (chart 0.28.3; series EOL 2026-09-29)",
+    "postgres_image": "ghcr.io/cloudnative-pg/postgresql:16.10-system-trixie",
+    "server_version": "16.10 (Debian 16.10-1.pgdg13+1)",
+    "state_after": "unchanged; production authoritative and writable; DRY_RUN=1"
+  },
+  "export": {
+    "stamp": "20260915T150228Z",
+    "snapshot": "00000008-0001327E-1",
+    "snapshot_at_utc": "2026-09-15T15:02:30.898329Z",
+    "wal_lsn": "0/EF000000",
+    "isolation": "REPEATABLE READ; pg_dump --snapshot; same-snapshot fingerprint via SET TRANSACTION SNAPSHOT",
+    "export_seconds": 12.438,
+    "timings": {
+      "pg_dump_encrypt_seconds": 2.828,
+      "roles_seconds": 2.135,
+      "fingerprint_seconds": 3.217
+    },
+    "alembic_version": [
+      "a4b5c6d7e8f9"
+    ],
+    "role_names": [
+      "modelmatch",
+      "modelmatch_chat_ro"
+    ],
+    "credential_secret_keys": {
+      "modelmatch-app-secrets": [
+        "CHAT_READONLY_DB_PASSWORD",
+        "DEMO_SEED_PASSWORD",
+        "JWT_SECRET",
+        "POSTGRES_PASSWORD"
+      ],
+      "modelmatch-db-app": [
+        "password",
+        "username"
+      ]
+    },
+    "encrypted_objects": {
+      "postgres.dump.age": {
+        "size": 93910,
+        "sha256": "28c01a3108fd6e995f5f9a0e1c5490af977af00e3f01bf613fa736e7aea76ccc"
+      },
+      "globals.sql.age": {
+        "size": 1890,
+        "sha256": "85f451b3c3390a5fcb572f079bfc5a027adce20eee238ee980c1f44bfa5eebb1"
+      },
+      "fingerprint.json.age": {
+        "size": 33813,
+        "sha256": "6f561caa9efe282943da35e3c2e2d662beb4d7fb57544478a2cc3f6c6520a061"
+      },
+      "app-credentials.json.age": {
+        "size": 998,
+        "sha256": "92b688c8491ecaaa5253f4d7f049dd95863ca101f8599c97570a3a4099df76b6"
+      }
+    },
+    "recipient": "age1vcy5ynjmhrv587m5e8pvgm42gwrwxj4smzzcywhxckrl47xqea8qcewa7m",
+    "mac_copy": "~/.local/share/driftplain/home-server-backups/export-20260915T150228Z/ (0700/0600, outside Git)"
+  },
+  "upload": {
+    "bucket": "modelmatch-home-server-backups-957261948820",
+    "region": "ap-south-1",
+    "operator": "IAM user steve (profile saa)",
+    "uploaded_at": "2026-09-15T15:02:54.965109+00:00",
+    "upload_seconds": 3.911,
+    "method": "single PutObject per object with SHA-256 checksum",
+    "objects": {
+      "postgres/daily/hm3-20260915T150228Z/postgres.dump.age": {
+        "version_id": "OBf5xt5IP1LWl8s_GtXxNnqQu3ke6EIV",
+        "size": 93910
+      },
+      "postgres/daily/hm3-20260915T150228Z/globals.sql.age": {
+        "version_id": "nKELHIH.chaAqjTLd1gYtllJVOGJmOJN",
+        "size": 1890
+      },
+      "postgres/daily/hm3-20260915T150228Z/fingerprint.json.age": {
+        "version_id": "_HNi3lNdKzRWjM4n6y0tLCIsDkeo6vm3",
+        "size": 33813
+      },
+      "postgres/daily/hm3-20260915T150228Z/manifest.json": {
+        "version_id": "VyMTfffJn4z3EfY2yHNJbOT7BODXP0TT",
+        "size": 2876,
+        "sha256": "0c47a91c227f8c5ea1946dc360608fc7afb37a7d15e642d0239385a33f9ab983"
+      },
+      "recovery/app-credentials/hm3-20260915T150228Z.json.age": {
+        "version_id": "lKWzVJifrNySZi4bWrUP3rNSOcNqRlnG",
+        "size": 998
+      }
+    }
+  },
+  "independent_download": {
+    "stamp": "20260915T150323Z",
+    "method": "GetObject by key + VersionId into a separate directory; S3 checksum and manifest SHA-256 verified",
+    "download_seconds": 2.339,
+    "manifest_verified": true,
+    "directory": "~/.local/share/driftplain/home-server-backups/restore-20260915T150323Z/ (the restore source; the export directory was not used)"
+  },
+  "home_target": {
+    "node": "driftplain-home (K3s v1.36.4+k3s1)",
+    "kube_context": "driftplain-home",
+    "api_server": "https://127.0.0.1:6443 over strict-key ssh + sudo -n",
+    "argocd": {
+      "chart": "argo-cd 9.5.21 (v3.4.3)",
+      "installed_at": "2026-09-15T15:43:19Z",
+      "ready_at": "2026-09-15T15:44:00Z",
+      "install_method": "helm template on the Mac, kubectl apply --server-side over ssh",
+      "server_exposure": "ClusterIP only (port-forward over ssh)",
+      "root": {
+        "name": "home-server-root",
+        "path": "argocd/home-server/apps",
+        "targetRevision": "main",
+        "applied_at": "2026-09-15T15:45Z",
+        "gitops_merge": "PR #44 \u2192 5ac16401307f7bd1d49109994815820bd2e1ba9e (v0.19.0), merged 2026-09-15T16:06:34Z"
+      },
+      "children_synced_healthy_at": "2026-09-15T16:09:12Z",
+      "applications": {
+        "home-server-root": "Synced/Healthy",
+        "cnpg-operator": "Synced/Healthy @ chart 0.29.0",
+        "modelmatch-postgres": "Synced/Healthy @ 5ac1640"
+      }
+    },
+    "cnpg": {
+      "operator_image": "ghcr.io/cloudnative-pg/cloudnative-pg:1.30.0",
+      "chart": "0.29.0",
+      "cluster": "app/modelmatch-postgres",
+      "instances": 1,
+      "created_at": "2026-09-15T16:08:30Z",
+      "phase": "Cluster in healthy state",
+      "primary": "modelmatch-postgres-1",
+      "postgres_image": "ghcr.io/cloudnative-pg/postgresql:16.10-system-trixie",
+      "enableSuperuserAccess": false,
+      "services": [
+        "modelmatch-postgres-rw",
+        "modelmatch-postgres-ro",
+        "modelmatch-postgres-r"
+      ],
+      "service_type": "ClusterIP (private; no ingress, no app writer)"
+    },
+    "owner_secret": {
+      "name": "app/modelmatch-db-app",
+      "type": "kubernetes.io/basic-auth",
+      "action": "created 2026-09-15T15:44Z from app-credentials.json.age (original value) via --identity-source aws",
+      "modelmatch-app-secrets": "kept in the bundle, not installed (HM4 Sealed Secrets)"
+    },
+    "storage": {
+      "storage_class": "home-server-retain",
+      "provisioner": "rancher.io/local-path",
+      "reclaim_policy": "Retain",
+      "volume_binding_mode": "WaitForFirstConsumer",
+      "pvc": "app/modelmatch-postgres-1",
+      "pvc_uid": "7aba0fae-a8f2-4edc-a6fe-0c2c744e3edb",
+      "pv": "pvc-7aba0fae-a8f2-4edc-a6fe-0c2c744e3edb",
+      "pv_uid": "58e53368-98a3-4c7b-b5b4-35fe13c3b85b",
+      "capacity_request": "10Gi (not a local-path quota)",
+      "path": "/var/lib/rancher/k3s/storage/pvc-7aba0fae-a8f2-4edc-a6fe-0c2c744e3edb_app_modelmatch-postgres-1",
+      "node_affinity": "kubernetes.io/hostname In [driftplain-home]",
+      "directory_size_after_restore": "81 MiB",
+      "filesystem": "/dev/nvme1n1p2 468G total, 419G free (6% used)"
+    }
+  },
+  "restore": {
+    "started_at": "2026-09-15T16:17:04Z",
+    "finished_at": "2026-09-15T16:17:13Z",
+    "restore_seconds": 2.676,
+    "timings": {
+      "roles_seconds": 0.578,
+      "pg_restore_seconds": 0.876,
+      "fingerprint_seconds": 0.659
+    },
+    "identity_source": "aws (Secrets Manager modelmatch/home-server/recovery-key-v1; Keychain readback denied non-interactively, OSStatus -25293)",
+    "order": [
+      "refuse non-empty target (0 relations)",
+      "filtered app roles with original SCRAM verifiers + PG16 auto-membership",
+      "pg_restore --single-transaction --exit-on-error from the age pipe",
+      "REPEATABLE READ fingerprint",
+      "compare"
+    ],
+    "first_attempt": "16:15:23Z refused before any write: unquoted psql arguments after the ssh command (remote shell exit 2); fixed in PodShell(remote=True) + a focused test, target verified still empty, re-run",
+    "target_database_bytes": 9646563,
+    "source_database_bytes_at_inventory": 9949667,
+    "restored_objects": {
+      "tables": 23,
+      "sequences": 19,
+      "views": 1,
+      "indexes": 36,
+      "constraints": 60,
+      "columns": 151,
+      "enums": 10,
+      "extensions": 1,
+      "live_rows": 2598
+    }
+  },
+  "comparison": {
+    "match": true,
+    "categories": {
+      "server_version": true,
+      "database": true,
+      "alembic_version": true,
+      "extensions": true,
+      "schema_public": true,
+      "relations": true,
+      "columns": true,
+      "constraints": true,
+      "indexes": true,
+      "views": true,
+      "enums": true,
+      "default_acl": true,
+      "memberships": true,
+      "sequences": true,
+      "roles": true,
+      "tables": true
+    },
+    "database": {
+      "name": "modelmatch",
+      "owner": "modelmatch",
+      "encoding": "UTF8",
+      "collate": "C",
+      "ctype": "C",
+      "locale_provider": "c",
+      "identical_on_both_sides": true
+    },
+    "roles": {
+      "modelmatch": {
+        "present": true,
+        "attributes_match": true,
+        "verifier_match": true,
+        "password_kind": "scram-sha-256"
+      },
+      "modelmatch_chat_ro": {
+        "present": true,
+        "attributes_match": true,
+        "verifier_match": true,
+        "password_kind": "scram-sha-256"
+      }
+    },
+    "memberships": "modelmatch_chat_ro \u2192 modelmatch WITH ADMIN OPTION GRANTED BY postgres (PG16 auto-membership) \u2014 match",
+    "tables_rows_and_content_digest": {
+      "agent_runtime_config": 10,
+      "alembic_version": 1,
+      "auth_rate_bucket": 1,
+      "benchmark": 3,
+      "benchmark_result": 24,
+      "chat_message": 9,
+      "ci_finding": 830,
+      "ci_run": 209,
+      "finding_feedback": 709,
+      "google_login_nonce": 1,
+      "harness": 3,
+      "jenkins_connection": 5,
+      "llm_call": 4,
+      "llm_usage": 4,
+      "model": 23,
+      "proactive_alert": 0,
+      "project": 11,
+      "recommendation_evidence": 313,
+      "recommendation_option": 326,
+      "requirements_profile": 96,
+      "retrieval_trace": 7,
+      "source_document": 0,
+      "user": 9
+    },
+    "note": "every table: rows_match and content_match true (per-table digest over row::text under fixed session settings); the 5 jenkins_connection CI-token hashes and 9 user credential hashes are included in the digests, not reproduced here"
+  },
+  "limits": [
+    "pg_dumpall --roles-only is outside the data snapshot (separate statement); role verifier digests in the same-snapshot fingerprint matched the restored roles, so no drift occurred here",
+    "Sequences carry the snapshot's setval; rows written to production after 15:02:30Z are not in this copy (logical dump, no WAL/PITR; RPO = snapshot time; hourly schedule/retention is HM5)",
+    "Only the two app roles are replayed; CNPG cluster roles (postgres, streaming_replica, cnpg_metrics_exporter) are operator-created on home; SUPERUSER/REPLICATION/BYPASSRLS attributes are refused",
+    "Operator versions differ by design: AWS 1.29.1 (EOL 2026-09-29, HM4/HM5 maintenance item) vs home 1.30.0; same PostgreSQL 16.10 image and server_version",
+    "The home copy is private and has no application writer; the restored data will be superseded by the final HM7 export before cutover",
+    "Retain PV re-bind to a fresh Cluster is a manual step (clear claimRef, matching PVC name); documented in HM3-RESTORE.md"
+  ],
+  "tests": {
+    "infra": "test-home-server-database.py: 20 pass (incl. Docker postgres:16 rehearsal)",
+    "gitops": "tests/test_home_server_profile.py: 11 pass; test_migration_only.py: 3 pass"
+  },
+  "not_done": [
+    "no migrate/seed hook against the restored copy",
+    "no image tag bump",
+    "no DNS/public route change",
+    "no AWS mutation (EKS allowlist unchanged this session; current IP 87.71.201.222 already listed)",
+    "no paid LLM call",
+    "no Keychain re-authorization",
+    "no scheduler installed"
+  ]
+}
