@@ -4,7 +4,10 @@ locals {
     bedrock = "driftplain-home-server-bedrock"
   }
   home_server_identities = var.home_server_identity_enabled ? local.home_server_subjects : {}
-  # Mirror the exact reviewed platform/irsa.tf model/profile scope; no ingestion grant.
+  # Mirror the exact reviewed platform/irsa.tf model/profile scope. E21/HM4 adds the
+  # same ingestion-source object grant IRSA role A has (GetObject/PutObject on the
+  # content-hash prefix only; no ListBucket, no delete) so the durable S3 blob store
+  # works at home under the Bedrock identity the backend pod already carries.
   home_server_profile_arns = [
     for id in var.home_server_bedrock_profile_ids :
     "arn:aws:bedrock:${var.aws_region}:${var.home_server_account_id}:inference-profile/${id}"
@@ -42,6 +45,12 @@ locals {
           Condition = { StringEquals = {
             "bedrock:InferenceProfileArn" = local.home_server_profile_arns
           } }
+        },
+        {
+          Sid      = "IngestionSourceObjects"
+          Effect   = "Allow"
+          Action   = ["s3:GetObject", "s3:PutObject"]
+          Resource = "arn:aws:s3:::${var.home_server_ingestion_bucket_name}/sources/*"
         }
       ]
     }

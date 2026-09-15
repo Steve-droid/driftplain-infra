@@ -1,0 +1,93 @@
+{
+  "slice": "E21/HM4 — home GitOps and app rollout on the restored database",
+  "kind": "sanitized operator evidence (no secret values, keys, hashes or rows)",
+  "recorded_at": "2026-09-15T17:10:00Z",
+  "status": "in progress — platform, custody, migration check, ingestion adapter/plan done; image copy + app rollout + validation pending the GitHub packages token scope",
+  "home_target": {
+    "node": "driftplain-home (K3s v1.36.4+k3s1)",
+    "kube_context": "driftplain-home",
+    "api_server": "https://127.0.0.1:6443 over strict-key ssh + sudo -n",
+    "argocd_root": "home-server-root → argocd/home-server/apps on main"
+  },
+  "platform_children": {
+    "gitops": "PR #46 → 31f7c6265e8629bdd76de89d0a8bc2d10cc17735 (v0.20.0)",
+    "synced_healthy_at": "2026-09-15T16:55:55Z",
+    "applications": {
+      "sealed-secrets": "Synced/Healthy @ chart 2.20.0 (controller 0.40.0), ns sealed-secrets",
+      "cert-manager": "Synced/Healthy @ v1.20.2, ns cert-manager",
+      "nginx-ingress": "Synced/Healthy @ 2.6.0 (F5 OSS 5.5.0), ns nginx-ingress, Service ClusterIP 10.43.144.172 80/443",
+      "cluster-issuers": "Synced/Healthy (values.yaml + values-home-server.yaml)",
+      "cnpg-operator": "Synced/Healthy @ 0.29.0 (unchanged)",
+      "modelmatch-postgres": "Synced/Healthy (unchanged)"
+    },
+    "ingressclass": "nginx (nginx.org/ingress-controller) — the only class; traefik/servicelb disabled",
+    "issuers": ["home-server-selfsigned-bootstrap (Ready)", "home-server-ca (Ready; CA Certificate home-server-ca in cert-manager, ECDSA P-256, 87600h)"],
+    "crd_count": {"before": 18, "after": 25},
+    "aws_render_check": "helm template of charts/modelmatch and charts/cluster-issuers byte-identical before/after the profile knobs"
+  },
+  "sealing_key_custody": {
+    "tool": "home-server-sealing-keys.py (tests: test-home-server-sealing-keys.py, 8 pass incl. offline kubeseal round trip, strict scope, wrong-key rejection)",
+    "controller_namespace": "sealed-secrets",
+    "keys": [{"name": "sealed-secrets-keyh7gb7", "status": "active", "created": "2026-09-15T16:54:53Z",
+              "cert_sha256": "3e6735a59251fdf8f49a571b0adb31cbb9e1820de600acb27fc1ae736f58e751", "cert_not_after": "2036-09-12T16:54:53Z"}],
+    "public_cert_committed": "home-server-sealing-active.crt",
+    "backup": {
+      "created_at": "2026-09-15T16:57:52Z",
+      "mac_copy": "~/.local/share/driftplain/home-server-backups/sealing-keys-20260915T165752Z/ (0700/0600)",
+      "bundle": {"name": "sealing-keys.json.age", "size": 7231, "sha256": "98e962f98844fdc66a40b183de8897e57802ca3e3dcec502261ed9ed0bf08a12", "recipient": "age1vcy5ynjmhrv587m5e8pvgm42gwrwxj4smzzcywhxckrl47xqea8qcewa7m"},
+      "s3": {
+        "bucket": "modelmatch-home-server-backups-957261948820",
+        "objects": {
+          "recovery/sealing-keys/20260915T165752Z/sealing-keys.json.age": {"version_id": "uwqBYu2c4IG4MAmsVjIsskeo2i.FiXV2", "size": 7231},
+          "recovery/sealing-keys/20260915T165752Z/manifest.json": {"version_id": "gaZ0d0d7x2npIlNpZzBk3dLW2xU3HLNV", "size": 653, "sha256": "fd940ba68650b152b1b219d1ac341886785f127d2d81f6f4f0eb39316ada850f"}
+        },
+        "method": "single PutObject per object with SHA-256 checksum, operator profile saa"
+      }
+    },
+    "sealed_manifests": {
+      "generated_from": "HM3 credential bundle restore-20260915T150323Z/app-credentials.json.age, decrypted in memory with --identity-source aws",
+      "scope": "strict (name + namespace)",
+      "items": {
+        "modelmatch-app-secrets": {"type": "Opaque", "keys": ["CHAT_READONLY_DB_PASSWORD", "DEMO_SEED_PASSWORD", "JWT_SECRET", "POSTGRES_PASSWORD"]},
+        "modelmatch-db-app": {"type": "kubernetes.io/basic-auth", "keys": ["password", "username"], "labels": {"cnpg.io/reload": "true"}}
+      },
+      "gitops": "argocd/home-server/sealed/ + apps/app-secrets.yaml (PR #47)"
+    },
+    "recovery_proof": {
+      "at": "2026-09-15T16:57:57Z",
+      "method": "independent S3 download by key+version (checksums verified) → decrypt with the Secrets Manager recovery identity → manifest match → kubeseal --recovery-unseal of both committed manifests offline → compare type/keys/values with the originals",
+      "recovered_keys": 1, "manifest_match": true,
+      "unseal": {"modelmatch-app-secrets": "type/keys/values match", "modelmatch-db-app": "type/keys/values match"},
+      "all_match": true, "seconds": 4.101
+    },
+    "adopt": "app/modelmatch-db-app annotated sealedsecrets.bitnami.com/managed=true before the app-secrets child synced; value unchanged"
+  },
+  "images": {
+    "status": "pending — gh token scopes are repo/read:org/gist/admin:public_key (no packages scope); Steve runs `gh auth refresh -s read:packages,write:packages`, then the one-time crane copy by digest + package visibility → Public",
+    "source_ecr_digests_resolved_read_only": {
+      "modelmatch-backend:1.0.24": {"digest": "sha256:027d9fef425c56e43bf9d637db043325d5ddf5fc9f23990cf048619d3a10e528", "platform": "linux/amd64", "layers": 11},
+      "modelmatch-frontend:1.0.24": {"digest": "sha256:c7b61ab3b642659073b659653836190a74f369475ff5732e6313c4489e6a6de2", "platform": "linux/amd64", "layers": 13},
+      "modelmatch-agent:1.1.3": {"digest": "sha256:064446aaca9611b0f7f55568cfda89b000f662bafe791bf34a4e95da431567be", "platform": "linux/amd64", "layers": 10},
+      "modelmatch-agent-security:1.1.3": {"digest": "sha256:0b1c0f73a4f0b6d5517be500fef7fda4e173b7307e1d95672961e2131031e0d2", "platform": "linux/amd64", "layers": 10}
+    },
+    "destination": "ghcr.io/steve-droid/<name> (destination digests recorded only after the copy; never invented)"
+  },
+  "migration_policy": {
+    "backend_1_0_24_alembic_heads": "a4b5c6d7e8f9 (run inside the ECR image pulled by digest, read-only)",
+    "restored_home_alembic_version": "a4b5c6d7e8f9 (HM3 evidence)",
+    "tag_vs_main_migrations": "identical (git diff v1.0.24 main -- migrations: none)",
+    "decision": "no migration; migrate.enabled=false and seeds false stay in the home profile"
+  },
+  "ingestion": {
+    "backend": "PR #24 (89b6f1f): S3BlobStore — content-hash keys, SSE-S3, bounded reads (8 MiB)/timeouts/retries, put before catalog commit; tests 22 (blob store + ingest); no image cut",
+    "identity_plan": {"root": "home-server/identity", "command": "terraform plan -input=false -var-file=dev.tfvars (locked, S3 backend)",
+                      "summary": "0 to add, 2 to change, 0 to destroy", "changes": ["aws_iam_role_policy.home_server[\"bedrock\"] (update: + IngestionSourceObjects)", "aws_rolesanywhere_profile.home_server[\"bedrock\"] (update: session policy mirrors it)"],
+                      "grant": "s3:GetObject, s3:PutObject on arn:aws:s3:::modelmatch-ingestion-sources-957261948820/sources/* only", "terraform_test": "8 passed", "applied": false},
+    "home_runtime": "BLOB_STORE=fake during isolated validation; s3 + Roles Anywhere sessions + helper image = HM5 approval"
+  },
+  "validation": {"status": "pending part 2b (home umbrella values + modelmatch child after the image copy)"},
+  "not_done": [
+    "no image published (token scope)", "no app Deployment at home yet", "no migrate/seed hook", "no paid LLM call",
+    "no DNS/public route change", "no AWS mutation (identity change is a plan only; EKS allowlist unchanged)", "no production write"
+  ]
+}

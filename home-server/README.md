@@ -6,12 +6,14 @@ Driftplain will stay online and be maintained; it has no showcase expiry date. *
 cutover and Steve's explicit teardown approval.** Steve approved the completed foundation
 and workspace consolidation on September 12, 2026; subsequent slices retain their review gates.
 
-## Current slice: HM3 backup and restore rehearsal
+## Current slice: HM4 home GitOps and app rollout
 
-[HM3-RESTORE.md](HM3-RESTORE.md) is the export → S3 → independent download → home ArgoCD
-bootstrap → owner Secret → CNPG restore → full comparison runbook and result record, driven by
-`home-server-database.py` and `home-server-argocd.sh`; sanitized results are in
-[hm3-restore-evidence.json](hm3-restore-evidence.json). HM2 is complete
+[HM4-HOME-APP.md](HM4-HOME-APP.md) is the runbook and result record for putting the application
+on the restored home database under the same ArgoCD root: platform children, sealing-key custody
+(`home-server-sealing-keys.py`: fetch-cert / backup / seal / verify-recovery / adopt), the reviewed
+GHCR image copy, the migration policy, the ingestion grant plan and isolated validation; sanitized
+results in [hm4-home-app-evidence.json](hm4-home-app-evidence.json). HM3 is complete
+([HM3-RESTORE.md](HM3-RESTORE.md), [evidence](hm3-restore-evidence.json)); HM2 is complete
 ([acceptance](HM2-ACCEPTANCE.md)); the section below is its historical summary.
 
 ## HM2 host recovery and operating design (complete September 15)
