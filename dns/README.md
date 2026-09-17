@@ -2,6 +2,11 @@
 
 **September 12, 2026 — both domains registered at Porkbun, delegated to Route 53 and verified over trusted HTTPS.**
 App: `https://modicum.cloud`; API: `https://api.modicum.cloud`.
+
+> **E21/HM5 (September 17, 2026):** authoritative DNS for both domains is prepared to move to
+> Cloudflare with AWS still the origin — see [`../cloudflare/README.md`](../cloudflare/README.md).
+> `scripts/route53-cloudflare-sync.py` exports these zones read-only, renders their Cloudflare
+> twins and diffs them; this root keeps serving until the separately approved delegation change.
 The failed AWS registration remains a separate open billing-support case. Do not retry
 registration, transfer the domain or wait for Support before connecting DNS.
 

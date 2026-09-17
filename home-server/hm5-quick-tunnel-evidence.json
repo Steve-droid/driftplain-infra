@@ -1,0 +1,45 @@
+{
+  "slice": "E21/HM5 quick-tunnel witness",
+  "date": "2026-09-17",
+  "window_utc": { "start": "2026-09-17T19:03:11Z", "end": "2026-09-17T19:03:38Z" },
+  "manifest": "home-server/hm5-quick-tunnel-witness.yaml",
+  "cluster": "driftplain-home (single node), throwaway namespace hm5-witness, deleted afterwards",
+  "connector_image": "cloudflare/cloudflared@sha256:b269e8abd07a5bf6f3f4be65d5050b2174eca89c56a0241a8ff32a16aec454e4 (2026.9.1)",
+  "origin": "https://nginx-ingress-controller.nginx-ingress.svc.cluster.local:443 (F5 nginx-ingress ClusterIP 10.43.144.172)",
+  "origin_ca_pool": "cert-manager/home-server-ca public certificate, CN driftplain-home-server-ca, SHA-256 36:F0:97:CA:22:94:5A:28:7D:8C:3A:07:0A:7C:1D:F8:32:AE:DD:D0:5F:EB:35:E6:13:6F:66:0C:14:17:FC:0E",
+  "no_tls_verify_used": false,
+  "cloudflare_account_used": false,
+  "quick_tunnels": {
+    "app": {
+      "sni_and_host": "app.home-server.driftplain.dev",
+      "public_url": "https://animated-explain-relationship-chicken.trycloudflare.com (ephemeral, gone)",
+      "GET /": { "status": 200, "title": "Driftplain", "bytes": 510, "cf-cache-status": "DYNAMIC", "server": "cloudflare" }
+    },
+    "api": {
+      "sni_and_host": "api.home-server.driftplain.dev",
+      "public_url": "https://boards-officer-wales-burner.trycloudflare.com (ephemeral, gone)",
+      "GET /healthz": { "status": 200, "body": { "status": "ok" } },
+      "GET /readyz": { "status": 200, "body": { "status": "ready", "db": "ok" } },
+      "GET /docs": { "status": 200 }
+    },
+    "negative": {
+      "sni_and_host": "app.home-server.driftplain.dev",
+      "ca_pool": "none (system roots only)",
+      "public_url": "https://threatening-again-lightbox-jackson.trycloudflare.com (ephemeral, gone)",
+      "GET /": { "status": 502 },
+      "connector_log": "tls: failed to verify certificate: x509: certificate signed by unknown authority"
+    }
+  },
+  "earlier_runs": [
+    {
+      "window_utc": { "start": "2026-09-17T19:00:36Z", "end": "2026-09-17T19:01:37Z" },
+      "note": "same app/api results; negative variant with a wrong origin SNI answered 502 with 'remote error: tls: unrecognized name' (the ingress refused the SNI); the app probe failed only because the Mac resolver cached a miss for the seconds-old trycloudflare name, fixed by resolving at 1.1.1.1"
+    },
+    {
+      "window_utc": { "start": "2026-09-17T19:02:04Z", "end": "2026-09-17T19:02:55Z" },
+      "note": "api 200/200/200 and negative (no CA pool) 502 + x509 unknown authority; app probe hit the same resolver miss"
+    }
+  ],
+  "conclusion": "The pinned connector image reaches the home ingress over TLS only when the home-server-ca pool is mounted and the private SNI is presented; without the pool the same request is refused (502) and no fallback to noTLSVerify exists. The frontend and API answer through Cloudflare's edge; the named-tunnel connector in driftplain-gitops charts/home-server-cloudflared reuses exactly this origin contract.",
+  "not_done": "No Cloudflare account, zone, named tunnel or delegation exists yet; the runtime hostnames still resolve via Route 53 to the AWS NLB."
+}
