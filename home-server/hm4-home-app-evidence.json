@@ -1,16 +1,16 @@
 {
-  "slice": "E21/HM4 — home GitOps and app rollout on the restored database",
+  "slice": "E21/HM4 \u2014 home GitOps and app rollout on the restored database",
   "kind": "sanitized operator evidence (no secret values, keys, hashes or rows)",
-  "recorded_at": "2026-09-15T17:10:00Z",
-  "status": "in progress — platform, custody, migration check, ingestion adapter/plan done; image copy + app rollout + validation pending the GitHub packages token scope",
+  "recorded_at": "2026-09-17T10:55:00Z",
+  "status": "done \u2014 September 17: images public on GHCR by digest, app rolled out under the home root, isolated validation passed (existing-token CI ingest recorded as skipped: no token supplied)",
   "home_target": {
     "node": "driftplain-home (K3s v1.36.4+k3s1)",
     "kube_context": "driftplain-home",
     "api_server": "https://127.0.0.1:6443 over strict-key ssh + sudo -n",
-    "argocd_root": "home-server-root → argocd/home-server/apps on main"
+    "argocd_root": "home-server-root \u2192 argocd/home-server/apps on main"
   },
   "platform_children": {
-    "gitops": "PR #46 → 31f7c6265e8629bdd76de89d0a8bc2d10cc17735 (v0.20.0)",
+    "gitops": "PR #46 \u2192 31f7c6265e8629bdd76de89d0a8bc2d10cc17735 (v0.20.0)",
     "synced_healthy_at": "2026-09-15T16:55:55Z",
     "applications": {
       "sealed-secrets": "Synced/Healthy @ chart 2.20.0 (controller 0.40.0), ns sealed-secrets",
@@ -20,26 +20,51 @@
       "cnpg-operator": "Synced/Healthy @ 0.29.0 (unchanged)",
       "modelmatch-postgres": "Synced/Healthy (unchanged)"
     },
-    "ingressclass": "nginx (nginx.org/ingress-controller) — the only class; traefik/servicelb disabled",
-    "issuers": ["home-server-selfsigned-bootstrap (Ready)", "home-server-ca (Ready; CA Certificate home-server-ca in cert-manager, ECDSA P-256, 87600h)"],
-    "crd_count": {"before": 18, "after": 25},
+    "ingressclass": "nginx (nginx.org/ingress-controller) \u2014 the only class; traefik/servicelb disabled",
+    "issuers": [
+      "home-server-selfsigned-bootstrap (Ready)",
+      "home-server-ca (Ready; CA Certificate home-server-ca in cert-manager, ECDSA P-256, 87600h)"
+    ],
+    "crd_count": {
+      "before": 18,
+      "after": 25
+    },
     "aws_render_check": "helm template of charts/modelmatch and charts/cluster-issuers byte-identical before/after the profile knobs"
   },
   "sealing_key_custody": {
     "tool": "home-server-sealing-keys.py (tests: test-home-server-sealing-keys.py, 8 pass incl. offline kubeseal round trip, strict scope, wrong-key rejection)",
     "controller_namespace": "sealed-secrets",
-    "keys": [{"name": "sealed-secrets-keyh7gb7", "status": "active", "created": "2026-09-15T16:54:53Z",
-              "cert_sha256": "3e6735a59251fdf8f49a571b0adb31cbb9e1820de600acb27fc1ae736f58e751", "cert_not_after": "2036-09-12T16:54:53Z"}],
+    "keys": [
+      {
+        "name": "sealed-secrets-keyh7gb7",
+        "status": "active",
+        "created": "2026-09-15T16:54:53Z",
+        "cert_sha256": "3e6735a59251fdf8f49a571b0adb31cbb9e1820de600acb27fc1ae736f58e751",
+        "cert_not_after": "2036-09-12T16:54:53Z"
+      }
+    ],
     "public_cert_committed": "home-server-sealing-active.crt",
     "backup": {
       "created_at": "2026-09-15T16:57:52Z",
       "mac_copy": "~/.local/share/driftplain/home-server-backups/sealing-keys-20260915T165752Z/ (0700/0600)",
-      "bundle": {"name": "sealing-keys.json.age", "size": 7231, "sha256": "98e962f98844fdc66a40b183de8897e57802ca3e3dcec502261ed9ed0bf08a12", "recipient": "age1vcy5ynjmhrv587m5e8pvgm42gwrwxj4smzzcywhxckrl47xqea8qcewa7m"},
+      "bundle": {
+        "name": "sealing-keys.json.age",
+        "size": 7231,
+        "sha256": "98e962f98844fdc66a40b183de8897e57802ca3e3dcec502261ed9ed0bf08a12",
+        "recipient": "age1vcy5ynjmhrv587m5e8pvgm42gwrwxj4smzzcywhxckrl47xqea8qcewa7m"
+      },
       "s3": {
         "bucket": "modelmatch-home-server-backups-957261948820",
         "objects": {
-          "recovery/sealing-keys/20260915T165752Z/sealing-keys.json.age": {"version_id": "uwqBYu2c4IG4MAmsVjIsskeo2i.FiXV2", "size": 7231},
-          "recovery/sealing-keys/20260915T165752Z/manifest.json": {"version_id": "gaZ0d0d7x2npIlNpZzBk3dLW2xU3HLNV", "size": 653, "sha256": "fd940ba68650b152b1b219d1ac341886785f127d2d81f6f4f0eb39316ada850f"}
+          "recovery/sealing-keys/20260915T165752Z/sealing-keys.json.age": {
+            "version_id": "uwqBYu2c4IG4MAmsVjIsskeo2i.FiXV2",
+            "size": 7231
+          },
+          "recovery/sealing-keys/20260915T165752Z/manifest.json": {
+            "version_id": "gaZ0d0d7x2npIlNpZzBk3dLW2xU3HLNV",
+            "size": 653,
+            "sha256": "fd940ba68650b152b1b219d1ac341886785f127d2d81f6f4f0eb39316ada850f"
+          }
         },
         "method": "single PutObject per object with SHA-256 checksum, operator profile saa"
       }
@@ -48,29 +73,77 @@
       "generated_from": "HM3 credential bundle restore-20260915T150323Z/app-credentials.json.age, decrypted in memory with --identity-source aws",
       "scope": "strict (name + namespace)",
       "items": {
-        "modelmatch-app-secrets": {"type": "Opaque", "keys": ["CHAT_READONLY_DB_PASSWORD", "DEMO_SEED_PASSWORD", "JWT_SECRET", "POSTGRES_PASSWORD"]},
-        "modelmatch-db-app": {"type": "kubernetes.io/basic-auth", "keys": ["password", "username"], "labels": {"cnpg.io/reload": "true"}}
+        "modelmatch-app-secrets": {
+          "type": "Opaque",
+          "keys": [
+            "CHAT_READONLY_DB_PASSWORD",
+            "DEMO_SEED_PASSWORD",
+            "JWT_SECRET",
+            "POSTGRES_PASSWORD"
+          ]
+        },
+        "modelmatch-db-app": {
+          "type": "kubernetes.io/basic-auth",
+          "keys": [
+            "password",
+            "username"
+          ],
+          "labels": {
+            "cnpg.io/reload": "true"
+          }
+        }
       },
       "gitops": "argocd/home-server/sealed/ + apps/app-secrets.yaml (PR #47)"
     },
     "recovery_proof": {
       "at": "2026-09-15T16:57:57Z",
-      "method": "independent S3 download by key+version (checksums verified) → decrypt with the Secrets Manager recovery identity → manifest match → kubeseal --recovery-unseal of both committed manifests offline → compare type/keys/values with the originals",
-      "recovered_keys": 1, "manifest_match": true,
-      "unseal": {"modelmatch-app-secrets": "type/keys/values match", "modelmatch-db-app": "type/keys/values match"},
-      "all_match": true, "seconds": 4.101
+      "method": "independent S3 download by key+version (checksums verified) \u2192 decrypt with the Secrets Manager recovery identity \u2192 manifest match \u2192 kubeseal --recovery-unseal of both committed manifests offline \u2192 compare type/keys/values with the originals",
+      "recovered_keys": 1,
+      "manifest_match": true,
+      "unseal": {
+        "modelmatch-app-secrets": "type/keys/values match",
+        "modelmatch-db-app": "type/keys/values match"
+      },
+      "all_match": true,
+      "seconds": 4.101
     },
     "adopt": "app/modelmatch-db-app annotated sealedsecrets.bitnami.com/managed=true before the app-secrets child synced; value unchanged"
   },
   "images": {
-    "status": "pending — gh token scopes are repo/read:org/gist/admin:public_key (no packages scope); Steve runs `gh auth refresh -s read:packages,write:packages`, then the one-time crane copy by digest + package visibility → Public",
-    "source_ecr_digests_resolved_read_only": {
-      "modelmatch-backend:1.0.24": {"digest": "sha256:027d9fef425c56e43bf9d637db043325d5ddf5fc9f23990cf048619d3a10e528", "platform": "linux/amd64", "layers": 11},
-      "modelmatch-frontend:1.0.24": {"digest": "sha256:c7b61ab3b642659073b659653836190a74f369475ff5732e6313c4489e6a6de2", "platform": "linux/amd64", "layers": 13},
-      "modelmatch-agent:1.1.3": {"digest": "sha256:064446aaca9611b0f7f55568cfda89b000f662bafe791bf34a4e95da431567be", "platform": "linux/amd64", "layers": 10},
-      "modelmatch-agent-security:1.1.3": {"digest": "sha256:0b1c0f73a4f0b6d5517be500fef7fda4e173b7307e1d95672961e2131031e0d2", "platform": "linux/amd64", "layers": 10}
+    "status": "done \u2014 September 17, 13:26\u201313:28 IDT (10:26\u201310:28 UTC)",
+    "method": "one-time reviewed `crane copy` ECR \u2192 ghcr.io/steve-droid by source digest (manifest + layers as-is, no rebuild); gh token refreshed with write:packages by Steve; packages switched to Public by Steve in GitHub package settings; anonymous pull verified with an empty DOCKER_CONFIG",
+    "copies": {
+      "modelmatch-backend:1.0.24": {
+        "digest": "sha256:027d9fef425c56e43bf9d637db043325d5ddf5fc9f23990cf048619d3a10e528",
+        "destination_equals_source": true,
+        "platform": "linux/amd64",
+        "layers": 11,
+        "copy_seconds": 25
+      },
+      "modelmatch-frontend:1.0.24": {
+        "digest": "sha256:c7b61ab3b642659073b659653836190a74f369475ff5732e6313c4489e6a6de2",
+        "destination_equals_source": true,
+        "platform": "linux/amd64",
+        "layers": 13,
+        "copy_seconds": 14
+      },
+      "modelmatch-agent:1.1.3": {
+        "digest": "sha256:064446aaca9611b0f7f55568cfda89b000f662bafe791bf34a4e95da431567be",
+        "destination_equals_source": true,
+        "platform": "linux/amd64",
+        "layers": 10,
+        "copy_seconds": 24
+      },
+      "modelmatch-agent-security:1.1.3": {
+        "digest": "sha256:0b1c0f73a4f0b6d5517be500fef7fda4e173b7307e1d95672961e2131031e0d2",
+        "destination_equals_source": true,
+        "platform": "linux/amd64",
+        "layers": 10,
+        "copy_seconds": 30
+      }
     },
-    "destination": "ghcr.io/steve-droid/<name> (destination digests recorded only after the copy; never invented)"
+    "visibility": "all four packages public; anonymous `crane digest`/`manifest` by digest succeed",
+    "ecr": "source images retained (rollback); publishing credentials stay in CI; CI publication of future releases is a documented follow-up (this copy is not a sustainable release process)"
   },
   "migration_policy": {
     "backend_1_0_24_alembic_heads": "a4b5c6d7e8f9 (run inside the ECR image pulled by digest, read-only)",
@@ -79,15 +152,75 @@
     "decision": "no migration; migrate.enabled=false and seeds false stay in the home profile"
   },
   "ingestion": {
-    "backend": "PR #24 (89b6f1f): S3BlobStore — content-hash keys, SSE-S3, bounded reads (8 MiB)/timeouts/retries, put before catalog commit; tests 22 (blob store + ingest); no image cut",
-    "identity_plan": {"root": "home-server/identity", "command": "terraform plan -input=false -var-file=dev.tfvars (locked, S3 backend)",
-                      "summary": "0 to add, 2 to change, 0 to destroy", "changes": ["aws_iam_role_policy.home_server[\"bedrock\"] (update: + IngestionSourceObjects)", "aws_rolesanywhere_profile.home_server[\"bedrock\"] (update: session policy mirrors it)"],
-                      "grant": "s3:GetObject, s3:PutObject on arn:aws:s3:::modelmatch-ingestion-sources-957261948820/sources/* only", "terraform_test": "8 passed", "applied": false},
+    "backend": "PR #24 (89b6f1f): S3BlobStore \u2014 content-hash keys, SSE-S3, bounded reads (8 MiB)/timeouts/retries, put before catalog commit; tests 22 (blob store + ingest); no image cut",
+    "identity_plan": {
+      "root": "home-server/identity",
+      "command": "terraform plan -input=false -var-file=dev.tfvars (locked, S3 backend)",
+      "summary": "0 to add, 2 to change, 0 to destroy",
+      "changes": [
+        "aws_iam_role_policy.home_server[\"bedrock\"] (update: + IngestionSourceObjects)",
+        "aws_rolesanywhere_profile.home_server[\"bedrock\"] (update: session policy mirrors it)"
+      ],
+      "grant": "s3:GetObject, s3:PutObject on arn:aws:s3:::modelmatch-ingestion-sources-957261948820/sources/* only",
+      "terraform_test": "8 passed",
+      "applied": false
+    },
     "home_runtime": "BLOB_STORE=fake during isolated validation; s3 + Roles Anywhere sessions + helper image = HM5 approval"
   },
-  "validation": {"status": "pending part 2b (home umbrella values + modelmatch child after the image copy)"},
+  "validation": {
+    "status": "PASS \u2014 2026-09-17T10:46:29Z, 3.1 s",
+    "tool": "home-server-validate.py (tests: test-home-server-validate.py, 6) over one bounded SSH port-forward to the ClusterIP ingress 10.43.144.172:443, curl --resolve host mapping, --cacert home-server-ca",
+    "checks": {
+      "api_healthz": "200 ok",
+      "api_readyz": "200 db ok",
+      "app_index": "200 (frontend index)",
+      "app_config_js": "200, apiBaseUrl = https://api.home-server.driftplain.dev",
+      "projects_unauthenticated_rejected": "401",
+      "password_login_existing_user": "200 (existing demo user; password read into memory only)",
+      "auth_me": "200",
+      "projects_list": "200, 4 existing projects (ids 2, 3, 5, 7)",
+      "owner_isolation": "foreign ids 1,4,6,8,9,10 \u2192 403/404 only",
+      "savings_dashboard": "200 (project 2: 5 runs, 2 banked, savedPct 66.7, acceptance 0.9, Claude Haiku 4.5 vs Claude Sonnet 4.5 baseline)",
+      "quality_findings_drill_in": "200 (run 31, 6 findings)",
+      "ci_ingest_bogus_token_rejected": "401",
+      "ci_ingest_existing_token": "SKIPPED \u2014 no existing project token supplied via HOME_SERVER_CI_TOKEN (tokens are stored as hashes and never re-shown; none minted); rerun with a token from Steve's Jenkins credential for the positive check"
+    },
+    "writes_to_the_restored_copy": "none",
+    "private_result": "~/.local/share/driftplain/home-server-backups/hm4-validation-20260917T104629Z.json"
+  },
   "not_done": [
-    "no image published (token scope)", "no app Deployment at home yet", "no migrate/seed hook", "no paid LLM call",
-    "no DNS/public route change", "no AWS mutation (identity change is a plan only; EKS allowlist unchanged)", "no production write"
-  ]
+    "no positive existing-token CI ingest (no token supplied; negative check passed)",
+    "no migrate/seed hook",
+    "no paid LLM call (LLM_CLIENT=fake at home)",
+    "no DNS/public route change (private hosts only)",
+    "no AWS mutation (identity grant is a plan only; EKS allowlist unchanged)",
+    "no production write",
+    "Google sign-in not exercised at the private hosts (client origin not authorized until HM7)",
+    "CI publication of future releases to GHCR (follow-up); home BLOB_STORE=s3 + Roles Anywhere sessions (HM5 approval)"
+  ],
+  "app_rollout": {
+    "gitops": "PR #48 (values-home-server.yaml + apps/modelmatch.yaml) \u2192 v0.21.0; PR #49 home ArgoCD Ingress health customization (ClusterIP ingress never gets a load-balancer address)",
+    "synced_at": "2026-09-17T10:36Z (Synced; Healthy after the argo-cd health customization was re-applied, 10:50:47Z)",
+    "running_images": {
+      "modelmatch-backend": "ghcr.io/steve-droid/modelmatch-backend@sha256:027d9fef425c56e43bf9d637db043325d5ddf5fc9f23990cf048619d3a10e528",
+      "modelmatch-frontend": "ghcr.io/steve-droid/modelmatch-frontend@sha256:c7b61ab3b642659073b659653836190a74f369475ff5732e6313c4489e6a6de2"
+    },
+    "profile": {
+      "LLM_CLIENT": "fake",
+      "BLOB_STORE": "fake",
+      "irsa_annotation": "absent",
+      "hosts": [
+        "app.home-server.driftplain.dev",
+        "api.home-server.driftplain.dev"
+      ],
+      "issuer": "home-server-ca",
+      "certificates": [
+        "modelmatch-app-tls-branded (Ready)",
+        "modelmatch-api-tls-branded (Ready)"
+      ],
+      "migrate": false,
+      "seeds": false
+    },
+    "no_data_change": "no migrate/seed hook; a sync never touches the restored rows"
+  }
 }

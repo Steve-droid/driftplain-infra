@@ -57,15 +57,17 @@ only plaintext private-key material outside memory is kubeseal's temp key file d
 `verify-recovery`, in a fresh 0700 directory that is zero-overwritten and removed afterwards.
 Never seal Roles Anywhere leaves. Regenerate manifests with `seal`, never by hand.
 
-## 3. Images — public GHCR by digest (pending: GitHub token scope)
+## 3. Images — public GHCR by digest (done — September 17, 10:26–10:28 UTC)
 
 Source digests (ECR, resolved read-only with `crane`; all `linux/amd64`, docker v2 manifests):
 backend 1.0.24 `sha256:027d9fef…0528` (11 layers), frontend 1.0.24 `sha256:c7b61ab3…6de2` (13),
 agent 1.1.3 `sha256:064446aa…67be` (10), agent-security 1.1.3 `sha256:0b1c0f73…31d2` (10).
 
-Procedure (one-time reviewed copy; CI publication is a documented follow-up):
-1. `gh auth refresh -h github.com -s read:packages,write:packages` (browser; Steve) — the current
-   `gh` token has no packages scope, so nothing can be pushed yet.
+Result: all four copied with `crane copy` by source digest; every destination digest equals
+its source (14–30 s each); Steve switched the packages to Public; an anonymous `crane digest`
+with an empty `DOCKER_CONFIG` resolves all four. ECR images retained. Procedure as run:
+1. `gh auth refresh -h github.com -s read:packages,write:packages` (browser; Steve) — verified
+   with GitHub's live `X-OAuth-Scopes` header before pushing.
 2. `gh auth token | crane auth login ghcr.io -u Steve-droid --password-stdin`; ECR login with
    the operator profile (`aws ecr get-login-password | crane auth login … -u AWS --password-stdin`).
 3. `crane copy <ecr>/<name>@<digest> ghcr.io/steve-droid/<name>:<tag>` for the four images —
@@ -95,9 +97,16 @@ change, 0 to destroy** (the role policy and the profile session policy); `terraf
 Applying it, enabling sessions, and switching home to `BLOB_STORE=s3` happen together with the
 Roles Anywhere helper image and live Bedrock — a separate approval (HM5), not HM4 "done".
 
-## 6. Home umbrella + validation (pending part 2b)
+## 6. Home umbrella + validation (done — September 17)
 
-After the digests are recorded: merge `values-home-server.yaml` + `apps/modelmatch.yaml`; wait
+gitops PR #48 (v0.21.0) merged `values-home-server.yaml` + `apps/modelmatch.yaml`; the backend and
+frontend pods run the GHCR images by digest, both Ingress certificates are Ready from `home-server-ca`,
+and no migrate/seed ran. ArgoCD showed the app Synced but Progressing because a ClusterIP ingress
+controller never writes a load-balancer address on an Ingress; PR #49 adds a home-only Ingress health
+customization to `argocd-values.yaml` (re-applied with `home-server-argocd.sh render` + `install`),
+after which every home Application is Synced/Healthy. Validation ran at 10:46 UTC and **passed all
+checks in 3.1 s**; the existing-token CI ingest is recorded as skipped (no token supplied). The
+procedure: after the digests are recorded, merge `values-home-server.yaml` + `apps/modelmatch.yaml`; wait
 (bounded) for `modelmatch` Synced/Healthy; then run `home-server-validate.py` (tests:
 `test-home-server-validate.py`, 6). It opens one bounded SSH port-forward to the ClusterIP
 ingress, maps the private hostnames onto it (`curl --resolve`, `--cacert` = the `home-server-ca`
@@ -112,7 +121,8 @@ private backups root and is summarized in the evidence.
 
 ## Open items
 
-- Steve: GitHub token packages scope, then package visibility → Public (section 3).
+- Follow-up: CI publication of future releases to GHCR (the Jenkinsfiles still publish to ECR only).
+- Follow-up (HM5): `BLOB_STORE=s3` at home with the applied identity grant and Roles Anywhere sessions.
 - Steve (optional): an EXISTING project CI token (from your Jenkins credential) exported as
   `HOME_SERVER_CI_TOKEN` when running the validation, for the positive ingest check; tokens are
   stored only as hashes and are never re-shown by the API, and none is minted for this.

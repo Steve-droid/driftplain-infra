@@ -6,7 +6,7 @@ Driftplain will stay online and be maintained; it has no showcase expiry date. *
 cutover and Steve's explicit teardown approval.** Steve approved the completed foundation
 and workspace consolidation on September 12, 2026; subsequent slices retain their review gates.
 
-## Current slice: HM4 home GitOps and app rollout
+## Current slice: HM4 home GitOps and app rollout (complete September 17; HM5 next)
 
 [HM4-HOME-APP.md](HM4-HOME-APP.md) is the runbook and result record for putting the application
 on the restored home database under the same ArgoCD root: platform children, sealing-key custody
