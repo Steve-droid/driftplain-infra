@@ -1,32 +1,36 @@
 # CLAUDE.md — driftplain-infra
 
-## Claude Code continuation — HM4 home GitOps and app — September 15, 2026
+## Claude Code continuation — HM5 sustainable public operation — September 17, 2026
 
-Read [the HM4 handoff](../docs/session-handoffs/E21-home-hosting/2026-09-15-hm4-home-gitops-app.md)
-first and follow [umbrella instructions](../CLAUDE.md). HM3 is complete: the restore
-runbook/result in [home-server/HM3-RESTORE.md](home-server/HM3-RESTORE.md) and
-[hm3-restore-evidence.json](home-server/hm3-restore-evidence.json) are authoritative; do
-not repeat the export/restore. [HM2 acceptance](home-server/HM2-ACCEPTANCE.md) supersedes
-earlier pending leaf/CRL/authentication prose. Never re-enroll the CA.
+Read [the HM5 handoff](../docs/session-handoffs/E21-home-hosting/2026-09-17-hm5-sustainable-public-operation.md)
+first and follow [umbrella instructions](../CLAUDE.md). HM3 and HM4 are complete:
+[HM3-RESTORE.md](home-server/HM3-RESTORE.md) / [HM4-HOME-APP.md](home-server/HM4-HOME-APP.md)
+and their evidence are authoritative; do not repeat the export/restore, the GHCR image copy,
+the sealing or the isolated validation. [HM2 acceptance](home-server/HM2-ACCEPTANCE.md)
+supersedes earlier pending-state prose. Never re-enroll the CA.
 
-HM4 owns, in `home-server/`: the reviewed one-time GHCR image copy by digest (record source
-and destination digests, anonymous-pull proof; CI publication is a follow-up), the sealing-key
-backup tool reusing [age custody](home-server/RECOVERY-KEY.md) (all controller keys, age-encrypted
-to the published recipient, versioned S3 `recovery/` prefix + Mac copy, isolated recovery proof
-before any sealed manifest is relied on), the `HM4-*.md` runbook and sanitized evidence, and the
-identity Terraform change adding only the ingestion-source S3 prefix to the Bedrock role as a
-fresh, complete, normally locked plan with explicit `-var-file` (apply is a separate approval).
+HM5 owns, in `home-server/`: the scheduled encrypted backup of the **home** CNPG instance
+(Mac launchd interim now: export over strict-key SSH, single-PUT upload with checksums,
+hourly + daily copies, sanitized status file, heartbeat, notification on failure; the
+in-cluster CronJob path with the Roles Anywhere backup leaf is prepared but gated on session
+enablement), the second independent restore from an automated object with the RPO measured,
+the reviewed bucket lifecycle change in `bootstrap/` (hourly 1 day, daily 30 days, noncurrent
+version and delete-marker cleanup — **plan only**, apply is a separate approval), the Mac
+schedules (leaf renewal launchd, monthly CRL refresh, sealing-key re-backup after the ~October 15
+controller key renewal) with heartbeats, the Route 53 zone export/diff tool and the Cloudflare
+Terraform root (`cloudflare/`: both zones with identical records, AWS origin, the named tunnel
+and staging hostnames — zone creation needs Steve's Cloudflare account/token; delegation at
+Porkbun is a separate explicit approval), the `HM5-*.md` runbooks (operations, maintenance/
+upgrade, lost-host recovery), sanitized evidence, and the cost worksheet update.
+
 Mac operator profile `saa`, account 957261948820, ap-south-1 may read ECR and upload/download
 backups; never copy its credentials or the private recovery key persistently to home.
-
 Use strict `ssh home-server`, existing host-key binding and `sudo -n`. Keep Tailscale/UFW and
 the explicit K3s kubeconfig/context separate from AWS. Anchor/profiles stay disabled, CRL 3
-enabled until October 20, no renewal job; live Bedrock at home is a separate approval. Keep
-DRY_RUN=1 and AWS production authoritative. Never restore into or point home at production.
-
-Home persistence is Samsung-backed explicit Retain, not the old EBS/Delete chart. The GitOps
-repo owns the home profile (root, children, umbrella values); this repo owns operator tooling
-and evidence. HM5 owns schedules, monitoring and the public route.
+enabled until October 20; live Bedrock at home is a separate approval. Keep DRY_RUN=1 and AWS
+production authoritative. Never restore into or point home at production. Never `noTLSVerify`;
+no Cloudflare Access on API/OAuth flows. The GitOps repo owns the home profile (root, children,
+umbrella values, connector, monitoring, backup CronJob); this repo owns operator tooling and evidence.
 
 **Current working preference (Steve, September 15):** keep progressing and pause only
 for critical architectural decisions. Plan, use focused tests for new behavior, verify and
