@@ -66,7 +66,6 @@
     "sealed_manifest_sha256": "c4c1b865a8df41aaaed4b93f71a3719e22247532761e609cb28bd532e5e92d70"
   },
   "not_done": [
-    "delegation of modicum.cloud at Porkbun (separate approval)",
     "runtime hostnames stay on AWS until HM7"
   ],
   "connector": {
@@ -111,5 +110,8 @@
       ]
     },
     "modicum_cloud": "not delegated (separate approval)"
+  },
+  "decisions": {
+    "modicum_cloud": "not delegated (Steve, September 18: the domain is not needed; the Cloudflare zone stays applied and unused until the HM8 review)"
   }
 }
