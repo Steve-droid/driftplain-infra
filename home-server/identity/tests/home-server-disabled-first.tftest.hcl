@@ -1,8 +1,9 @@
 mock_provider "aws" {}
 
-# Consume the explicit dev.tfvars without overrides: this is the proposed rollout.
+# The HM2 rollout shape (sessions off) must stay a valid configuration for emergency denial.
 run "enrolled_ca_resources_on_sessions_off" {
   command = plan
+  variables { home_server_sessions_enabled = false }
   assert {
     condition = (
       var.home_server_identity_enabled && !var.home_server_sessions_enabled &&
@@ -21,5 +22,20 @@ run "enrolled_ca_resources_on_sessions_off" {
       alltrue([for profile in aws_rolesanywhere_profile.home_server : !profile.enabled])
     )
     error_message = "The plan must bind the enrolled public CA and leave every anchor/profile disabled."
+  }
+}
+
+# Consume the explicit dev.tfvars without overrides: sessions enabled (HM5, approved September 17).
+run "enrolled_sessions_on_proposed" {
+  command = plan
+  assert {
+    condition = (
+      var.home_server_identity_enabled && var.home_server_sessions_enabled &&
+      length(aws_rolesanywhere_trust_anchor.home_server) == 1 &&
+      length(aws_rolesanywhere_profile.home_server) == 2 &&
+      alltrue([for anchor in aws_rolesanywhere_trust_anchor.home_server : anchor.enabled]) &&
+      alltrue([for profile in aws_rolesanywhere_profile.home_server : profile.enabled])
+    )
+    error_message = "The proposed inputs must enable the enrolled anchor and both profiles."
   }
 }

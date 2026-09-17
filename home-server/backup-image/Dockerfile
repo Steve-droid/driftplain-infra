@@ -13,9 +13,10 @@
 #     and honours credential_process for the Roles Anywhere profile (no static keys);
 #   • aws_signing_helper 1.8.5, Linux x86-64, verified against the published SHA-256
 #     recorded in IDENTITY.md ("Credential refresh and image contract").
-# Runs as uid/gid 10001 with a read-only root filesystem (the chart mounts /work, /config,
+# Runs as uid/gid 10001 (hsbackup; Debian already owns the name "backup") with a read-only root filesystem (the chart mounts /work, /config,
 # /identity). No entrypoint: the chart runs `/bin/sh /config/backup.sh`.
-FROM python:3.12-slim-trixie
+# python:3.12-slim-trixie multi-arch index, resolved September 17, 2026 (build review).
+FROM python:3.12-slim-trixie@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
 
 ARG PGDG_KEY_URL=https://www.postgresql.org/media/keys/ACCC4CF8.asc
 ARG SIGNING_HELPER_URL=https://rolesanywhere.amazonaws.com/releases/1.8.5/X86_64/Linux/Amzn2023/aws_signing_helper
@@ -37,8 +38,8 @@ RUN set -eux; \
     pip install --no-cache-dir "awscli==$AWSCLI_VERSION"; \
     apt-get purge -y --auto-remove gnupg curl; \
     rm -rf /var/lib/apt/lists/*; \
-    groupadd --gid 10001 backup; \
-    useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin backup; \
+    groupadd --gid 10001 hsbackup; \
+    useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin hsbackup; \
     pg_dump --version; age --version; aws --version
 
 USER 10001:10001

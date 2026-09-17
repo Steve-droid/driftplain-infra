@@ -90,7 +90,9 @@ The separately approved publication of earlier HM2 work includes the full applie
 budget/S3/ECR and recovery-custody configuration. Use current main with a fresh reviewed
 plan; historical partial checkouts must not be applied. The approved budget safeguard
 stays `DRY_RUN=1`; source publication does not apply cloud changes.
-After deployment, disabling authentication means `home_server_sessions_enabled=false`,
+Sessions were enabled on September 17, 2026 (HM5, Steve's approval): the trust anchor and both
+profiles are `enabled=true`; the same apply added the HM4 ingestion-prefix statement to the
+bedrock role policy. After deployment, disabling authentication means `home_server_sessions_enabled=false`,
 not changing the resource-creation flag (which would propose protected destruction).
 
 1. Before disabled provisioning: verify issuer custody and independent empty-ledger

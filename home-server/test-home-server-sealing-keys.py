@@ -116,6 +116,23 @@ class SealInputTests(unittest.TestCase):
         with self.assertRaises(sk.SealingError):
             sk.secret_manifest_from_bundle_item(moved)
 
+    def test_backup_owner_copy_is_rebound_to_the_cronjob_namespace(self):
+        copy = sk.backup_owner_manifest_from_bundle_item(OWNER)
+        self.assertEqual(copy["metadata"], {"name": "home-server-backup-db-owner", "namespace": "home-server-backups"})
+        self.assertEqual((copy["type"], copy["data"]), ("kubernetes.io/basic-auth", OWNER["data"]))
+        with self.assertRaises(sk.SealingError):
+            sk.backup_owner_manifest_from_bundle_item(APP)
+
+    def test_value_secret_is_exact_and_rejects_whitespace(self):
+        secret = sk.value_secret_manifest("cloudflared", "home-server-cloudflared-token", "token", b"abc")
+        self.assertEqual(secret["metadata"], {"name": "home-server-cloudflared-token", "namespace": "cloudflared"})
+        self.assertEqual((secret["type"], secret["data"]), ("Opaque", {"token": base64.b64encode(b"abc").decode()}))
+        for bad in (b"", b"abc ", b"a b", b"a\nb"):
+            with self.assertRaises(sk.SealingError):
+                sk.value_secret_manifest("cloudflared", "x", "token", bad)
+        with self.assertRaises(sk.SealingError):
+            sk.value_secret_manifest("bad/ns", "x", "token", b"abc")
+
 
 class DownloadTests(unittest.TestCase):
     class FakeClient:

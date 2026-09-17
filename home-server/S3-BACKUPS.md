@@ -169,8 +169,9 @@ are approved. The Mac copy uses the operator profile, so the private recovery ke
    restore are done; the reviewed lifecycle is planned in `bootstrap/` (three rules; the refreshed
    plan also shows two unrelated in-place updates from the repository rename of the kill-switch
    CodeBuild source and its Lambda policy, so apply the lifecycle with
-   `-target=aws_s3_bucket_lifecycle_configuration.home_server_backups` or accept both). Apply,
-   Roles Anywhere session enablement and the external heartbeat URL remain Steve's approvals.
+   `-target=aws_s3_bucket_lifecycle_configuration.home_server_backups` or accept both). **Applied
+   September 17 (targeted, 1 add; three rules Enabled) and Roles Anywhere sessions enabled the
+   same day on Steve's approval.** The external heartbeat URL remains Steve's.
    Note: the historical `postgres/daily/hm3-20260915T150228Z/` objects fall under the 30-day daily
    rule and expire around October 16, 2026; copy them under `recovery/` first if they must be kept.
 
