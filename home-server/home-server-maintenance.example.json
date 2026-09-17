@@ -1,0 +1,14 @@
+{
+  "enabled": false,
+  "heartbeat_url": null,
+  "notify": true,
+  "renewal_config": "/Users/steve/.local/share/driftplain/home-server-identity/renewal.json",
+  "crl_refresh_before_days": 10,
+  "crl_publish": false,
+  "crl_id": null,
+  "trust_anchor_arn": null,
+  "aws_profile": "saa",
+  "sealing_key_backup": true,
+  "tool_timeout": 600,
+  "max_age_hours": 36
+}

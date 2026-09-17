@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- E21/HM5 — daily home-server maintenance (identity deadlines, CRL refresh, sealing-key
+     re-backup, renewal no-op) from the runtime copy under ~/.local/share/driftplain/
+     home-server-backups/bin. Daily at 09:15 local plus at load; launchd runs a missed
+     calendar slot at the next wake. PATH carries Homebrew for age/kubeseal/aws. -->
+<plist version="1.0"><dict>
+  <key>Label</key><string>dev.driftplain.home-server-maintenance</string>
+  <key>ProgramArguments</key><array>
+    <string>/Users/steve/.local/share/driftplain/home-server-identity/venv/bin/python3</string>
+    <string>/Users/steve/.local/share/driftplain/home-server-backups/bin/home-server-maintenance.py</string>
+    <string>run</string>
+    <string>--config</string>
+    <string>/Users/steve/.local/share/driftplain/home-server-backups/maintenance.json</string>
+  </array>
+  <key>EnvironmentVariables</key><dict>
+    <key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>StartCalendarInterval</key><dict><key>Hour</key><integer>9</integer><key>Minute</key><integer>15</integer></dict>
+  <key>Umask</key><integer>63</integer>
+  <key>StandardOutPath</key><string>/Users/steve/.local/share/driftplain/home-server-backups/maintenance.log</string>
+  <key>StandardErrorPath</key><string>/Users/steve/.local/share/driftplain/home-server-backups/maintenance.log</string>
+  <key>SoftResourceLimits</key><dict><key>Core</key><integer>0</integer></dict>
+</dict></plist>

@@ -15,6 +15,13 @@ carrying the credential bundle; a second independent restore from an automated o
 all 16 categories inside a disposable CNPG target (`disposable-target create|delete`); the reviewed
 S3 retention lifecycle is planned in `bootstrap/` pending approval. See
 [S3-BACKUPS.md](S3-BACKUPS.md) and [hm5-backup-evidence.json](hm5-backup-evidence.json).
+A second daily LaunchAgent (`dev.driftplain.home-server-maintenance.plist` →
+`home-server-maintenance.py`) grades the identity deadlines from the public ledger, re-backs up a
+renewed sealing key (`home-server-sealing-keys.py list|backup`), refreshes the CRL when due and
+runs the (still disabled) leaf renewal; see [IDENTITY.md](IDENTITY.md#certificate-custody-renewal-and-recovery)
+and [hm5-maintenance-evidence.json](hm5-maintenance-evidence.json). The gitops repo (v0.22.0)
+carries the home monitoring, heartbeat and gated backup children; the helper image for the
+in-cluster backup CronJob is prepared in [backup-image/](backup-image/Dockerfile) (not built).
 
 [HM4-HOME-APP.md](HM4-HOME-APP.md) is the runbook and result record for putting the application
 on the restored home database under the same ArgoCD root: platform children, sealing-key custody
