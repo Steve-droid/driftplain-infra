@@ -15,8 +15,8 @@ check, how to turn the gated pieces on, and in which order.
 | Monitoring (kube-prometheus-stack 85.2.2, Prometheus 2 d / 1 GiB, Grafana, 10 home rules) | home child `monitoring` (+ `monitoring-dashboards`) | **Running**, all 15 scrape pools up | gitops `argocd/home-server/apps/monitoring.yaml` |
 | Cluster heartbeat (pings only when no critical alert fires) | home child `heartbeat`, CronJob `*/5` | **Suspended** until the URL is sealed | gitops `charts/home-server-heartbeat/values.yaml` |
 | In-cluster backup CronJob (Roles Anywhere leaf) | home child `backup`, CronJob `23 * * * *` | **Suspended**; sessions enabled and owner credential sealed (September 17), waits for the public image digest | gitops `charts/home-server-backup/values.yaml`; image in `backup-image/` |
-| Cloudflare Tunnel connector | home child `cloudflared`, Deployment | **0 replicas** until the token is sealed | gitops `charts/home-server-cloudflared/values.yaml` |
-| Cloudflare zones, tunnel, staging hosts | infra `cloudflare/` root | **Plan-only** (no account yet) | [`../cloudflare/README.md`](../cloudflare/README.md) |
+| Cloudflare Tunnel connector | home child `cloudflared`, Deployment | **1 replica** with the sealed token (gitops v0.28.0) | gitops `charts/home-server-cloudflared/values.yaml` |
+| Cloudflare zones, tunnel, staging hosts | infra `cloudflare/` root | **Applied September 18**; zones pending delegation | [`../cloudflare/README.md`](../cloudflare/README.md) |
 | S3 retention lifecycle (hourly 1 d, daily 30 d, noncurrent/delete-marker cleanup) | infra `bootstrap/` | **Applied September 17** (three rules Enabled) | `hm5-backup-evidence.json` → `retention_plan` |
 | Roles Anywhere trust anchor + both profiles | infra `home-server/identity` | **Enabled September 17** (`home_server_sessions_enabled=true`); sessions: 1 h, leaf-bound | `dev.tfvars`; emergency denial = flag back to false + apply |
 
@@ -104,8 +104,10 @@ Done September 17: sessions enabled (identity root apply), the owner credential 
 `home-server-sealing-keys.py seal-backup-owner` (gitops v0.25.0), the helper image built for
 linux/amd64 and pushed as `ghcr.io/steve-droid/home-server-backup:2026.09.17`
 (`sha256:8ec804bd9d3ab16e0b1df0fec3aff2db7df6bb4bf8a3f968aa1ba77f4b64ffb7`; pg_dump 16.15, age
-1.2.1, aws-cli 1.45.24, signing helper 1.8.5, uid 10001; anonymous pull verified). Remaining: the
-gitops PR that sets `enabled: true` + `image.digest`, one manual Job from the CronJob verified
+1.2.1, aws-cli 1.45.24, signing helper 1.8.5, uid 10001). The GHCR package is still **private**
+(`gh api user/packages/container/home-server-backup --jq .visibility`), so the CronJob pod
+reports `ErrImagePull` until Steve switches it to public. Remaining: the
+package switch (the gitops PR with `enabled: true` + `image.digest` is merged, v0.27.0), one manual Job from the CronJob verified
 with a `disposable-target` restore, then `enabled: false` in the Mac `schedule.json`.
 
 ### 4. Identity automation

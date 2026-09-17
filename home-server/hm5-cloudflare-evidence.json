@@ -1,0 +1,82 @@
+{
+  "slice": "E21/HM5 — Cloudflare zones, tunnel and staging hosts (staged; AWS stays the origin)",
+  "applied_at_utc": "2026-09-17T21:05Z",
+  "approval": "Steve approved `terraform apply` of the saved cloudflare/ plan in chat (2026-09-18); delegation at Porkbun remains a separate approval",
+  "account": {
+    "id": "638c7c2aaca343cf7c80adb577274e99",
+    "token": "scoped API token in ~/.config/driftplain/cloudflare.env (mode 0600), verified active via /user/tokens/verify; never committed"
+  },
+  "plan": {
+    "adds": 18,
+    "changes": 0,
+    "destroys": 0,
+    "drift_plan_after_apply": "no changes"
+  },
+  "zones": {
+    "driftplain.dev": {
+      "id": "c9ee1f87408620ad3191e7a97ee8fa0d",
+      "type": "full",
+      "name_servers": [
+        "fatima.ns.cloudflare.com",
+        "seth.ns.cloudflare.com"
+      ]
+    },
+    "modicum.cloud": {
+      "id": "b0d05c69806c8d36f85a1e89b118ca08",
+      "type": "full",
+      "name_servers": [
+        "fatima.ns.cloudflare.com",
+        "seth.ns.cloudflare.com"
+      ]
+    }
+  },
+  "mirrored_records": 5,
+  "posture": {
+    "ssl": "strict",
+    "min_tls_version": "1.2",
+    "always_use_https": "on"
+  },
+  "tunnel": {
+    "id": "a27459ba-d201-4437-a963-f63ff3d49796",
+    "name": "driftplain-home-server",
+    "config_src": "cloudflare",
+    "ingress": [
+      "staging.driftplain.dev -> https://nginx-ingress-controller.nginx-ingress.svc.cluster.local:443 (SNI/Host app.home-server.driftplain.dev, caPool, noTLSVerify=false)",
+      "api-staging.driftplain.dev -> same origin (SNI/Host api.home-server.driftplain.dev, caPool, noTLSVerify=false)",
+      "catch-all http_status:404"
+    ]
+  },
+  "staging_urls": {
+    "app": "https://staging.driftplain.dev",
+    "api": "https://api-staging.driftplain.dev"
+  },
+  "cache_bypass_ruleset": "driftplain.dev, phase http_request_cache_settings, api-staging uncached",
+  "nameserver_comparison": {
+    "method": "dig @fatima.ns.cloudflare.com vs dig @1.1.1.1 (Route 53 still delegated)",
+    "driftplain.dev A": "3.111.156.216, 35.154.100.253 at both (Cloudflare flattens the apex CNAME)",
+    "api.driftplain.dev": "CNAME to the AWS NLB at Cloudflare; resolves to the same two addresses",
+    "driftplain.dev TXT": "google-site-verification twin present (70 chars)",
+    "modicum.cloud / api.modicum.cloud": "same NLB addresses at both",
+    "staging.driftplain.dev, api-staging.driftplain.dev": "CNAME to a27459ba-…cfargotunnel.com at Cloudflare; NXDOMAIN publicly until delegation"
+  },
+  "tunnel_token": {
+    "sealed_for": "cloudflared/home-server-cloudflared-token key token (strict scope)",
+    "tool": "home-server-sealing-keys.py seal-value (stdin only)",
+    "controller_key": "sealed-secrets-keyh7gb7",
+    "sealed_manifest_sha256": "c4c1b865a8df41aaaed4b93f71a3719e22247532761e609cb28bd532e5e92d70"
+  },
+  "not_done": [
+    "delegation of driftplain.dev and modicum.cloud at Porkbun (separate approvals)",
+    "staging exercise (needs an active zone → after delegation)",
+    "runtime hostnames stay on AWS until HM7"
+  ],
+  "connector": {
+    "gitops": "v0.28.0 (charts/home-server-cloudflared enabled with the sealed token)",
+    "argocd_child": "cloudflared Synced/Healthy at aac5ab3",
+    "pod": "home-server-cloudflared 1/1 Ready within 20 s of the sync (cloudflared 2026.9.1, linux/amd64, quic)",
+    "remote_config": "version 1 received from Cloudflare: two hostnames with caPool /etc/cloudflared/ca/home-server-ca.crt, noTLSVerify=false, originServerName/httpHostHeader = the home-server hostnames, catch-all http_status:404",
+    "cloudflare_api": "tunnel status healthy; one connector (58215abe…), four registered connections at 2026-09-17T21:30:25Z–27Z (hfa02 ×2, fra19, fra07), none pending reconnect",
+    "sealed_secret": "cloudflared/home-server-cloudflared-token unsealed to an Opaque Secret with key token (value never read)",
+    "prometheus": "ServiceMonitor scraped (target up); cloudflared_tunnel_ha_connections = 4; HomeServerTunnelDisconnected cleared once the pod was scraped"
+  }
+}

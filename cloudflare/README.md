@@ -1,8 +1,16 @@
 # Cloudflare authoritative DNS + the home-server tunnel (E21/HM5)
 
-**Prepared September 17, 2026 — not applied.** Applying needs Steve's Cloudflare account and a
-scoped API token; delegating either domain at Porkbun is a separate explicit approval. Until then
-Route 53 (`../dns/`) stays authoritative and AWS stays the origin for every runtime hostname.
+**Applied September 18, 2026 (18 resources; zones pending delegation).** Zones
+`driftplain.dev` (`c9ee1f87408620ad3191e7a97ee8fa0d`) and `modicum.cloud`
+(`b0d05c69806c8d36f85a1e89b118ca08`) answer on `fatima.ns.cloudflare.com` / `seth.ns.cloudflare.com`
+with the same values as Route 53 for every twin; tunnel `driftplain-home-server`
+(`a27459ba-d201-4437-a963-f63ff3d49796`) serves `staging.driftplain.dev` and
+`api-staging.driftplain.dev` through the gitops connector (v0.28.0). Delegating either domain at
+Porkbun is a separate explicit approval, so Route 53 (`../dns/`) stays authoritative and AWS stays
+the origin for every runtime hostname; the staging hosts resolve publicly only after delegation.
+Evidence: [`../home-server/hm5-cloudflare-evidence.json`](../home-server/hm5-cloudflare-evidence.json).
+The scoped API token lives in `~/.config/driftplain/cloudflare.env` (mode 0600, sourced by the
+operator, never printed or committed).
 
 This fifth Terraform root has its own state key, `cloudflare/terraform.tfstate`. It owns:
 
@@ -58,14 +66,16 @@ terraform -chdir=cloudflare test -var-file=dev.tfvars -var-file=records.tfvars.j
 
 ## Sequence after Steve's approvals
 
-1. `terraform apply cloudflare.tfplan` (explicit approval). Read `terraform output name_servers`.
-2. Verify the Cloudflare zones answer identically to Route 53 for every twin before delegating
-   (`dig @<cloudflare-ns> driftplain.dev A`, `api.driftplain.dev A`, `driftplain.dev TXT`).
+1. Done September 18: `terraform apply cloudflare.tfplan`; `terraform output name_servers` gives the
+   two nameservers above.
+2. Done September 18: the Cloudflare zones answer identically to Route 53 for every twin
+   (`dig @fatima.ns.cloudflare.com driftplain.dev A`, `api.driftplain.dev A`, `driftplain.dev TXT`,
+   `modicum.cloud A`, `api.modicum.cloud A`; the apex CNAME flattens to the NLB addresses).
 3. Delegate **driftplain.dev first** at Porkbun to the two Cloudflare nameservers (explicit
    approval; Route 53 keeps serving until the registrar change propagates). Verify trusted HTTPS on
    `https://driftplain.dev` and `https://api.driftplain.dev` still terminates at the AWS NLB, then
    modicum.cloud later. Route 53 zones stay until HM8 retirement review.
-4. Seal the connector token and enable the GitOps child:
+4. Done September 18 (gitops v0.28.0). Seal the connector token and enable the GitOps child:
    `terraform -chdir=cloudflare output -raw tunnel_token | home-server-sealing-keys.py seal-value --namespace cloudflared --name home-server-cloudflared-token --key token --cert <controller.pem> --out <file>`
    (strict scope; the value travels on stdin only), copy `encryptedData.token` into
    `sealed.encryptedToken`, set `enabled: true` in the chart values, merge.
