@@ -98,6 +98,21 @@ and recovery transfer; adjust forecasts and alert thresholds from those results.
 
 A current free monitoring candidate supports HTTP and heartbeat/cron checks at five-minute
 intervals with 50 monitors: [UptimeRobot Free eligibility/features](https://help.uptimerobot.com/en/articles/11604710-who-should-use-uptimerobot-s-free-plan)
+
+## HM5 measured update — September 17, 2026
+
+| Item | Measured / selected | Monthly cost |
+|---|---|---|
+| One scheduled export set (dump + fingerprint + roles + manifest, age-encrypted) | 131,983 B hourly; the daily set adds the 998 B credential bundle | 720 hourly + 30 daily ≈ 99 MB retained under the planned lifecycle → ≈ $0.0025 storage + $0.00375 PUTs ≈ **$0.01** |
+| Cloudflare Free: two zones, named tunnel, cache rule, proxied staging hosts | free-plan features only ([cloudflare/README.md](../cloudflare/README.md)) | **$0** |
+| Route 53 during the overlap (both zones stay until the HM8 review) | 2 × $0.50 | **$1.00** |
+| External monitor (UptimeRobot Free or equivalent) | 3 heartbeat + 2 HTTPS monitors | **$0** |
+| Domains (Porkbun renewals) | unchanged | **$2.83** accrued |
+| Home electricity | still the 50 W × 720 h assumption; no wall measurement yet | ₪36 planning figure |
+
+The known fixed subtotal therefore stays at about **$4.84/month + $0.01 backups**, inside the
+accepted $10 envelope, before AWS overlap and paid LLM use. The wall-power measurement remains
+an open HM5/HM7 item.
 and [pricing](https://uptimerobot.com/pricing/), checked September 15. HM5 must verify the
 selected account's actual notification delivery and heartbeat behavior; this budget does
 not assume paid SSL/domain checks, SMS, voice calls or a paid plan. Custom expiry checks

@@ -6,7 +6,18 @@ Driftplain will stay online and be maintained; it has no showcase expiry date. *
 cutover and Steve's explicit teardown approval.** Steve approved the completed foundation
 and workspace consolidation on September 12, 2026; subsequent slices retain their review gates.
 
-## Current slice: HM4 home GitOps and app rollout (complete September 17; HM5 next)
+## Current slice: HM5 sustainable public operation (in progress since September 17)
+
+Runbooks: [HM5-OPERATIONS.md](HM5-OPERATIONS.md) (what runs where, checks, how to enable the
+gated pieces), [HM5-MAINTENANCE.md](HM5-MAINTENANCE.md) (calendar, upgrades, Mac runtime copy),
+[HM5-LOST-HOST-RECOVERY.md](HM5-LOST-HOST-RECOVERY.md) (rebuild from Git + S3 + Mac custody).
+Public route: the Cloudflare root [`../cloudflare/`](../cloudflare/README.md) (both zones with
+DNS-only twins of every Route 53 record, the named tunnel, staging hosts only; plan-only until
+Steve's account exists, delegation is a separate approval) with
+[`dns/scripts/route53-cloudflare-sync.py`](../dns/scripts/route53-cloudflare-sync.py) for the
+export/diff; the gitops `cloudflared` child (v0.23.0) is scaled to zero until the token is sealed.
+The [quick-tunnel witness](hm5-quick-tunnel-witness.yaml) proved the connector image, the mounted
+`home-server-ca` pool and the fail-closed origin TLS path ([evidence](hm5-quick-tunnel-evidence.json)).
 
 HM5 (sustainable public operation, from September 17): the home instance is backed up hourly by
 a Mac LaunchAgent (`dev.driftplain.home-server-backup.plist` → `home-server-backup-schedule.py`

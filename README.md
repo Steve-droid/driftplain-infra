@@ -8,6 +8,12 @@ migration plan](home-server/README.md) has a verified private single-node founda
 require separate verification and approval. Historical AWS instructions below do not
 authorize destroying production during this migration.
 
+**E21/HM5 (September 17, 2026):** hourly encrypted home backups with a second independent
+restore, Mac maintenance schedules, the [Cloudflare DNS + tunnel root](cloudflare/README.md)
+(plan-only, AWS stays the origin) and the [operations](home-server/HM5-OPERATIONS.md),
+[maintenance](home-server/HM5-MAINTENANCE.md) and [lost-host recovery](home-server/HM5-LOST-HOST-RECOVERY.md)
+runbooks. Gated on Steve: Cloudflare account, DNS delegation, Roles Anywhere sessions, bucket lifecycle apply.
+
 > **P38r — shipped September 12, 2026:** Driftplain is live at **https://driftplain.dev**, with **https://api.driftplain.dev** as its runtime API. Trusted HTTPS, Google domain ownership, published Google branding and real sign-in are verified. Modicum/sslip.io endpoints and operational identifiers remain compatible. FE/BE 1.0.24, agents 1.1.3; runtime cutover GitOps v0.18.22.
 
 
