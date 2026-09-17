@@ -287,7 +287,7 @@
       "roles_seconds": 0.577
     }
   },
-  "slice": "E21/HM5 — backups: schedule, second independent restore, retention plan",
+  "slice": "E21/HM5 \u2014 backups: schedule, second independent restore, retention plan",
   "tests": {
     "bootstrap terraform test -var-file=dev.tfvars": "10 passed, 0 failed",
     "terraform validate": "valid",
@@ -333,5 +333,22 @@
       "namespace_deleted": true
     },
     "open_gap": "in-cluster exports carry the dump only; roles/fingerprint/credential bundle still come from the Mac daily export"
+  },
+  "mac_daily_only": {
+    "decided": "2026-09-18 (Steve): the cluster CronJob carries the hourly recovery point; the Mac supplies one daily bundle",
+    "infra": "v0.31.0 (PR #42): daily_only config key, skip without export/upload/heartbeat, max_age_hours >= 25",
+    "applied_at_utc": "2026-09-17T21:58Z",
+    "runtime_copy": "8 files re-staged under ~/.local/share/driftplain/home-server-backups/bin with SHA256SUMS",
+    "schedule_json": {
+      "daily_only": true,
+      "max_age_hours": 26,
+      "enabled": true
+    },
+    "first_foreground_run": {
+      "ok": true,
+      "tier": "hourly",
+      "skipped": "daily_only: today's daily export is already uploaded"
+    },
+    "check": "ok, no problems, last success 2026-09-17T21:18Z"
   }
 }

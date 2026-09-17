@@ -1,0 +1,42 @@
+{
+  "slice": "E21/HM5 staging exercise",
+  "run_at_utc": "2026-09-17T22:00Z to 2026-09-17T22:09Z",
+  "edge": "curl --resolve <host>:443:172.67.213.44 (Cloudflare anycast; system resolvers were still cached on Route 53 for driftplain.dev)",
+  "connector": "gitops v0.28.0 (cloudflared 2026.9.1, verified origin TLS, remote config)",
+  "checks": {
+    "1_html_and_health": {
+      "staging_root": "200 text/html, <title>Driftplain</title>, cf-cache-status DYNAMIC",
+      "api_healthz": "200 {\"status\":\"ok\"}",
+      "api_readyz": 200,
+      "http_to_https": "301 -> https://staging.driftplain.dev/"
+    },
+    "2_chat_through_api_staging": {
+      "login": "200 (existing demo user; password read from the home Secret into memory only)",
+      "projects": "200, 4 projects (ids 2, 3, 5, 7)",
+      "chat_history": "200, 1 message before",
+      "chat_post": "200, cf-cache-status DYNAMIC, server cloudflare, answer 88 chars, retrievalTrace 0 (fake LLM client, no paid call)",
+      "writes": "one chat exchange stored in the home copy",
+      "note": "the chat endpoint returns one JSON answer (no event stream); the API bypass rule keeps it uncached"
+    },
+    "3_connector_restart": {
+      "command": "kubectl -n cloudflared rollout restart deploy/home-server-cloudflared",
+      "restart_at_utc": "2026-09-17T22:01:37Z",
+      "rollout_seconds": 16,
+      "edge_probe_after_rollout": "api-staging /healthz 200 on the first attempt (the old pod drained only after the new one was Ready)"
+    },
+    "4_cors_and_runtime_config": {
+      "before": "config.js apiBaseUrl https://api.home-server.driftplain.dev; preflight from https://staging.driftplain.dev: 400, no access-control-allow-origin",
+      "change": "gitops v0.29.0: global.additionalHosts.staging + runtimeHostSet=staging (PR #60)",
+      "after_utc": "2026-09-17T22:08Z",
+      "after": "config.js apiBaseUrl https://api-staging.driftplain.dev; CORS_ALLOW_ORIGINS https://app.home-server.driftplain.dev,https://staging.driftplain.dev; preflight 200 with access-control-allow-origin https://staging.driftplain.dev; 10 ingress objects; frontend/backend generation 2 ready",
+      "oauth": "Google sign-in on staging not exercised (client origins unchanged; separate authorization)"
+    },
+    "5_runtime_hosts_on_the_nlb": "driftplain.dev and api.driftplain.dev: A 35.154.100.253, trusted HTTPS 200, remote NLB addresses (see hm5-cloudflare-evidence.json delegation)"
+  },
+  "result": "pass",
+  "open": [
+    "Google sign-in on staging (separate authorization)",
+    "external HTTPS keyword monitors for the staging hosts (with the heartbeat monitors)",
+    "modicum.cloud delegation"
+  ]
+}

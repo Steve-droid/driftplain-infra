@@ -16,7 +16,7 @@ root with mocked tests, quick-tunnel witness (v0.26.0), runbooks `HM5-OPERATIONS
 `HM5-MAINTENANCE.md` / `HM5-LOST-HOST-RECOVERY.md`. Gated on Steve: Cloudflare account/token
 (then plan → apply approval → delegation approval), external monitor URLs, Keychain
 authorization for renewal/CRL signing, Roles Anywhere session enablement, bucket lifecycle apply,
-backup image build/publish. Next tags: infra v0.31.0, gitops v0.29.0.
+backup image build/publish. Next tags: infra v0.32.0, gitops v0.30.0.
 
 HM5 owns, in `home-server/`: the scheduled encrypted backup of the **home** CNPG instance
 (Mac launchd interim now: export over strict-key SSH, single-PUT upload with checksums,

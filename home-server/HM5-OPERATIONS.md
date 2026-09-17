@@ -16,7 +16,7 @@ check, how to turn the gated pieces on, and in which order.
 | Cluster heartbeat (pings only when no critical alert fires) | home child `heartbeat`, CronJob `*/5` | **Suspended** until the URL is sealed | gitops `charts/home-server-heartbeat/values.yaml` |
 | In-cluster backup CronJob (Roles Anywhere leaf) | home child `backup`, CronJob `23 * * * *` | **Running** hourly (gitops v0.27.0, image by digest, package public September 18); first run restored and verified | gitops `charts/home-server-backup/values.yaml`; image in `backup-image/` |
 | Cloudflare Tunnel connector | home child `cloudflared`, Deployment | **1 replica** with the sealed token (gitops v0.28.0) | gitops `charts/home-server-cloudflared/values.yaml` |
-| Cloudflare zones, tunnel, staging hosts | infra `cloudflare/` root | **Applied September 18**; zones pending delegation | [`../cloudflare/README.md`](../cloudflare/README.md) |
+| Cloudflare zones, tunnel, staging hosts | infra `cloudflare/` root | **Applied September 18**; `driftplain.dev` delegated and active September 18, staging exercise passed; `modicum.cloud` pending | [`../cloudflare/README.md`](../cloudflare/README.md) |
 | S3 retention lifecycle (hourly 1 d, daily 30 d, noncurrent/delete-marker cleanup) | infra `bootstrap/` | **Applied September 17** (three rules Enabled) | `hm5-backup-evidence.json` → `retention_plan` |
 | Roles Anywhere trust anchor + both profiles | infra `home-server/identity` | **Enabled September 17** (`home_server_sessions_enabled=true`); sessions: 1 h, leaf-bound | `dev.tfvars`; emergency denial = flag back to false + apply |
 
@@ -90,7 +90,7 @@ apply (approval) → verify the zones answer like Route 53 → delegate `driftpl
 → gitops PR setting `enabled: true` + `sealed.encryptedToken` → connector pod appears, the
 `HomeServerTunnel*` rules become active.
 
-Staging exercise once the connector runs (record in `hm5-staging-evidence.json`):
+Staging exercise once the connector runs (done September 18; results in [`hm5-staging-evidence.json`](hm5-staging-evidence.json)):
 
 1. `https://staging.driftplain.dev/` → 200, `<title>Driftplain</title>`; `https://api-staging.driftplain.dev/healthz`, `/readyz` → 200.
 2. Chat streaming through `api-staging` (the cache-bypass rule keeps it uncached: `cf-cache-status: DYNAMIC`).
