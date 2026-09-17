@@ -25,6 +25,9 @@ ingestion_bucket_name = "modelmatch-ingestion-sources-957261948820"
 home_server_backup_bucket_name       = "modelmatch-home-server-backups-957261948820"
 home_server_recovery_key_secret_name = "modelmatch/home-server/recovery-key-v1"
 home_server_recovery_operator_arn    = "arn:aws:iam::957261948820:user/steve"
+# HM5 reviewed retention: hourly one day, daily 30 days; recovery/ keeps every version. Apply = separate approval.
+home_server_backup_hourly_retention_days = 1
+home_server_backup_daily_retention_days  = 30
 
 # --- P34b budget kill switch (2026-09-07) — Budgets 90% ACTUAL -> SNS -> Lambda -> CodeBuild teardown ---
 killswitch_lambda_dry_run        = "1" # E21 migration safeguard: plan-only; live apply requires Steve's approval. Keep budget alerts and token caps.

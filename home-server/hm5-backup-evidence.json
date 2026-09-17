@@ -1,0 +1,297 @@
+{
+  "date": "2026-09-17",
+  "first_scheduled_run": {
+    "alembic_version": [
+      "a4b5c6d7e8f9"
+    ],
+    "export_seconds": 2.748,
+    "objects": {
+      "app-credentials.json.age": {
+        "key": "recovery/app-credentials/home-20260917T181454Z.json.age",
+        "size": 998,
+        "version_id": ".Xl.H5ssT51jmgHykvaJdLLPtBvJu1vd"
+      },
+      "fingerprint.json.age": {
+        "key": "postgres/daily/home-20260917T181454Z/fingerprint.json.age",
+        "size": 33813,
+        "version_id": "TN8JTPZ.dByODu9hsEnloFMW5YMHkYuy"
+      },
+      "globals.sql.age": {
+        "key": "postgres/daily/home-20260917T181454Z/globals.sql.age",
+        "size": 1890,
+        "version_id": "wK3SAcnmuV61Qkz_8g_HP8np01lCK3Io"
+      },
+      "manifest.json": {
+        "key": "postgres/daily/home-20260917T181454Z/manifest.json",
+        "size": 2880,
+        "version_id": "4.3fGg_ltJkSF0bWwEd57UefIm2HRIEQ"
+      },
+      "postgres.dump.age": {
+        "key": "postgres/daily/home-20260917T181454Z/postgres.dump.age",
+        "size": 93760,
+        "version_id": "fFCfCM7UZC1qW8Usgd32fJS1K.6nlzlC"
+      }
+    },
+    "origin": "home",
+    "snapshot": "00000005-000015FA-1",
+    "snapshot_at_utc": "2026-09-17T18:14:54.774341Z",
+    "table_row_counts": {
+      "agent_runtime_config": 10,
+      "alembic_version": 1,
+      "auth_rate_bucket": 1,
+      "benchmark": 3,
+      "benchmark_result": 24,
+      "chat_message": 9,
+      "ci_finding": 830,
+      "ci_run": 209,
+      "finding_feedback": 709,
+      "google_login_nonce": 1,
+      "harness": 3,
+      "jenkins_connection": 5,
+      "llm_call": 4,
+      "llm_usage": 4,
+      "model": 23,
+      "proactive_alert": 0,
+      "project": 11,
+      "recommendation_evidence": 313,
+      "recommendation_option": 326,
+      "requirements_profile": 96,
+      "retrieval_trace": 7,
+      "source_document": 0,
+      "user": 9
+    },
+    "tier": "daily",
+    "timings": {
+      "fingerprint_seconds": 0.565,
+      "pg_dump_encrypt_seconds": 0.551,
+      "roles_seconds": 0.562
+    },
+    "upload_finished_at": "2026-09-17T18:15:01.514393+00:00",
+    "upload_seconds": 3.557,
+    "uploaded_at": "2026-09-17T18:14:57.957682+00:00",
+    "wal_lsn": "0/A000000"
+  },
+  "guardrails": {
+    "dry_run": "DRY_RUN=1 unchanged",
+    "production_mutation": "none (export is a read-only snapshot; the disposable target lived in its own namespace)",
+    "secrets_in_output": "none (status/evidence carry keys, version IDs, sizes, counts, timings only)",
+    "terraform_apply": "none"
+  },
+  "retention_plan": {
+    "apply_recommendation": "-target=aws_s3_bucket_lifecycle_configuration.home_server_backups, or accept the two rename updates",
+    "command": "terraform plan -var-file=dev.tfvars (bootstrap/, read-only; apply is a separate approval)",
+    "hm3_objects_note": "postgres/daily/hm3-20260915T150228Z/ falls under the 30-day daily rule (expires ~2026-10-16)",
+    "lifecycle_rules": [
+      {
+        "abort_incomplete_multipart_upload": [],
+        "expiration": [
+          {
+            "date": null,
+            "days": 1,
+            "expired_object_delete_marker": false
+          }
+        ],
+        "id": "postgres-hourly",
+        "noncurrent_version_expiration": [
+          {
+            "newer_noncurrent_versions": null,
+            "noncurrent_days": 1
+          }
+        ],
+        "prefix": "postgres/hourly/",
+        "status": "Enabled"
+      },
+      {
+        "abort_incomplete_multipart_upload": [],
+        "expiration": [
+          {
+            "date": null,
+            "days": 30,
+            "expired_object_delete_marker": false
+          }
+        ],
+        "id": "postgres-daily",
+        "noncurrent_version_expiration": [
+          {
+            "newer_noncurrent_versions": null,
+            "noncurrent_days": 30
+          }
+        ],
+        "prefix": "postgres/daily/",
+        "status": "Enabled"
+      },
+      {
+        "abort_incomplete_multipart_upload": [
+          {
+            "days_after_initiation": 1
+          }
+        ],
+        "expiration": [
+          {
+            "date": null,
+            "days": 0,
+            "expired_object_delete_marker": true
+          }
+        ],
+        "id": "housekeeping",
+        "noncurrent_version_expiration": [],
+        "prefix": "",
+        "status": "Enabled"
+      }
+    ],
+    "resource_actions": [
+      {
+        "actions": [
+          "read"
+        ],
+        "address": "data.aws_iam_policy_document.killswitch_lambda"
+      },
+      {
+        "actions": [
+          "update"
+        ],
+        "address": "aws_codebuild_project.platform_teardown"
+      },
+      {
+        "actions": [
+          "update"
+        ],
+        "address": "aws_iam_role_policy.killswitch_lambda"
+      },
+      {
+        "actions": [
+          "create"
+        ],
+        "address": "aws_s3_bucket_lifecycle_configuration.home_server_backups"
+      }
+    ],
+    "summary": "1 to add, 2 to change, 0 to destroy",
+    "unrelated_pre_existing_updates": [
+      "aws_codebuild_project.platform_teardown: source.location modelmatch-infra.git -> driftplain-infra.git (repository rename)",
+      "aws_iam_role_policy.killswitch_lambda: policy known after apply (data-source re-read)"
+    ]
+  },
+  "schedule_status": {
+    "consecutive_failures": 0,
+    "heartbeat_url_configured": false,
+    "last_daily_utc_date": "2026-09-17",
+    "last_success": {
+      "at": "2026-09-17T18:17:52.336998+00:00",
+      "export_seconds": 2.28,
+      "snapshot": "00000005-0000164F-1",
+      "snapshot_at_utc": "2026-09-17T18:17:46.532173Z",
+      "snapshot_to_durable_seconds": 5.749,
+      "tier": "hourly",
+      "upload_seconds": 3.048,
+      "wal_lsn": "0/A018750"
+    },
+    "last_success_at": "2026-09-17T18:17:52.336998+00:00",
+    "last_success_objects": {
+      "fingerprint.json.age": {
+        "key": "postgres/hourly/home-20260917T181745Z/fingerprint.json.age",
+        "size": 33813,
+        "version_id": "fj0OovQaQ1c6eZhIY.UZBCL91rdDE1Zz"
+      },
+      "globals.sql.age": {
+        "key": "postgres/hourly/home-20260917T181745Z/globals.sql.age",
+        "size": 1890,
+        "version_id": "5ui_YZHy38AJXPKsloxyvoKjrH83B6Om"
+      },
+      "manifest.json": {
+        "key": "postgres/hourly/home-20260917T181745Z/manifest.json",
+        "size": 2520,
+        "version_id": "KzQkLzDaqTJ2HjLCgws2BYQke3bT2YMh"
+      },
+      "postgres.dump.age": {
+        "key": "postgres/hourly/home-20260917T181745Z/postgres.dump.age",
+        "size": 93760,
+        "version_id": "a8HDWvCmjWbbPx44BPMOA3YEot0w750E"
+      }
+    },
+    "last_tier": "hourly",
+    "launchd": {},
+    "launchd_run_history": [
+      {
+        "how": "foreground first run",
+        "ok": true,
+        "run": 1,
+        "snapshot_to_durable_seconds": 6.74,
+        "tier": "daily"
+      },
+      {
+        "error": "export failed: launchd's default PATH lacked /opt/homebrew/bin (age); notification posted, no heartbeat",
+        "how": "LaunchAgent RunAtLoad, first plist",
+        "ok": false,
+        "run": 2,
+        "tier": "hourly"
+      },
+      {
+        "how": "LaunchAgent RunAtLoad, plist with PATH",
+        "ok": true,
+        "run": 3,
+        "snapshot_to_durable_seconds": 5.749,
+        "tier": "hourly"
+      }
+    ],
+    "runs": 3
+  },
+  "second_independent_restore": {
+    "categories": {
+      "alembic_version": true,
+      "columns": true,
+      "constraints": true,
+      "database": true,
+      "default_acl": true,
+      "enums": true,
+      "extensions": true,
+      "indexes": true,
+      "memberships": true,
+      "relations": true,
+      "roles": true,
+      "schema_public": true,
+      "sequences": true,
+      "server_version": true,
+      "tables": true,
+      "views": true
+    },
+    "comparison_match": true,
+    "delete_seconds": 21.833,
+    "disposable_target": {
+      "cluster": "restore-check",
+      "image": "ghcr.io/cloudnative-pg/postgresql:16.10-system-trixie",
+      "managed_by_argocd": false,
+      "namespace": "home-server-restore-check",
+      "ready_seconds": 22.393,
+      "reclaim_policy": "Delete",
+      "storage_class": "local-path"
+    },
+    "download_seconds": 2.364,
+    "downloaded_objects": [
+      "app-credentials.json.age",
+      "fingerprint.json.age",
+      "globals.sql.age",
+      "manifest.json",
+      "postgres.dump.age"
+    ],
+    "manifest_verified": true,
+    "namespace_deleted": true,
+    "pv_after_delete": "only the production PV pvc-7aba0fae-a8f2-4edc-a6fe-0c2c744e3edb (home-server-retain, Retain) remains",
+    "restore_seconds": 2.436,
+    "source_object": "postgres/daily/home-20260917T181454Z/ (scheduled daily export, downloaded by key + version)",
+    "tables_all_match": true,
+    "tables_compared": 23,
+    "target_database_bytes": 9646563,
+    "timings": {
+      "fingerprint_seconds": 0.568,
+      "pg_restore_seconds": 0.824,
+      "roles_seconds": 0.577
+    }
+  },
+  "slice": "E21/HM5 \u2014 backups: schedule, second independent restore, retention plan",
+  "tests": {
+    "bootstrap terraform test -var-file=dev.tfvars": "10 passed, 0 failed",
+    "terraform validate": "valid",
+    "test-home-server-backup-schedule.py": "9 tests OK",
+    "test-home-server-database.py": "26 tests OK (2 Docker rehearsal skips)"
+  }
+}
