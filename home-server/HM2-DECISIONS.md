@@ -84,6 +84,9 @@ capability and needs Steve's product decision. An in-memory production store is 
 
 ## Public routing: selected outbound Cloudflare Tunnel
 
+> Implementation (HM5, September 17, 2026): [`../cloudflare/README.md`](../cloudflare/README.md)
+> and the gitops `cloudflared` child; plan-only until Steve's Cloudflare account exists.
+
 Keep both registrars/domains and the original Google OAuth identity. Choose Cloudflare Free
 with full authoritative DNS for both domains, stage the DNS move while AWS remains the
 origin, then test separate home staging hostnames in HM5. Keep API/chat uncached and preserve
