@@ -1,6 +1,6 @@
 # Cloudflare authoritative DNS + the home-server tunnel (E21/HM5)
 
-**Applied September 18, 2026 (18 resources; zones pending delegation).** Zones
+**Applied September 18, 2026 (18 resources). `driftplain.dev` delegated and active September 18; `modicum.cloud` still pending delegation.** Zones
 `driftplain.dev` (`c9ee1f87408620ad3191e7a97ee8fa0d`) and `modicum.cloud`
 (`b0d05c69806c8d36f85a1e89b118ca08`) answer on `fatima.ns.cloudflare.com` / `seth.ns.cloudflare.com`
 with the same values as Route 53 for every twin; tunnel `driftplain-home-server`
@@ -71,16 +71,22 @@ terraform -chdir=cloudflare test -var-file=dev.tfvars -var-file=records.tfvars.j
 2. Done September 18: the Cloudflare zones answer identically to Route 53 for every twin
    (`dig @fatima.ns.cloudflare.com driftplain.dev A`, `api.driftplain.dev A`, `driftplain.dev TXT`,
    `modicum.cloud A`, `api.modicum.cloud A`; the apex CNAME flattens to the NLB addresses).
-3. Delegate **driftplain.dev first** at Porkbun to the two Cloudflare nameservers (explicit
-   approval; Route 53 keeps serving until the registrar change propagates). Verify trusted HTTPS on
-   `https://driftplain.dev` and `https://api.driftplain.dev` still terminates at the AWS NLB, then
-   modicum.cloud later. Route 53 zones stay until HM8 retirement review.
+3. Done September 18 for **driftplain.dev** (Steve changed the Porkbun nameservers; Registry DNSSEC
+   holds no DS records). The `.dev` parent answered with the Cloudflare pair within a minute, the
+   zone went `active` after an `activation_check`, and trusted HTTPS on `https://driftplain.dev` and
+   `https://api.driftplain.dev` still terminates at the AWS NLB. Public resolvers follow their cached
+   NS TTL (8.8.8.8 and 9.9.9.9 switched within ten minutes; 1.1.1.1 still held the Route 53 set).
+   modicum.cloud is a later, separate approval. Route 53 zones stay until HM8 retirement review.
 4. Done September 18 (gitops v0.28.0). Seal the connector token and enable the GitOps child:
    `terraform -chdir=cloudflare output -raw tunnel_token | home-server-sealing-keys.py seal-value --namespace cloudflared --name home-server-cloudflared-token --key token --cert <controller.pem> --out <file>`
    (strict scope; the value travels on stdin only), copy `encryptedData.token` into
    `sealed.encryptedToken`, set `enabled: true` in the chart values, merge.
-5. Exercise the staging hosts (HTML, API health, chat streaming, restart of the connector pod, CORS
-   and OAuth callback behaviour) — the runtime hostnames are untouched until HM7.
+5. Done September 18 (gitops v0.29.0 added the `staging` host set). HTML, `/healthz`, `/readyz`,
+   login and a chat exchange all answer 200 through the edge with `cf-cache-status: DYNAMIC`; the
+   connector restart rolled in 16 s with the edge answering throughout; CORS preflight from
+   `https://staging.driftplain.dev` is allowed. Results in
+   [`../home-server/hm5-staging-evidence.json`](../home-server/hm5-staging-evidence.json). Google
+   sign-in on staging stays a separate authorization; the runtime hostnames are untouched until HM7.
 
 Quick-tunnel witness (no account needed) proving the connector image, the mounted CA pool and the
 verified-TLS path: [`../home-server/hm5-quick-tunnel-witness.yaml`](../home-server/hm5-quick-tunnel-witness.yaml)

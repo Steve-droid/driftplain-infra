@@ -1,5 +1,5 @@
 {
-  "slice": "E21/HM5 — Cloudflare zones, tunnel and staging hosts (staged; AWS stays the origin)",
+  "slice": "E21/HM5 \u2014 Cloudflare zones, tunnel and staging hosts (staged; AWS stays the origin)",
   "applied_at_utc": "2026-09-17T21:05Z",
   "approval": "Steve approved `terraform apply` of the saved cloudflare/ plan in chat (2026-09-18); delegation at Porkbun remains a separate approval",
   "account": {
@@ -57,7 +57,7 @@
     "api.driftplain.dev": "CNAME to the AWS NLB at Cloudflare; resolves to the same two addresses",
     "driftplain.dev TXT": "google-site-verification twin present (70 chars)",
     "modicum.cloud / api.modicum.cloud": "same NLB addresses at both",
-    "staging.driftplain.dev, api-staging.driftplain.dev": "CNAME to a27459ba-…cfargotunnel.com at Cloudflare; NXDOMAIN publicly until delegation"
+    "staging.driftplain.dev, api-staging.driftplain.dev": "CNAME to a27459ba-\u2026cfargotunnel.com at Cloudflare; NXDOMAIN publicly until delegation"
   },
   "tunnel_token": {
     "sealed_for": "cloudflared/home-server-cloudflared-token key token (strict scope)",
@@ -66,8 +66,7 @@
     "sealed_manifest_sha256": "c4c1b865a8df41aaaed4b93f71a3719e22247532761e609cb28bd532e5e92d70"
   },
   "not_done": [
-    "delegation of driftplain.dev and modicum.cloud at Porkbun (separate approvals)",
-    "staging exercise (needs an active zone → after delegation)",
+    "delegation of modicum.cloud at Porkbun (separate approval)",
     "runtime hostnames stay on AWS until HM7"
   ],
   "connector": {
@@ -75,8 +74,42 @@
     "argocd_child": "cloudflared Synced/Healthy at aac5ab3",
     "pod": "home-server-cloudflared 1/1 Ready within 20 s of the sync (cloudflared 2026.9.1, linux/amd64, quic)",
     "remote_config": "version 1 received from Cloudflare: two hostnames with caPool /etc/cloudflared/ca/home-server-ca.crt, noTLSVerify=false, originServerName/httpHostHeader = the home-server hostnames, catch-all http_status:404",
-    "cloudflare_api": "tunnel status healthy; one connector (58215abe…), four registered connections at 2026-09-17T21:30:25Z–27Z (hfa02 ×2, fra19, fra07), none pending reconnect",
+    "cloudflare_api": "tunnel status healthy; one connector (58215abe\u2026), four registered connections at 2026-09-17T21:30:25Z\u201327Z (hfa02 \u00d72, fra19, fra07), none pending reconnect",
     "sealed_secret": "cloudflared/home-server-cloudflared-token unsealed to an Opaque Secret with key token (value never read)",
     "prometheus": "ServiceMonitor scraped (target up); cloudflared_tunnel_ha_connections = 4; HomeServerTunnelDisconnected cleared once the pod was scraped"
+  },
+  "delegation": {
+    "driftplain_dev": {
+      "changed_by": "Steve at Porkbun (approved; nameservers fatima/seth.ns.cloudflare.com; Registry DNSSEC 0 records)",
+      "parent_ns_at_utc": "2026-09-17T22:00:11Z",
+      "parent_query": "dig +norecurse NS driftplain.dev @ns-tld1.charlestonroadregistry.com -> fatima.ns.cloudflare.com, seth.ns.cloudflare.com",
+      "activation_check": "PUT /zones/{id}/activation_check at 2026-09-17T21:59Z (success)",
+      "zone_status": "active at 2026-09-17T22:00:11Z",
+      "public_resolvers_at_22_10_utc": {
+        "8.8.8.8": "cloudflare",
+        "9.9.9.9": "cloudflare",
+        "1.1.1.1": "route53 set still cached"
+      },
+      "runtime_hosts_still_on_the_nlb": {
+        "driftplain.dev": {
+          "a": "35.154.100.253",
+          "http": 200,
+          "ssl_verify_result": 0,
+          "remote_ip": "3.111.156.216"
+        },
+        "api.driftplain.dev": {
+          "a": "35.154.100.253",
+          "http": 200,
+          "ssl_verify_result": 0,
+          "remote_ip": "35.154.100.253",
+          "path": "/healthz"
+        }
+      },
+      "staging_a_records": [
+        "172.67.213.44",
+        "104.21.35.39"
+      ]
+    },
+    "modicum_cloud": "not delegated (separate approval)"
   }
 }
