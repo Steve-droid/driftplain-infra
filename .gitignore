@@ -11,6 +11,7 @@ crash.log
 !platform/dev.tfvars
 !jenkins/dev.tfvars
 !dns/dev.tfvars
+!cloudflare/dev.tfvars
 !home-server/identity/dev.tfvars
 # .terraform.lock.hcl IS committed (pins provider versions/hashes for reproducible init in CI).
 
