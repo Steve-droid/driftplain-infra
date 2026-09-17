@@ -1,0 +1,53 @@
+{
+  "slice": "E21/HM5 external monitor and heartbeats",
+  "recorded_at_utc": "2026-09-17T23:05:00Z",
+  "monitor_service": "UptimeRobot (Steve's account); three heartbeat monitors created September 18; URLs held only in ~/.config/driftplain/heartbeats.env (mode 0600) and the Mac configs",
+  "monitors": {
+    "home-server backup": {
+      "type": "heartbeat",
+      "interval": "24 h",
+      "grace": "6 h",
+      "source": "Mac schedule.json heartbeat_url, one ping per daily bundle (daily_only)",
+      "url_check": "test ping 200 on September 18 21:5x UTC; first real ping at the next daily run"
+    },
+    "home-server maintenance": {
+      "type": "heartbeat",
+      "interval": "24 h",
+      "grace": "6 h",
+      "source": "Mac maintenance.json heartbeat_url",
+      "url_check": "test ping 200 on September 18; first real ping at the 09:15 local run"
+    },
+    "home-server cluster": {
+      "type": "heartbeat",
+      "interval": "5 min",
+      "grace": "15 min",
+      "source": "gitops charts/home-server-heartbeat (v0.30.0): CronJob */5 pings only on a clean Prometheus answer",
+      "sealed_url": {
+        "scope": "strict, monitoring/home-server-heartbeat key url",
+        "ciphertext_chars": 784,
+        "ciphertext_sha256_prefix": "595b79a7f3f9a436"
+      },
+      "first_success_utc": "2026-09-17T22:26:06Z",
+      "first_log_line": "heartbeat sent: no critical alert firing"
+    },
+    "staging keyword monitors": "still to add (https://staging.driftplain.dev/, https://api-staging.driftplain.dev/healthz)"
+  },
+  "notification_test": {
+    "method": "automation off on Applications home-server-root and heartbeat (every home app self-heals), CronJob suspend=true, hold 26 min, restore in reverse; node-side script under nohup",
+    "last_ping_before_utc": "2026-09-17T22:26:06Z",
+    "suspended_at_utc": "2026-09-17T22:29:57Z",
+    "resumed_at_utc": "2026-09-17T22:56:18Z",
+    "first_ping_after_resume_utc": "2026-09-17T22:56:23Z",
+    "expected_down_at_utc": "about 2026-09-17T22:46Z (5-minute interval + 15-minute grace)",
+    "alert_emails": "down and up e-mails to Steve's inbox; confirmation recorded by Steve",
+    "restored": "CronJob suspend=false; both Applications automated prune+selfHeal, Synced"
+  },
+  "decisions": {
+    "modicum_cloud": "not delegated (Steve, September 18: the domain is not needed; the Cloudflare zone stays applied and unused until the HM8 review)",
+    "google_sign_in": "production only (Steve, September 18)"
+  },
+  "not_done": [
+    "staging HTTPS keyword monitors",
+    "Keychain foreground authorization for the renewal LaunchAgent (HM5-OPERATIONS \u00a74)"
+  ]
+}

@@ -1,6 +1,6 @@
 # Cloudflare authoritative DNS + the home-server tunnel (E21/HM5)
 
-**Applied September 18, 2026 (18 resources). `driftplain.dev` delegated and active September 18; `modicum.cloud` still pending delegation.** Zones
+**Applied September 18, 2026 (18 resources). `driftplain.dev` delegated and active September 18; `modicum.cloud` stays undelegated by decision (September 18).** Zones
 `driftplain.dev` (`c9ee1f87408620ad3191e7a97ee8fa0d`) and `modicum.cloud`
 (`b0d05c69806c8d36f85a1e89b118ca08`) answer on `fatima.ns.cloudflare.com` / `seth.ns.cloudflare.com`
 with the same values as Route 53 for every twin; tunnel `driftplain-home-server`
@@ -76,7 +76,8 @@ terraform -chdir=cloudflare test -var-file=dev.tfvars -var-file=records.tfvars.j
    zone went `active` after an `activation_check`, and trusted HTTPS on `https://driftplain.dev` and
    `https://api.driftplain.dev` still terminates at the AWS NLB. Public resolvers follow their cached
    NS TTL (8.8.8.8 and 9.9.9.9 switched within ten minutes; 1.1.1.1 still held the Route 53 set).
-   modicum.cloud is a later, separate approval. Route 53 zones stay until HM8 retirement review.
+   modicum.cloud will not be delegated (Steve, September 18: the domain is not needed; the zone
+   stays applied and unused). Route 53 zones stay until HM8 retirement review.
 4. Done September 18 (gitops v0.28.0). Seal the connector token and enable the GitOps child:
    `terraform -chdir=cloudflare output -raw tunnel_token | home-server-sealing-keys.py seal-value --namespace cloudflared --name home-server-cloudflared-token --key token --cert <controller.pem> --out <file>`
    (strict scope; the value travels on stdin only), copy `encryptedData.token` into

@@ -11,12 +11,12 @@ check, how to turn the gated pieces on, and in which order.
 |---|---|---|---|
 | Daily encrypted bundle from the Mac (roles, fingerprint, credential bundle) | Mac LaunchAgent `dev.driftplain.home-server-backup` → `home-server-backup-schedule.py run` (`daily_only: true` since September 18; the hourly slots skip) | **Running** (one daily upload; the hourly recovery point now comes from the in-cluster CronJob, whose export lacks roles, fingerprint and the credential bundle) | `~/.local/share/driftplain/home-server-backups/schedule.json`, status `schedule-status.json` |
 | Daily identity maintenance (deadlines, CRL refresh, sealing-key re-backup, renewal no-op) | Mac LaunchAgent `dev.driftplain.home-server-maintenance` (09:15 local + at load) | **Running**; one standing warning (`backup_required` in the ledger) | `maintenance.json`, status `maintenance-status.json`, log `maintenance.log` |
-| Leaf renewal | Mac LaunchAgent `dev.driftplain.home-server-renewal` | **Staged, disabled** (Keychain readback denied non-interactively) | `~/.local/share/driftplain/home-server-identity/renewal.json` |
+| Leaf renewal | Mac LaunchAgent `dev.driftplain.home-server-renewal` | **Staged, disabled** (Keychain readback denied non-interactively; LaunchAgent not installed yet, see §4) | `~/.local/share/driftplain/home-server-identity/renewal.json` |
 | Monitoring (kube-prometheus-stack 85.2.2, Prometheus 2 d / 1 GiB, Grafana, 10 home rules) | home child `monitoring` (+ `monitoring-dashboards`) | **Running**, all 15 scrape pools up | gitops `argocd/home-server/apps/monitoring.yaml` |
-| Cluster heartbeat (pings only when no critical alert fires) | home child `heartbeat`, CronJob `*/5` | **Suspended** until the URL is sealed | gitops `charts/home-server-heartbeat/values.yaml` |
+| Cluster heartbeat (pings only when no critical alert fires) | home child `heartbeat`, CronJob `*/5` | **Running** since September 18 22:26 UTC (gitops v0.30.0, sealed URL); notification test passed September 18 (`hm5-monitor-evidence.json`) | gitops `charts/home-server-heartbeat/values.yaml` |
 | In-cluster backup CronJob (Roles Anywhere leaf) | home child `backup`, CronJob `23 * * * *` | **Running** hourly (gitops v0.27.0, image by digest, package public September 18); first run restored and verified | gitops `charts/home-server-backup/values.yaml`; image in `backup-image/` |
 | Cloudflare Tunnel connector | home child `cloudflared`, Deployment | **1 replica** with the sealed token (gitops v0.28.0) | gitops `charts/home-server-cloudflared/values.yaml` |
-| Cloudflare zones, tunnel, staging hosts | infra `cloudflare/` root | **Applied September 18**; `driftplain.dev` delegated and active September 18, staging exercise passed; `modicum.cloud` pending | [`../cloudflare/README.md`](../cloudflare/README.md) |
+| Cloudflare zones, tunnel, staging hosts | infra `cloudflare/` root | **Applied September 18**; `driftplain.dev` delegated and active September 18, staging exercise passed; `modicum.cloud` will not be delegated (Steve, September 18: the domain is not needed; its zone stays applied and unused until the HM8 review) | [`../cloudflare/README.md`](../cloudflare/README.md) |
 | S3 retention lifecycle (hourly 1 d, daily 30 d, noncurrent/delete-marker cleanup) | infra `bootstrap/` | **Applied September 17** (three rules Enabled) | `hm5-backup-evidence.json` → `retention_plan` |
 | Roles Anywhere trust anchor + both profiles | infra `home-server/identity` | **Enabled September 17** (`home_server_sessions_enabled=true`); sessions: 1 h, leaf-bound | `dev.tfvars`; emergency denial = flag back to false + apply |
 
@@ -64,7 +64,7 @@ failures (macOS notification + non-zero exit) and withhold their heartbeats.
 
 ## Turning the gated pieces on
 
-### 1. External monitor and heartbeats (Steve: create the account)
+### 1. External monitor and heartbeats (account and the three heartbeat monitors created September 18)
 
 UptimeRobot Free (50 monitors, 5-minute checks, heartbeat monitors) or an equivalent. Create:
 
@@ -72,14 +72,16 @@ UptimeRobot Free (50 monitors, 5-minute checks, heartbeat monitors) or an equiva
 |---|---|---|---|
 | home-server backup (Mac daily bundle) | heartbeat | 24 h / 6 h | `schedule.json` → `heartbeat_url` (pinged once a day in `daily_only` mode) |
 | home-server maintenance | heartbeat | 24 h / 6 h | `maintenance.json` → `heartbeat_url` |
-| home-server cluster | heartbeat | 5 min / 15 min | gitops heartbeat chart: `enabled: true` + `sealed.encryptedUrl` (seal the URL strict-scope for `monitoring/home-server-heartbeat`, key `url`, with `home-server-sealing-keys.py seal`) |
-| staging app / API (after the tunnel) | HTTPS keyword | 5 min | `https://staging.driftplain.dev/`, `https://api-staging.driftplain.dev/healthz` |
+| home-server cluster | heartbeat | 5 min / 15 min | gitops heartbeat chart: `enabled: true` + `sealed.encryptedUrl` (seal the URL strict-scope for `monitoring/home-server-heartbeat`, key `url`, with `home-server-sealing-keys.py seal-value`, value on stdin) |
+| staging app / API (still to add) | HTTPS keyword | 5 min | `https://staging.driftplain.dev/`, `https://api-staging.driftplain.dev/healthz` |
 
-Notification test (the HM5 acceptance item "alert tested"): pause the cluster heartbeat once by
-suspending the CronJob for 20 minutes (`kubectl -n monitoring patch cronjob home-server-heartbeat
--p '{"spec":{"suspend":true}}'`, then ArgoCD self-heal restores it or patch it back), confirm the
-"down" and "up" e-mails arrive, and record the timestamps in the evidence file. For the backup
-heartbeat, set `enabled: false` in `schedule.json` for 90 minutes and restore it, or simply let
+Notification test (the HM5 acceptance item "alert tested"): done September 18. The CronJob was
+suspended at 22:29:57 UTC and resumed at 2026-09-17T22:56:18Z (26 minutes, past the 5-minute interval plus
+15-minute grace); the first ping after the resume succeeded at 2026-09-17T22:56:23Z. Every home app
+self-heals, so a bare `suspend` patch is reverted within seconds; the test switches automation off
+on `home-server-root` and `heartbeat` first, patches the CronJob, and restores all three afterwards
+(steps and timestamps in [`hm5-monitor-evidence.json`](hm5-monitor-evidence.json); Steve confirms
+the down/up e-mails). For the backup heartbeat, set `enabled: false` in `schedule.json` for 90 minutes and restore it, or simply let
 the Mac sleep through one interval.
 
 ### 2. Cloudflare (Steve: account + scoped token; delegation is a separate approval)
@@ -95,7 +97,7 @@ Staging exercise once the connector runs (done September 18; results in [`hm5-st
 1. `https://staging.driftplain.dev/` → 200, `<title>Driftplain</title>`; `https://api-staging.driftplain.dev/healthz`, `/readyz` → 200.
 2. Chat streaming through `api-staging` (the cache-bypass rule keeps it uncached: `cf-cache-status: DYNAMIC`).
 3. Restart behaviour: `kubectl -n cloudflared rollout restart deploy/home-server-cloudflared`; measure the seconds until `/ready` returns 200 and the staging host answers again.
-4. CORS / OAuth: the frontend served at `staging.driftplain.dev` must call `api-staging.driftplain.dev`, which needs a `staging` host set in the umbrella profile (`global.additionalHosts`) with that API URL — a gitops follow-up before this check; the existing Google client keeps its runtime origins, so Google sign-in on staging is a separate authorization.
+4. CORS / OAuth: the frontend served at `staging.driftplain.dev` must call `api-staging.driftplain.dev`, which needs a `staging` host set in the umbrella profile (`global.additionalHosts`) with that API URL — a gitops follow-up before this check; the existing Google client keeps its runtime origins. Decision September 18: Google sign-in stays production-only; staging keeps password login.
 5. Confirm the runtime hosts still resolve to the AWS NLB (`dig +short driftplain.dev`).
 
 ### 3. In-cluster backup CronJob (replaces the Mac interim)
@@ -116,9 +118,15 @@ from a Mac export (`--roles-from`); the Mac schedule stays on until that gap is 
 
 ### 4. Identity automation
 
-Authorize the identity venv python in Keychain for non-interactive readback (today OSStatus
--25293), then `renewal.json` `enabled: true` (the first enabled run also clears the standing
-`backup_required` warning), then `crl_publish: true` with `crl_id` and `trust_anchor_arn` after one
+Keychain authorization is a foreground step on the Mac, because macOS shows the access prompt
+only to an interactive run (non-interactive readback fails today with OSStatus -25293). Set
+`renewal.json` `enabled: true`, run the LaunchAgent's own command once in a terminal (the identity
+venv `python3`, `home-server-renew.py --config renewal.json`), answer the prompt with **Always
+Allow** for that `python3`, and let the run finish: it re-uploads the encrypted issuer bundle
+(clearing the standing `backup_required` warning), finds no leaf due before November 14, and
+caches the check for 20 hours in `ledger.status.json`. Then install the LaunchAgent (copy
+`dev.driftplain.home-server-renewal.plist` to `~/Library/LaunchAgents/` and `launchctl load` it)
+and check the status file after the next 09:00 run. Then `crl_publish: true` with `crl_id` and `trust_anchor_arn` after one
 reviewed manual `update-crl` ([ISSUER.md](ISSUER.md)). CRL 3 expires October 20, 2026; the
 maintenance job flags the refresh from October 10.
 
