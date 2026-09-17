@@ -1,0 +1,103 @@
+{
+  "slice": "E21/HM5",
+  "topic": "Mac maintenance schedule (identity deadlines, CRL refresh, sealing-key re-backup, renewal no-op)",
+  "installed_at_utc": "2026-09-17T18:45Z",
+  "launch_agent": {
+    "label": "dev.driftplain.home-server-maintenance",
+    "schedule": "daily 09:15 local + RunAtLoad",
+    "program": "identity venv python3 -> home-server-backups/bin/home-server-maintenance.py run",
+    "first_launchd_run": {
+      "runs": 1,
+      "last_exit_code": 0
+    }
+  },
+  "runtime_copy": {
+    "directory": "~/.local/share/driftplain/home-server-backups/bin",
+    "files": [
+      "home-server-backup-schedule.py",
+      "home-server-database.py",
+      "home-server-issuer.py",
+      "home-server-maintenance.py",
+      "home-server-renew.py",
+      "home-server-sealing-keys.py",
+      "recovery-key-v1.recipient",
+      "recovery-key.py"
+    ],
+    "checksums": "SHA256SUMS"
+  },
+  "config": {
+    "enabled": true,
+    "heartbeat_url": null,
+    "crl_refresh_before_days": 10,
+    "crl_publish": false,
+    "sealing_key_backup": true,
+    "renewal_config": "~/.local/share/driftplain/home-server-identity/renewal.json (enabled=false, staged)"
+  },
+  "first_foreground_run": {
+    "seconds": 0.955,
+    "actions": [
+      {
+        "action": "renewal",
+        "enabled": false,
+        "result": "home-server renewal disabled; enrollment review required"
+      }
+    ],
+    "findings": [
+      {
+        "level": "warning",
+        "message": "ledger marks an issuer backup as required (the first enabled renewal run or `issuer backup` clears it)",
+        "subject": "issuer-backup"
+      }
+    ],
+    "facts": {
+      "backup_required": true,
+      "ca": {
+        "days_left": 725.3,
+        "not_after": "2028-09-12T01:38:19+00:00"
+      },
+      "crl": {
+        "days_left": 32.8,
+        "last_update": "2026-09-15T13:28:36+00:00",
+        "next_update": "2026-10-20T13:28:36+00:00",
+        "number": 3,
+        "revoked_count": 2
+      },
+      "leaves": {
+        "backup": {
+          "days_left": 87.8,
+          "not_after": "2026-12-14T13:02:39+00:00"
+        },
+        "bedrock": {
+          "days_left": 87.8,
+          "not_after": "2026-12-14T13:02:57+00:00"
+        }
+      },
+      "pending": []
+    },
+    "sealing_keys": {
+      "backed_up_manifest": "sealing-keys-20260915T165752Z",
+      "cluster": [
+        {
+          "cert_sha256": "3e6735a59251fdf8f49a571b0adb31cbb9e1820de600acb27fc1ae736f58e751",
+          "created": "2026-09-15T16:54:53Z",
+          "name": "sealed-secrets-keyh7gb7",
+          "status": "active"
+        }
+      ],
+      "unbacked": []
+    },
+    "heartbeat": "no URL configured"
+  },
+  "tests": {
+    "test-home-server-maintenance.py": 9,
+    "test-home-server-sealing-keys.py": 9,
+    "test-home-server-backup-schedule.py": 9
+  },
+  "gates_remaining": [
+    "Keychain: authorize the identity venv python for non-interactive readback of the issuer key (renewal + CRL signing; OSStatus -25293 today)",
+    "renewal.json enabled=true after the Keychain test (leaves expire December 14, 2026; window opens November 14)",
+    "crl_publish=true with crl_id + trust_anchor_arn after one reviewed manual update-crl (CRL 3 nextUpdate October 20, 2026; refresh due from October 10)",
+    "heartbeat_url for the maintenance job (external monitor account)",
+    "the standing issuer-backup warning clears on the first enabled renewal run or an explicit `home-server-issuer.py backup`"
+  ]
+}

@@ -211,6 +211,26 @@ planning starts 180 days before expiry with escalation at 90/30. Test external n
 delivery; a home-only check cannot alert on total host loss. Time synchronization matters
 for both certificate validity and AWS signatures. No timer/alert has been installed here.
 
+**HM5 maintenance schedule — installed September 17, 2026.** The daily LaunchAgent
+`dev.driftplain.home-server-maintenance` runs [home-server-maintenance.py](home-server-maintenance.py)
+from the runtime copy under `~/.local/share/driftplain/home-server-backups/bin/` (09:15 local
+plus at load; `maintenance.json` is the only configuration). Without any Keychain access it reads
+the public ledger and grades the deadlines above (leaf 30/14/7, CA 180/90, CRL 7/1 days), lists
+the home Sealed Secrets controller keys and re-runs `home-server-sealing-keys.py backup` when a key
+is missing from the newest uploaded backup (the controller renews its key every 30 days, next
+around October 15), runs `home-server-issuer.py crl` when the CRL is within ten days of
+`nextUpdate` (CRL 3: refresh due from October 10, expiry October 20) and, only with
+`crl_publish=true` plus the recorded CRL ID/anchor ARN, the AWS `update-crl` + readback +
+`verify-crl` sequence, and invokes `home-server-renew.py` so that enabling `renewal.json` needs
+no second scheduler. Every run writes `maintenance-status.json` (dates, day counts, key names and
+public fingerprints only), notifies on any failure or critical finding, and pings its heartbeat
+URL only after a clean run. The first runs (foreground and launchd, exit 0) recorded 87.8 days on
+both leaves, CRL 3 with 32.8 days, one active sealing key already backed up and the standing
+warning that the ledger still marks an issuer backup as required. Remaining gates: authorize the
+identity venv Python for non-interactive Keychain readback (today OSStatus -25293 blocks both
+renewal and CRL signing from launchd), then `renewal.json enabled=true`, `crl_publish` after one
+reviewed manual update, and the external heartbeat URL. See [the evidence](hm5-maintenance-evidence.json).
+
 **Revocation:** a CRL (certificate revocation list) is the CA-signed list of revoked serials.
 Roles Anywhere checks CRLs imported into AWS; it does not fetch a URL in the certificate or
 call OCSP. [The prepared issuer workflow](ISSUER.md) retains the ledger, generates signed

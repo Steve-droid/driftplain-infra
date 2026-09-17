@@ -7,6 +7,9 @@ Kubernetes Secrets in its namespace (label sealedsecrets.bitnami.com/sealed-secr
 losing them means re-sealing every manifest from the recovery source. This tool:
 
   fetch-cert       writes the ACTIVE sealing public certificate (public; safe to commit)
+  list             prints the controller's key names, status labels and public cert
+                   fingerprints (no key material) — what the HM5 maintenance job compares
+                   with the newest uploaded backup manifest to decide on a re-backup
   backup           every sealing-key Secret -> one age-encrypted bundle (Mac, 0600) -> the
                    versioned backup bucket (recovery/sealing-keys/<stamp>/), receipt with versions
   verify-recovery  an INDEPENDENT download by key+version -> decrypt in memory -> prove the
@@ -201,6 +204,12 @@ def fetch_cert(args):
                       "cert_sha256": hashlib.sha256(pem).hexdigest()}, indent=2))
 
 
+def list_keys(args):
+    remote_prefix, target = home_prefix()
+    _, manifest = bundle_from_items(sealing_key_items(remote_prefix), db.now())
+    print(json.dumps({"target": target, "keys": manifest["keys"]}, indent=2, sort_keys=True))
+
+
 def backup(args):
     remote_prefix, target = home_prefix()
     created = db.now()
@@ -310,6 +319,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
     p = sub.add_parser("fetch-cert"); p.add_argument("--out", required=True)
+    sub.add_parser("list")
     p = sub.add_parser("backup"); p.add_argument("--no-upload", action="store_true")
     p = sub.add_parser("verify-recovery")
     p.add_argument("--receipt", required=True); p.add_argument("--restore-dir", required=True)
@@ -321,7 +331,7 @@ def main(argv=None):
     p = sub.add_parser("adopt"); p.add_argument("--name", required=True)
     args = parser.parse_args(argv)
     try:
-        {"fetch-cert": fetch_cert, "backup": backup, "verify-recovery": verify_recovery,
+        {"fetch-cert": fetch_cert, "list": list_keys, "backup": backup, "verify-recovery": verify_recovery,
          "seal": seal, "adopt": adopt}[args.command](args)
     except (SealingError, db.DatabaseError) as error:
         print(f"ERROR: {error}")

@@ -6,6 +6,7 @@ Unit tests never touch the network, Keychain, AWS or the home cluster."""
 import base64
 import datetime
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -76,6 +77,17 @@ class BundleTests(unittest.TestCase):
         odd = key_item("k", "active"); odd["metadata"]["labels"][sk.KEY_LABEL] = "unknown"
         with self.assertRaises(sk.SealingError):
             sk.bundle_from_items([odd], NOW)
+
+    def test_list_prints_public_facts_only(self):
+        items = [key_item("sealed-secrets-keya", "active"), key_item("sealed-secrets-keyb", "compromised", b"CERT-B", b"KEY-B")]
+        out = io.StringIO()
+        with patch.object(sk, "home_prefix", return_value=(lambda argv: argv, {"context": "driftplain-home"})), \
+                patch.object(sk, "sealing_key_items", return_value=items), patch("sys.stdout", out):
+            sk.main(["list"])
+        printed = json.loads(out.getvalue())
+        self.assertEqual([k["name"] for k in printed["keys"]], ["sealed-secrets-keya", "sealed-secrets-keyb"])
+        self.assertEqual(set(printed["keys"][0]), {"name", "status", "created", "cert_sha256"})
+        self.assertNotIn(base64.b64encode(b"KEY-A").decode(), out.getvalue())
 
     def test_manifest_mismatch_is_refused(self):
         bundle, manifest = sk.bundle_from_items([key_item("k", "active")], NOW)
