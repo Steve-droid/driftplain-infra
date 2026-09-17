@@ -2,7 +2,7 @@
 aws_region                   = "ap-south-1"
 home_server_account_id       = "957261948820"
 home_server_identity_enabled = true
-home_server_sessions_enabled = false
+home_server_sessions_enabled = true
 # Public CA verified against the September 13 enrollment record; never a private key.
 # DER SHA-256: b125437b857bf35561dd93e589b477d7284fce7e457a953ff83db859839b00b4
 home_server_ca_certificate_pem = <<-PEM

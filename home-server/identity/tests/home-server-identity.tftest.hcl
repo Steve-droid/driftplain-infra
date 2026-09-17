@@ -92,14 +92,14 @@ run "separate_trust_and_permissions" {
     error_message = "Bedrock must retain exact Nova/profile scope, deny bare-model invocation by omission, and hold only the object-level ingestion prefix grant."
   }
   assert {
-    condition = (!aws_rolesanywhere_trust_anchor.home_server[0].enabled &&
+    condition = (aws_rolesanywhere_trust_anchor.home_server[0].enabled == var.home_server_sessions_enabled &&
       alltrue([for name, profile in aws_rolesanywhere_profile.home_server :
-        !profile.enabled && profile.duration_seconds == 3600 &&
+        profile.enabled == var.home_server_sessions_enabled && profile.duration_seconds == 3600 &&
         profile.role_arns == toset([aws_iam_role.home_server[name].arn]) &&
         profile.session_policy == aws_iam_role_policy.home_server[name].policy &&
         aws_iam_role.home_server[name].max_session_duration == 3600
     ]))
-    error_message = "Authentication stays disabled; each profile permits one role with the same permission ceiling and one-hour sessions."
+    error_message = "Authentication follows the single sessions flag; each profile permits one role with the same permission ceiling and one-hour sessions."
   }
   assert {
     condition = (

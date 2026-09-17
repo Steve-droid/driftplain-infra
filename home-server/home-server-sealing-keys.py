@@ -38,6 +38,7 @@ from pathlib import Path
 import shlex
 import shutil
 import subprocess
+import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parent
@@ -133,6 +134,33 @@ def secret_manifest_from_bundle_item(item):
         metadata["labels"] = dict(labels)
     return {"apiVersion": "v1", "kind": "Secret", "type": expected_type, "metadata": metadata,
             "data": dict(item["data"])}
+
+
+# HM5: the backup CronJob namespace holds a strict-scope copy of the owner credential.
+BACKUP_NAMESPACE = "home-server-backups"
+BACKUP_OWNER_NAME = "home-server-backup-db-owner"
+
+
+def backup_owner_manifest_from_bundle_item(item):
+    """The owner credential re-bound to the backup CronJob's namespace and Secret name.
+    Same username/password, no CNPG reload label (nothing reloads it there)."""
+    owner = secret_manifest_from_bundle_item(item)
+    if owner["metadata"]["name"] != db.OWNER_SECRET:
+        raise SealingError("only the owner credential can be copied for the backup CronJob; refusing")
+    return {"apiVersion": "v1", "kind": "Secret", "type": owner["type"],
+            "metadata": {"name": BACKUP_OWNER_NAME, "namespace": BACKUP_NAMESPACE}, "data": dict(owner["data"])}
+
+
+def value_secret_manifest(namespace, name, key, value):
+    """One opaque value (bytes from stdin, never an argument) as the exact Secret to seal."""
+    for label, text in (("namespace", namespace), ("name", name), ("key", key)):
+        if not text or text != text.strip() or "/" in text:
+            raise SealingError(f"invalid {label}; refusing")
+    if not value or any(ch in b" \t\r\n" for ch in value):
+        raise SealingError("empty value or whitespace inside it; refusing")
+    return {"apiVersion": "v1", "kind": "Secret", "type": "Opaque",
+            "metadata": {"name": name, "namespace": namespace},
+            "data": {key: base64.b64encode(value).decode()}}
 
 
 # ── kubeseal (bounded subprocesses) ───────────────────────────────────────────────
@@ -302,6 +330,35 @@ def seal(args):
     print(json.dumps({"cert": str(args.cert), "written": written}, indent=2))
 
 
+def write_sealed(secret, cert_path, out, title):
+    sealed = seal_secret(secret, cert_path)
+    header = (f"# {title}.\n"
+              f"# Strict scope (name + namespace bound); sealed on the Mac with the home controller's public\n"
+              f"# certificate; only the home Sealed Secrets controller can unseal it. Regenerate with\n"
+              f"# driftplain-infra/home-server/home-server-sealing-keys.py. Never edit by hand.\n")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_bytes(header.encode() + sealed)
+    print(json.dumps({"cert": str(cert_path), "namespace": secret["metadata"]["namespace"],
+                      "name": secret["metadata"]["name"], "keys": sorted(secret["data"]), "out": str(out),
+                      "sealed_sha256": hashlib.sha256(sealed).hexdigest()}, indent=2))
+
+
+def seal_backup_owner(args):
+    identity = db.recovery_identity(args.identity_source)
+    bundle = json.loads(db.decrypt_to_bytes(identity, Path(args.restore_dir) / "app-credentials.json.age"))
+    items = [i for i in bundle["items"] if i["metadata"]["name"] == db.OWNER_SECRET]
+    if len(items) != 1:
+        raise SealingError("bundle does not hold exactly one owner credential; refusing")
+    write_sealed(backup_owner_manifest_from_bundle_item(items[0]), args.cert, Path(args.out),
+                 f"E21/HM5 — SealedSecret {BACKUP_NAMESPACE}/{BACKUP_OWNER_NAME} (owner credential copy for the backup CronJob)")
+
+
+def seal_value(args):
+    value = sys.stdin.buffer.read().rstrip(b"\r\n")
+    write_sealed(value_secret_manifest(args.namespace, args.name, args.key, value), args.cert, Path(args.out),
+                 f"E21/HM5 — SealedSecret {args.namespace}/{args.name} (key {args.key})")
+
+
 def adopt(args):
     remote_prefix, target = home_prefix()
     if args.name not in SEALED_ITEMS:
@@ -328,11 +385,17 @@ def main(argv=None):
     p = sub.add_parser("seal")
     p.add_argument("--restore-dir", required=True); p.add_argument("--identity-source", choices=["aws", "keychain"], required=True)
     p.add_argument("--cert", required=True); p.add_argument("--out-dir", required=True)
+    p = sub.add_parser("seal-backup-owner", help="strict-scope owner credential copy for the backup CronJob namespace")
+    p.add_argument("--restore-dir", required=True); p.add_argument("--identity-source", choices=["aws", "keychain"], required=True)
+    p.add_argument("--cert", required=True); p.add_argument("--out", required=True)
+    p = sub.add_parser("seal-value", help="seal one value read from stdin (tunnel token, heartbeat URL); never an argument")
+    p.add_argument("--namespace", required=True); p.add_argument("--name", required=True); p.add_argument("--key", required=True)
+    p.add_argument("--cert", required=True); p.add_argument("--out", required=True)
     p = sub.add_parser("adopt"); p.add_argument("--name", required=True)
     args = parser.parse_args(argv)
     try:
         {"fetch-cert": fetch_cert, "list": list_keys, "backup": backup, "verify-recovery": verify_recovery,
-         "seal": seal, "adopt": adopt}[args.command](args)
+         "seal": seal, "seal-backup-owner": seal_backup_owner, "seal-value": seal_value, "adopt": adopt}[args.command](args)
     except (SealingError, db.DatabaseError) as error:
         print(f"ERROR: {error}")
         raise SystemExit(1)

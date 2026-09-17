@@ -66,8 +66,9 @@ terraform -chdir=cloudflare test -var-file=dev.tfvars -var-file=records.tfvars.j
    `https://driftplain.dev` and `https://api.driftplain.dev` still terminates at the AWS NLB, then
    modicum.cloud later. Route 53 zones stay until HM8 retirement review.
 4. Seal the connector token and enable the GitOps child:
-   `terraform -chdir=cloudflare output -raw tunnel_token | home-server-sealing-keys.py seal … --namespace cloudflared --name home-server-cloudflared-token --key token`
-   (strict scope), set `enabled: true` + `sealed.encryptedToken` in the chart values, merge.
+   `terraform -chdir=cloudflare output -raw tunnel_token | home-server-sealing-keys.py seal-value --namespace cloudflared --name home-server-cloudflared-token --key token --cert <controller.pem> --out <file>`
+   (strict scope; the value travels on stdin only), copy `encryptedData.token` into
+   `sealed.encryptedToken`, set `enabled: true` in the chart values, merge.
 5. Exercise the staging hosts (HTML, API health, chat streaming, restart of the connector pod, CORS
    and OAuth callback behaviour) — the runtime hostnames are untouched until HM7.
 
