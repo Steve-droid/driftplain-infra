@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>dev.driftplain.home-server-backup</string>
+  <key>ProgramArguments</key><array>
+    <string>/Users/steve/.local/share/driftplain/home-server-identity/venv/bin/python3</string>
+    <string>/Users/steve/.local/share/driftplain/home-server-backups/bin/home-server-backup-schedule.py</string>
+    <string>run</string>
+    <string>--config</string>
+    <string>/Users/steve/.local/share/driftplain/home-server-backups/schedule.json</string>
+  </array>
+  <!-- launchd's default PATH lacks Homebrew: age (encryption) lives in /opt/homebrew/bin. -->
+  <key>EnvironmentVariables</key><dict>
+    <key>PATH</key><string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>StartInterval</key><integer>3600</integer>
+  <key>Umask</key><integer>63</integer>
+  <key>StandardOutPath</key><string>/Users/steve/.local/share/driftplain/home-server-backups/schedule.log</string>
+  <key>StandardErrorPath</key><string>/Users/steve/.local/share/driftplain/home-server-backups/schedule.log</string>
+  <key>SoftResourceLimits</key><dict><key>Core</key><integer>0</integer></dict>
+</dict></plist>

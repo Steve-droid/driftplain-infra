@@ -257,6 +257,111 @@ class SessionAndRefusalTests(unittest.TestCase):
                     db.put_object(None, path, "k")
 
 
+class HM5LayoutTests(unittest.TestCase):
+    """Tiered home exports, their S3 keys, restore-object subsets and the disposable target."""
+
+    def manifest(self, tier, origin="home", with_credentials=None):
+        objects = list(db.RESTORE_OBJECTS)
+        if with_credentials if with_credentials is not None else tier == "daily":
+            objects.append("app-credentials.json.age")
+        return {"created_at": "2026-09-17T14:05:00+00:00", "tier": tier, "origin": origin,
+                "objects": {name: {"size": 1, "sha256": "00" * 32} for name in objects}}
+
+    def test_hourly_and_daily_keys_by_tier_and_origin(self):
+        hourly = db.object_keys(self.manifest("hourly"))
+        self.assertEqual(hourly, {
+            "postgres.dump.age": "postgres/hourly/home-20260917T140500Z/postgres.dump.age",
+            "globals.sql.age": "postgres/hourly/home-20260917T140500Z/globals.sql.age",
+            "fingerprint.json.age": "postgres/hourly/home-20260917T140500Z/fingerprint.json.age",
+            "manifest.json": "postgres/hourly/home-20260917T140500Z/manifest.json"})
+        daily = db.object_keys(self.manifest("daily"))
+        self.assertEqual(daily["postgres.dump.age"], "postgres/daily/home-20260917T140500Z/postgres.dump.age")
+        self.assertEqual(daily["app-credentials.json.age"], "recovery/app-credentials/home-20260917T140500Z.json.age")
+        aws_daily = db.object_keys(self.manifest("daily", origin="aws"))
+        self.assertEqual(aws_daily["manifest.json"], "postgres/daily/aws-20260917T140500Z/manifest.json")
+
+    def test_hm3_manifest_keeps_its_historical_layout(self):
+        legacy = {"created_at": "2026-09-15T15:02:28+00:00",
+                  "objects": {name: {"size": 1, "sha256": "00" * 32} for name in db.OBJECTS}}
+        keys = db.object_keys(legacy)
+        self.assertEqual(keys["postgres.dump.age"], "postgres/daily/hm3-20260915T150228Z/postgres.dump.age")
+        self.assertEqual(keys["app-credentials.json.age"], "recovery/app-credentials/hm3-20260915T150228Z.json.age")
+        with self.assertRaisesRegex(db.DatabaseError, "not a reviewed layout"):
+            db.object_keys(self.manifest("weekly"))
+        with self.assertRaisesRegex(db.DatabaseError, "not a reviewed layout"):
+            db.object_keys(self.manifest("hourly", origin="laptop"))
+
+    def test_restore_verifies_only_the_objects_it_needs(self):
+        with tempfile.TemporaryDirectory() as folder:
+            directory = Path(folder)
+            manifest = self.manifest("hourly")
+            for name in db.RESTORE_OBJECTS:
+                (directory / name).write_bytes(b"x")
+                manifest["objects"][name] = {"size": 1, "sha256": db.sha256_file(directory / name)}
+            self.assertTrue(db.verify_manifest(manifest, directory, db.RESTORE_OBJECTS))
+            self.assertTrue(db.verify_manifest(manifest, directory))
+            with self.assertRaisesRegex(db.DatabaseError, "carries no object app-credentials"):
+                db.verify_manifest(manifest, directory, db.OBJECTS)
+
+    def test_restore_targets(self):
+        self.assertEqual(db.restore_target("production"), ("app", "modelmatch-postgres"))
+        self.assertEqual(db.restore_target("disposable"), ("home-server-restore-check", "restore-check"))
+        with self.assertRaisesRegex(db.DatabaseError, "unexpected restore target"):
+            db.restore_target("staging")
+
+    def test_disposable_manifest_mirrors_the_production_contract_on_delete_storage(self):
+        image = "ghcr.io/cloudnative-pg/postgresql:16.10-system-trixie"
+        items = db.disposable_manifest(image)["items"]
+        self.assertEqual([(i["kind"], i["metadata"]["name"]) for i in items],
+                         [("Namespace", "home-server-restore-check"), ("Cluster", "restore-check")])
+        spec = items[1]["spec"]
+        self.assertEqual(spec["instances"], 1)
+        self.assertEqual(spec["imageName"], image)
+        self.assertFalse(spec["enableSuperuserAccess"])
+        initdb = spec["bootstrap"]["initdb"]
+        self.assertEqual((initdb["database"], initdb["owner"], initdb["encoding"], initdb["localeCollate"], initdb["localeCType"]),
+                         ("modelmatch", "modelmatch", "UTF8", "C", "C"))
+        self.assertEqual(initdb["postInitApplicationSQL"],
+                         ['ALTER ROLE "modelmatch" CREATEROLE', 'ALTER SCHEMA public OWNER TO "modelmatch"'])
+        self.assertEqual(spec["storage"]["storageClass"], "local-path")  # reclaimPolicy Delete
+        self.assertNotEqual(spec["storage"]["storageClass"], "home-server-retain")
+        self.assertEqual(spec["resources"]["limits"], {"cpu": "1", "memory": "512Mi"})
+        self.assertEqual(spec["affinity"]["nodeSelector"], {"kubernetes.io/hostname": "driftplain-home"})
+        self.assertEqual(items[1]["metadata"]["namespace"], "home-server-restore-check")
+        with self.assertRaisesRegex(db.DatabaseError, "not the reviewed PostgreSQL 16 image"):
+            db.disposable_manifest("postgres:17")
+        with self.assertRaisesRegex(db.DatabaseError, "not the reviewed PostgreSQL 16 image"):
+            db.disposable_manifest("")
+
+    def test_home_export_uses_the_target_transport_and_tier_objects(self):
+        calls = []
+
+        def fake_target_shell(namespace=db.NAMESPACE, cluster=db.CLUSTER):
+            calls.append(("target", namespace, cluster))
+            return FakeShell(["true"]), (lambda args: ["remote", *args]), {"context": "driftplain-home"}
+
+        def fake_run_export(shell, recipient, directory, timeout):
+            for name in db.RESTORE_OBJECTS:
+                (directory / name).write_bytes(b"cipher")
+            return {"snapshot": "00000009-00000001-1", "wal_lsn": "0/1", "snapshot_at_utc": "2026-09-17T14:05:10.000000Z",
+                    "fingerprint": fake_fingerprint(), "timings": {}}
+
+        with tempfile.TemporaryDirectory() as folder:
+            with patch.object(db, "BACKUPS_ROOT", Path(folder)), patch.object(db, "target_shell", fake_target_shell), \
+                    patch.object(db, "run_export", fake_run_export), \
+                    patch.object(db, "source_shell", side_effect=AssertionError("EKS must not be touched")), \
+                    patch.object(db, "export_credentials", side_effect=AssertionError("hourly must not read Secrets")), \
+                    patch.object(db, "encrypt_bytes", lambda recipient, payload, out: out.write_bytes(b"cipher")), \
+                    patch("builtins.print"):
+                db.export(type("Args", (), {"source": "home", "tier": "hourly", "timeout": 5})())
+            directory = next(Path(folder).glob("export-*"))
+            manifest = json.loads((directory / "manifest.json").read_text())
+        self.assertEqual(calls, [("target", "app", "modelmatch-postgres")])
+        self.assertEqual((manifest["tier"], manifest["origin"], manifest["slice"]), ("hourly", "home", "E21/HM5"))
+        self.assertEqual(sorted(manifest["objects"]), sorted(db.RESTORE_OBJECTS))
+        self.assertIsNone(manifest["credential_secret_keys"])
+
+
 def docker_available():
     try:
         return subprocess.run(["docker", "info"], capture_output=True, timeout=20).returncode == 0

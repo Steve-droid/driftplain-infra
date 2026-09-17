@@ -62,3 +62,59 @@ run "reject_invalid_bucket_name" {
   }
   expect_failures = [var.home_server_backup_bucket_name]
 }
+
+run "reviewed_retention_rules" {
+  command = plan
+  assert {
+    condition = (
+      [for r in aws_s3_bucket_lifecycle_configuration.home_server_backups.rule : r.id] == ["postgres-hourly", "postgres-daily", "housekeeping"] &&
+      alltrue([for r in aws_s3_bucket_lifecycle_configuration.home_server_backups.rule : r.status == "Enabled"])
+    )
+    error_message = "Exactly the three reviewed lifecycle rules, all enabled."
+  }
+  assert {
+    condition = (
+      aws_s3_bucket_lifecycle_configuration.home_server_backups.rule[0].filter[0].prefix == "postgres/hourly/" &&
+      aws_s3_bucket_lifecycle_configuration.home_server_backups.rule[0].expiration[0].days == 1 &&
+      aws_s3_bucket_lifecycle_configuration.home_server_backups.rule[0].noncurrent_version_expiration[0].noncurrent_days == 1 &&
+      aws_s3_bucket_lifecycle_configuration.home_server_backups.rule[1].filter[0].prefix == "postgres/daily/" &&
+      aws_s3_bucket_lifecycle_configuration.home_server_backups.rule[1].expiration[0].days == 30 &&
+      aws_s3_bucket_lifecycle_configuration.home_server_backups.rule[1].noncurrent_version_expiration[0].noncurrent_days == 30
+    )
+    error_message = "Hourly exports keep one day and daily exports 30 days, current and noncurrent versions alike."
+  }
+  assert {
+    # The empty filter's prefix and the unset expiration days are unknown until apply; the
+    # known parts pin the contract: marker cleanup on, no object expiry days, abort at 1 day.
+    condition = (
+      aws_s3_bucket_lifecycle_configuration.home_server_backups.rule[2].expiration[0].expired_object_delete_marker == true &&
+      aws_s3_bucket_lifecycle_configuration.home_server_backups.rule[2].abort_incomplete_multipart_upload[0].days_after_initiation == 1 &&
+      length(aws_s3_bucket_lifecycle_configuration.home_server_backups.rule[2].noncurrent_version_expiration) == 0
+    )
+    error_message = "Housekeeping removes only orphaned delete markers and abandoned multipart uploads; it never expires objects."
+  }
+  assert {
+    condition = (
+      !startswith(aws_s3_bucket_lifecycle_configuration.home_server_backups.rule[0].filter[0].prefix, "recovery/") &&
+      !startswith(aws_s3_bucket_lifecycle_configuration.home_server_backups.rule[1].filter[0].prefix, "recovery/")
+    )
+    error_message = "recovery/ must never carry an expiry rule."
+  }
+}
+
+run "reject_hourly_longer_than_daily" {
+  command = plan
+  variables {
+    home_server_backup_hourly_retention_days = 7
+    home_server_backup_daily_retention_days  = 7
+  }
+  expect_failures = [var.home_server_backup_daily_retention_days]
+}
+
+run "reject_fractional_or_zero_retention" {
+  command = plan
+  variables {
+    home_server_backup_hourly_retention_days = 0.5
+  }
+  expect_failures = [var.home_server_backup_hourly_retention_days]
+}

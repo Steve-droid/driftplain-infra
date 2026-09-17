@@ -8,6 +8,14 @@ and workspace consolidation on September 12, 2026; subsequent slices retain thei
 
 ## Current slice: HM4 home GitOps and app rollout (complete September 17; HM5 next)
 
+HM5 (sustainable public operation, from September 17): the home instance is backed up hourly by
+a Mac LaunchAgent (`dev.driftplain.home-server-backup.plist` → `home-server-backup-schedule.py`
+→ `home-server-database.py export --source home` / `upload`), the first export of each UTC day
+carrying the credential bundle; a second independent restore from an automated object matched in
+all 16 categories inside a disposable CNPG target (`disposable-target create|delete`); the reviewed
+S3 retention lifecycle is planned in `bootstrap/` pending approval. See
+[S3-BACKUPS.md](S3-BACKUPS.md) and [hm5-backup-evidence.json](hm5-backup-evidence.json).
+
 [HM4-HOME-APP.md](HM4-HOME-APP.md) is the runbook and result record for putting the application
 on the restored home database under the same ArgoCD root: platform children, sealing-key custody
 (`home-server-sealing-keys.py`: fetch-cert / backup / seal / verify-recovery / adopt), the reviewed

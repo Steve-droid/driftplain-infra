@@ -46,6 +46,24 @@ variable "home_server_backup_bucket_name" {
   }
 }
 
+variable "home_server_backup_hourly_retention_days" {
+  description = "Days a postgres/hourly/ export (and its noncurrent versions) is kept before lifecycle expiry."
+  type        = number
+  validation {
+    condition     = var.home_server_backup_hourly_retention_days >= 1 && var.home_server_backup_hourly_retention_days <= 7 && floor(var.home_server_backup_hourly_retention_days) == var.home_server_backup_hourly_retention_days
+    error_message = "Hourly retention must be a whole number of days between 1 and 7."
+  }
+}
+
+variable "home_server_backup_daily_retention_days" {
+  description = "Days a postgres/daily/ export (and its noncurrent versions) is kept before lifecycle expiry."
+  type        = number
+  validation {
+    condition     = var.home_server_backup_daily_retention_days >= 7 && var.home_server_backup_daily_retention_days <= 365 && floor(var.home_server_backup_daily_retention_days) == var.home_server_backup_daily_retention_days && var.home_server_backup_daily_retention_days > var.home_server_backup_hourly_retention_days
+    error_message = "Daily retention must be a whole number of days between 7 and 365 and longer than hourly retention."
+  }
+}
+
 variable "home_server_recovery_key_secret_name" {
   description = "Dedicated operator-only recovery-key secret name; metadata only in Terraform."
   type        = string

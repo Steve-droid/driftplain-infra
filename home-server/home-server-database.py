@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
-"""E21/HM3 — consistent encrypted production export and independent private restore.
+"""E21/HM3+HM5 — consistent encrypted PostgreSQL export and independent private restore.
 
-Operator-only, run on the Mac. Source = the AWS CNPG primary (explicit EKS context);
-target = the one home CNPG instance over strict-key `ssh home-server` + `sudo -n`.
+Operator-only, run on the Mac. Sources: the AWS CNPG primary (explicit EKS context,
+HM3/HM7) or the one home CNPG instance over strict-key `ssh home-server` + `sudo -n`
+(HM5 hourly/daily schedule). Targets: the production home instance (must be EMPTY) or
+a disposable one-instance Cluster in its own namespace for periodic restore checks.
 Every step is bounded, refuses the wrong side, and keeps plaintext only in pipes:
 
   export   one REPEATABLE READ snapshot: pg_dump --snapshot + the same-snapshot
-           fingerprint + global roles + the original K8s credential Secrets, each
-           age-encrypted to the public recipient; a public manifest of checksums.
-  upload   single PUT per object with SHA-256 checksums; exact version receipts.
+           fingerprint + global roles (+ the original K8s credential Secrets on the
+           daily tier), each age-encrypted to the public recipient; a public manifest.
+  upload   single PUT per object with SHA-256 checksums; exact version receipts under
+           postgres/<tier>/<origin>-<stamp>/ (credentials under recovery/app-credentials/).
   download an INDEPENDENT copy by key+version into a separate directory; verified.
   restore  roles (app roles only, original verifiers) -> pg_restore into an EMPTY
            target -> fingerprint -> full comparison against the export's snapshot.
+  disposable-target create|delete   the throwaway check Cluster (bounded waits).
 
 No values, rows, hashes, dumps or keys reach stdout/argv/Git. Subprocess output is
 suppressed; pg_restore diagnostics go to a 0600 file in the private restore directory.
@@ -61,6 +65,14 @@ KEYCHAIN = Path("/Users/steve/Library/Keychains/login.keychain-db")
 KEYCHAIN_ACCOUNT = "steve"
 MAX_SINGLE_PUT = 5 * 1024 ** 3
 
+# HM5: scheduled home exports land under postgres/<tier>/; a disposable CNPG target on the
+# home node (throwaway namespace, Delete-class storage) hosts periodic restore checks.
+TIERS = ("hourly", "daily")
+DISPOSABLE_NAMESPACE = "home-server-restore-check"
+DISPOSABLE_CLUSTER = "restore-check"
+DISPOSABLE_STORAGE_CLASS = "local-path"  # reclaimPolicy Delete: the check leaves nothing behind
+DISPOSABLE_WAIT_SECONDS = 600
+
 BACKUPS_ROOT = Path.home() / ".local" / "share" / "driftplain" / "home-server-backups"
 
 SNAPSHOT_RE = re.compile(r"^[0-9A-F]{8}-[0-9A-F]{8}-[0-9]+$")
@@ -68,6 +80,7 @@ LSN_RE = re.compile(r"^[0-9A-F]+/[0-9A-F]+$")
 IDENT_RE = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 OBJECTS = ("postgres.dump.age", "globals.sql.age", "fingerprint.json.age", "app-credentials.json.age")
+RESTORE_OBJECTS = OBJECTS[:3]  # a restore never needs the credential bundle
 
 # Read/output settings that make `row::text` deterministic across the two servers.
 SESSION_SETTINGS = ("SET LOCAL TimeZone = 'UTC';", "SET LOCAL DateStyle = 'ISO, YMD';",
@@ -329,7 +342,7 @@ def source_shell():
     return shell, prefix, {"context": SOURCE_CONTEXT, "server": server, **status}
 
 
-def target_shell():
+def target_shell(namespace=NAMESPACE, cluster=CLUSTER):
     remote = ["sudo", "-n"] + kubectl_prefix(TARGET_CONTEXT, TARGET_KUBECONFIG)
     prefix = ssh_prefix(remote)
     # kube_json appends args to the ssh prefix: the remote command must carry them.
@@ -345,13 +358,14 @@ def target_shell():
     names = [item["metadata"]["name"] for item in nodes.get("items", [])]
     if names != [TARGET_NODE]:
         raise DatabaseError("home cluster does not consist of exactly the expected node; refusing")
-    cluster = kube_json(remote_prefix(["-n", NAMESPACE, "get", "cluster.postgresql.cnpg.io", CLUSTER]), [])
-    status = cluster.get("status", {})
+    resource = kube_json(remote_prefix(["-n", namespace, "get", "cluster.postgresql.cnpg.io", cluster]), [])
+    status = resource.get("status", {})
     primary = status.get("currentPrimary")
     if not primary or status.get("phase") != "Cluster in healthy state" or status.get("instances") != 1:
         raise DatabaseError("home CNPG cluster is not one healthy instance; refusing")
-    shell = PodShell(remote_prefix(["-n", NAMESPACE, "exec", "-i", primary, "-c", "postgres", "--"]), "target", remote=True)
+    shell = PodShell(remote_prefix(["-n", namespace, "exec", "-i", primary, "-c", "postgres", "--"]), "target", remote=True)
     return shell, remote_prefix, {"context": TARGET_CONTEXT, "server": TARGET_SERVER, "node": TARGET_NODE,
+                                  "namespace": namespace, "cluster": cluster,
                                   "phase": status.get("phase"), "image": status.get("image"), "primary": primary}
 
 
@@ -489,9 +503,16 @@ def filter_roles(globals_sql):
 
 # ── manifest ──────────────────────────────────────────────────────────────────
 
-def verify_manifest(manifest, directory):
-    """Every listed object must exist with the exact size and SHA-256 (corruption/truncation)."""
-    for name, entry in manifest["objects"].items():
+def verify_manifest(manifest, directory, names=None):
+    """Every listed object must exist with the exact size and SHA-256 (corruption/truncation).
+
+    `names` restricts the check to the objects an operation needs (a restore does not
+    need the credential bundle, which hourly exports do not carry).
+    """
+    for name in (names or manifest["objects"]):
+        entry = manifest["objects"].get(name)
+        if entry is None:
+            raise DatabaseError(f"manifest carries no object {name}")
         path = directory / name
         if not path.is_file():
             raise DatabaseError(f"missing object {name}")
@@ -602,18 +623,29 @@ def export(args):
     recipient = RECIPIENT_FILE.read_text().strip()
     if not re.fullmatch(r"age1[0-9a-z]{58}", recipient):
         raise DatabaseError("unexpected age recipient")
-    shell, prefix, source = source_shell()
+    if args.source == "home":
+        shell, remote_prefix, source = target_shell()
+        prefix = remote_prefix([])
+    else:
+        shell, prefix, source = source_shell()
     started = now()
     directory = private_dir(BACKUPS_ROOT / f"export-{stamp(started)}")
     outcome = run_export(shell, recipient, directory, args.timeout)
     fp, timings = outcome["fingerprint"], outcome["timings"]
-    credentials, credential_keys = export_credentials(prefix)
-    encrypt_bytes(recipient, credentials, directory / "app-credentials.json.age")
-    del credentials
+    objects = list(RESTORE_OBJECTS)
+    credential_keys = None
+    if args.tier == "daily":
+        # The credential bundle changes only with a deliberate rotation: daily is enough, and
+        # hourly runs then never read Secrets at all.
+        credentials, credential_keys = export_credentials(prefix)
+        encrypt_bytes(recipient, credentials, directory / "app-credentials.json.age")
+        del credentials
+        objects.append("app-credentials.json.age")
     finished = now()
 
     manifest = {
-        "slice": "E21/HM3", "kind": "driftplain-home-server-postgres-export", "version": 1,
+        "slice": "E21/HM5", "kind": "driftplain-home-server-postgres-export", "version": 2,
+        "origin": args.source, "tier": args.tier,
         "created_at": started.isoformat(), "finished_at": finished.isoformat(),
         "export_seconds": round((finished - started).total_seconds(), 3), "timings": timings,
         "source": source, "database": DATABASE, "snapshot": outcome["snapshot"],
@@ -623,7 +655,7 @@ def export(args):
         "table_row_counts": public_counts(fp), "role_names": [r["name"] for r in fp["contract"]["roles"]],
         "credential_secret_keys": credential_keys,
         "objects": {name: {"size": (directory / name).stat().st_size, "sha256": sha256_file(directory / name)}
-                    for name in OBJECTS},
+                    for name in objects},
         "limitations": [
             "pg_dumpall --roles-only runs outside the data snapshot (global catalog, separate transaction).",
             "Sequence values are the snapshot's setval state; rows written after the snapshot are not included.",
@@ -631,7 +663,9 @@ def export(args):
         ],
     }
     write_private(directory / "manifest.json", json.dumps(manifest, indent=2, sort_keys=True).encode())
-    print(json.dumps({"export_dir": str(directory), "snapshot": outcome["snapshot"], "wal_lsn": outcome["wal_lsn"],
+    print(json.dumps({"export_dir": str(directory), "origin": args.source, "tier": args.tier,
+                      "snapshot": outcome["snapshot"], "wal_lsn": outcome["wal_lsn"],
+                      "snapshot_at_utc": outcome["snapshot_at_utc"], "finished_at": finished.isoformat(),
                       "export_seconds": manifest["export_seconds"], "timings": timings,
                       "objects": manifest["objects"], "table_row_counts": manifest["table_row_counts"],
                       "alembic_version": manifest["alembic_version"]}, indent=2))
@@ -650,11 +684,20 @@ def s3_session():
     return session.client("s3", config=config)
 
 
-def object_keys(manifest_stamp):
-    base = f"postgres/daily/hm3-{manifest_stamp}/"
-    keys = {name: base + name for name in OBJECTS if name != "app-credentials.json.age"}
-    keys["app-credentials.json.age"] = f"recovery/app-credentials/hm3-{manifest_stamp}.json.age"
-    keys["manifest.json"] = base + "manifest.json"
+def object_keys(manifest):
+    """S3 keys for one export. HM3 manifests (no tier) keep their historical layout."""
+    manifest_stamp = stamp(datetime.datetime.fromisoformat(manifest["created_at"]))
+    tier = manifest.get("tier")
+    if tier is None:
+        label, folder = f"hm3-{manifest_stamp}", "postgres/daily/"
+    elif tier in TIERS and manifest.get("origin") in ("home", "aws"):
+        label, folder = f"{manifest['origin']}-{manifest_stamp}", f"postgres/{tier}/"
+    else:
+        raise DatabaseError("manifest tier/origin is not a reviewed layout; refusing")
+    keys = {name: f"{folder}{label}/{name}" for name in manifest["objects"] if name != "app-credentials.json.age"}
+    if "app-credentials.json.age" in manifest["objects"]:
+        keys["app-credentials.json.age"] = f"recovery/app-credentials/{label}.json.age"
+    keys["manifest.json"] = f"{folder}{label}/manifest.json"
     return keys
 
 
@@ -679,16 +722,17 @@ def upload(args):
     directory = Path(args.export_dir)
     manifest = json.loads((directory / "manifest.json").read_text())
     verify_manifest(manifest, directory)
+    keys = object_keys(manifest)
     client = s3_session()
-    manifest_stamp = stamp(datetime.datetime.fromisoformat(manifest["created_at"]))
-    keys = object_keys(manifest_stamp)
     started = now()
     receipts = {}
-    for name in OBJECTS:
+    for name in manifest["objects"]:
         receipts[name] = put_object(client, directory / name, keys[name], manifest["objects"][name]["sha256"])
     receipts["manifest.json"] = put_object(client, directory / "manifest.json", keys["manifest.json"])
     finished = now()
     receipt = {"bucket": BUCKET, "region": REGION, "uploaded_at": started.isoformat(),
+               "finished_at": finished.isoformat(), "tier": manifest.get("tier"), "origin": manifest.get("origin"),
+               "snapshot_at_utc": manifest.get("snapshot_at_utc"),
                "upload_seconds": round((finished - started).total_seconds(), 3), "objects": receipts}
     write_private(directory / "upload-receipt.json", json.dumps(receipt, indent=2, sort_keys=True).encode())
     print(json.dumps(receipt, indent=2))
@@ -851,8 +895,9 @@ def run_restore(shell, identity, directory, timeout):
 def restore(args):
     directory = Path(args.restore_dir)
     manifest = json.loads((directory / "manifest.json").read_text())
-    verify_manifest(manifest, directory)
-    shell, remote_prefix, target = target_shell()
+    verify_manifest(manifest, directory, RESTORE_OBJECTS)
+    namespace, cluster = restore_target(args.target)
+    shell, remote_prefix, target = target_shell(namespace, cluster)
     identity = recovery_identity(args.identity_source)
     started = now()
     outcome = run_restore(shell, identity, directory, args.timeout)
@@ -860,7 +905,7 @@ def restore(args):
     comparison, timings = outcome["comparison"], outcome["timings"]
     finished = now()
 
-    storage = kube_json(remote_prefix(["-n", NAMESPACE, "get", "pvc"]), [])
+    storage = kube_json(remote_prefix(["-n", namespace, "get", "pvc"]), [])
     volumes = kube_json(remote_prefix(["get", "pv"]), [])
     bindings = []
     for pvc in storage.get("items", []):
@@ -875,7 +920,8 @@ def restore(args):
     size_bytes = shell.run(["psql", "-U", "postgres", "-d", DATABASE, "-At", "-X", "-c",
                             "SELECT pg_database_size(current_database());"], timeout=60).strip().decode()
     result = {
-        "restore_dir": str(directory), "target": target, "started_at": started.isoformat(),
+        "restore_dir": str(directory), "target": target, "target_kind": args.target,
+        "started_at": started.isoformat(),
         "finished_at": finished.isoformat(), "restore_seconds": round((finished - started).total_seconds(), 3),
         "timings": timings, "source_snapshot": manifest["snapshot"], "source_wal_lsn": manifest["wal_lsn"],
         "target_database_bytes": int(size_bytes), "storage": bindings, "comparison": comparison,
@@ -887,10 +933,92 @@ def restore(args):
         raise DatabaseError("restored database does not match the export snapshot; see restore-result.json")
 
 
+def restore_target(kind):
+    if kind == "production":
+        return NAMESPACE, CLUSTER
+    if kind == "disposable":
+        return DISPOSABLE_NAMESPACE, DISPOSABLE_CLUSTER
+    raise DatabaseError("unexpected restore target")
+
+
+def disposable_manifest(image):
+    """A throwaway one-instance CNPG Cluster with the production database contract.
+
+    Same image (server version), database, owner, encoding/locale and post-init grants as
+    the production Cluster, so the restore comparison is meaningful; Delete-class storage,
+    small limits, its own namespace, and NOT under ArgoCD (nothing reconciles it back).
+    """
+    if not re.fullmatch(r"ghcr\.io/cloudnative-pg/postgresql:16\.[0-9]+(-[a-z-]+)?", image):
+        raise DatabaseError("production Cluster image is not the reviewed PostgreSQL 16 image; refusing")
+    labels = {"app.kubernetes.io/part-of": "driftplain-home-server", "driftplain.dev/disposable": "restore-check"}
+    return {"apiVersion": "v1", "kind": "List", "items": [
+        {"apiVersion": "v1", "kind": "Namespace", "metadata": {"name": DISPOSABLE_NAMESPACE, "labels": labels}},
+        {"apiVersion": "postgresql.cnpg.io/v1", "kind": "Cluster",
+         "metadata": {"name": DISPOSABLE_CLUSTER, "namespace": DISPOSABLE_NAMESPACE, "labels": labels},
+         "spec": {"instances": 1, "imageName": image, "enableSuperuserAccess": False,
+                  "bootstrap": {"initdb": {"database": DATABASE, "owner": OWNER_ROLE, "encoding": "UTF8",
+                                           "localeCollate": "C", "localeCType": "C",
+                                           "postInitApplicationSQL": [f'ALTER ROLE "{OWNER_ROLE}" CREATEROLE',
+                                                                      f'ALTER SCHEMA public OWNER TO "{OWNER_ROLE}"']}},
+                  "storage": {"storageClass": DISPOSABLE_STORAGE_CLASS, "size": "5Gi"},
+                  "resources": {"requests": {"cpu": "100m", "memory": "256Mi"}, "limits": {"cpu": "1", "memory": "512Mi"}},
+                  "postgresql": {"parameters": {"shared_buffers": "128MB", "max_connections": "50"}},
+                  "affinity": {"nodeSelector": {"kubernetes.io/hostname": TARGET_NODE}}}}]}
+
+
+def disposable_target(args):
+    """create: apply the throwaway Cluster and wait (bounded) until healthy; delete: remove its namespace."""
+    _, remote_prefix, target = target_shell_without_cluster()
+    deadline = time.monotonic() + DISPOSABLE_WAIT_SECONDS
+    started = now()
+    if args.action == "create":
+        production = kube_json(remote_prefix(["-n", NAMESPACE, "get", "cluster.postgresql.cnpg.io", CLUSTER]), [])
+        image = production.get("status", {}).get("image") or ""
+        payload = json.dumps(disposable_manifest(image), sort_keys=True).encode()
+        result = subprocess.run(remote_prefix(["apply", "-f", "-"]), input=payload, capture_output=True, timeout=120)
+        if result.returncode:
+            raise DatabaseError("applying the disposable target failed; output suppressed")
+        while True:
+            try:
+                resource = kube_json(remote_prefix(["-n", DISPOSABLE_NAMESPACE, "get", "cluster.postgresql.cnpg.io",
+                                                    DISPOSABLE_CLUSTER]), [])
+            except DatabaseError:
+                resource = {}
+            status = resource.get("status", {})
+            if status.get("phase") == "Cluster in healthy state" and status.get("readyInstances") == 1:
+                break
+            if time.monotonic() > deadline:
+                raise DatabaseError(f"TIMEOUT: disposable target not healthy within {DISPOSABLE_WAIT_SECONDS}s "
+                                    f"(phase: {status.get('phase')})")
+            time.sleep(10)
+        detail = {"phase": status.get("phase"), "image": status.get("image"), "primary": status.get("currentPrimary")}
+    else:
+        result = subprocess.run(remote_prefix(["delete", "namespace", DISPOSABLE_NAMESPACE, "--ignore-not-found",
+                                              "--wait=false"]), capture_output=True, timeout=120)
+        if result.returncode:
+            raise DatabaseError("deleting the disposable namespace failed; output suppressed")
+        while True:
+            probe = subprocess.run(remote_prefix(["get", "namespace", DISPOSABLE_NAMESPACE]), capture_output=True, timeout=90)
+            if probe.returncode and b"NotFound" in probe.stderr:
+                break
+            if time.monotonic() > deadline:
+                raise DatabaseError(f"TIMEOUT: disposable namespace still present after {DISPOSABLE_WAIT_SECONDS}s")
+            time.sleep(10)
+        detail = {"namespace_deleted": True}
+    print(json.dumps({"target": target, "action": args.action, "namespace": DISPOSABLE_NAMESPACE,
+                      "cluster": DISPOSABLE_CLUSTER, "seconds": round((now() - started).total_seconds(), 3),
+                      **detail}, indent=2))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
-    p = sub.add_parser("export"); p.add_argument("--timeout", type=int, default=900)
+    p = sub.add_parser("export")
+    p.add_argument("--timeout", type=int, default=900)
+    p.add_argument("--source", choices=("aws", "home"), default="aws",
+                   help="aws = the EKS production cluster (HM3/HM7); home = the home CNPG instance over SSH (HM5 schedule)")
+    p.add_argument("--tier", choices=TIERS, default="daily",
+                   help="daily carries the credential bundle; hourly holds only the data/roles/fingerprint objects")
     p = sub.add_parser("upload"); p.add_argument("--export-dir", required=True)
     p = sub.add_parser("download"); p.add_argument("--receipt", required=True)
     for name in ("install-owner-secret", "restore"):
@@ -899,9 +1027,13 @@ def main():
         p.add_argument("--identity-source", choices=("keychain", "aws"), required=True,
                        help="which custody store supplies the private age identity for this run")
         p.add_argument("--timeout", type=int, default=1800)
+        if name == "restore":
+            p.add_argument("--target", choices=("production", "disposable"), default="production",
+                           help="production = app/modelmatch-postgres (must be empty); disposable = the throwaway check target")
+    p = sub.add_parser("disposable-target"); p.add_argument("action", choices=("create", "delete"))
     args = parser.parse_args()
-    {"export": export, "upload": upload, "download": download,
-     "install-owner-secret": install_owner_secret, "restore": restore}[args.command](args)
+    {"export": export, "upload": upload, "download": download, "install-owner-secret": install_owner_secret,
+     "restore": restore, "disposable-target": disposable_target}[args.command](args)
 
 
 if __name__ == "__main__":

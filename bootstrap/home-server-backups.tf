@@ -73,5 +73,56 @@ resource "aws_s3_bucket_policy" "home_server_backups" {
   })
 }
 
-# Deliberately no expiry rules until a restore from S3 succeeds and retention is reviewed.
+# E21/HM5 reviewed retention (the HM3 restore from S3 succeeded on 2026-09-15). Scheduled exports
+# land under postgres/hourly/ and postgres/daily/; recovery/ (issuer, sealing keys, credential
+# bundles, acceptance markers) carries NO expiry rule and keeps every version. S3 evaluates
+# lifecycle once a day at midnight UTC, so an "expiration" of N days keeps an object N–N+1 days;
+# expiring a current version only writes a delete marker on a versioned bucket, so noncurrent
+# versions expire on the same schedule and orphaned delete markers are removed.
 # Versioning and prevent_destroy are not immutable retention or protection from account admins.
+resource "aws_s3_bucket_lifecycle_configuration" "home_server_backups" {
+  bucket = aws_s3_bucket.home_server_backups.id
+
+  rule {
+    id     = "postgres-hourly"
+    status = "Enabled"
+    filter {
+      prefix = "postgres/hourly/"
+    }
+    expiration {
+      days = var.home_server_backup_hourly_retention_days
+    }
+    noncurrent_version_expiration {
+      noncurrent_days = var.home_server_backup_hourly_retention_days
+    }
+  }
+
+  rule {
+    id     = "postgres-daily"
+    status = "Enabled"
+    filter {
+      prefix = "postgres/daily/"
+    }
+    expiration {
+      days = var.home_server_backup_daily_retention_days
+    }
+    noncurrent_version_expiration {
+      noncurrent_days = var.home_server_backup_daily_retention_days
+    }
+  }
+
+  rule {
+    id     = "housekeeping"
+    status = "Enabled"
+    filter {}
+    # Only markers whose versions are all gone; never a live object or a retained version.
+    expiration {
+      expired_object_delete_marker = true
+    }
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1
+    }
+  }
+
+  depends_on = [aws_s3_bucket_versioning.home_server_backups]
+}
