@@ -12,10 +12,10 @@ Runbooks: [HM5-OPERATIONS.md](HM5-OPERATIONS.md) (what runs where, checks, how t
 gated pieces), [HM5-MAINTENANCE.md](HM5-MAINTENANCE.md) (calendar, upgrades, Mac runtime copy),
 [HM5-LOST-HOST-RECOVERY.md](HM5-LOST-HOST-RECOVERY.md) (rebuild from Git + S3 + Mac custody).
 Public route: the Cloudflare root [`../cloudflare/`](../cloudflare/README.md) (both zones with
-DNS-only twins of every Route 53 record, the named tunnel, staging hosts only; plan-only until
-Steve's account exists, delegation is a separate approval) with
+DNS-only twins of every Route 53 record, the named tunnel, staging hosts only; applied September 18,
+zones pending delegation, which is a separate approval) with
 [`dns/scripts/route53-cloudflare-sync.py`](../dns/scripts/route53-cloudflare-sync.py) for the
-export/diff; the gitops `cloudflared` child (v0.23.0) is scaled to zero until the token is sealed.
+export/diff; the gitops `cloudflared` child (v0.28.0) runs one connector with the sealed token.
 The [quick-tunnel witness](hm5-quick-tunnel-witness.yaml) proved the connector image, the mounted
 `home-server-ca` pool and the fail-closed origin TLS path ([evidence](hm5-quick-tunnel-evidence.json)).
 
