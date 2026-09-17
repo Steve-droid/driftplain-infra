@@ -166,8 +166,10 @@ into the disposable target with `restore --roles-from <Mac daily export> --ident
 --target disposable` (roles from the verified Mac bundle, comparison against the live home source,
 all 16 categories match, 23 tables, 2.4 s). **Open gap:** in-cluster exports carry only the dump
 (the owner role is not a superuser, so no `pg_dumpall --roles-only`, no snapshot fingerprint);
-the daily Mac export still supplies roles, fingerprint and the credential bundle. Keep the Mac
-schedule on, or reduce it to a daily run, until a roles source that does not depend on the Mac is
+the daily Mac export still supplies roles, fingerprint and the credential bundle. Decided
+September 18: the Mac schedule runs in `daily_only` mode (one upload per UTC day; hourly slots
+skip without export, upload or heartbeat; `max_age_hours` 26), so the hourly recovery point comes
+from the cluster and roles from the Mac until a roles source that does not depend on the Mac is
 chosen. See [hm5-backup-evidence.json](hm5-backup-evidence.json) `cronjob_first_run`.
 
 ## Next gates

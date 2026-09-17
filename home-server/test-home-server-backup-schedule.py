@@ -90,6 +90,34 @@ class ScheduleTests(unittest.TestCase):
         self.assertEqual(status["last_daily_utc_date"], next_day.date().isoformat())
         self.assertEqual(status["runs"], 3)
 
+    def test_daily_only_runs_the_daily_export_then_skips_without_export_or_heartbeat(self):
+        config = {**self.config, "daily_only": True, "max_age_hours": 26, "heartbeat_url": "https://hb.example.test/x"}
+        tool = FakeTool(self.root)
+        self.assertEqual(self.run_once(tool, config=config), 0)
+        self.assertEqual(tool.calls[0][0][:5], ["export", "--source", "home", "--tier", "daily"])
+        calls, pings = len(tool.calls), len(self.pings)
+        self.assertEqual(self.run_once(tool, config=config), 0)
+        self.assertEqual(len(tool.calls), calls, "an hourly slot in daily_only mode runs no export or upload")
+        self.assertEqual(len(self.pings), pings, "a skipped run sends no heartbeat")
+        status = sched.load_status()
+        self.assertEqual(status["skipped_hourly_runs"], 1)
+        self.assertIsNone(status["last_error"])
+        next_day = T0 + datetime.timedelta(days=1)
+        self.assertEqual(self.run_once(tool, clock=lambda: next_day, config=config), 0)
+        self.assertEqual(tool.calls[-2][0][4], "daily")
+        self.assertEqual(sched.check(config, clock=lambda: next_day + datetime.timedelta(hours=20)), 0)
+
+    def test_daily_only_requires_a_daily_staleness_limit(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as handle:
+            json.dump({"enabled": True, "daily_only": True}, handle)
+        with self.assertRaisesRegex(sched.ScheduleError, "at least 25"):
+            sched.load_config(handle.name)
+        with open(handle.name, "w") as stream:
+            json.dump({"enabled": True, "daily_only": "yes", "max_age_hours": 26}, stream)
+        with self.assertRaisesRegex(sched.ScheduleError, "true or false"):
+            sched.load_config(handle.name)
+        os.unlink(handle.name)
+
     def test_success_records_sanitized_status_and_rpo(self):
         self.assertEqual(self.run_once(FakeTool(self.root)), 0)
         status = sched.load_status()
