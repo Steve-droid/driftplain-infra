@@ -81,6 +81,23 @@ IDENT_RE = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 OBJECTS = ("postgres.dump.age", "globals.sql.age", "fingerprint.json.age", "app-credentials.json.age")
 RESTORE_OBJECTS = OBJECTS[:3]  # a restore never needs the credential bundle
+CLUSTER_RESTORE_OBJECTS = OBJECTS[:1]  # in-cluster exports carry the dump only (owner role is not a superuser)
+
+
+def restore_plan(manifest):
+    """What a restore can take from this export and what must come from elsewhere.
+
+    Mac exports (origin home/aws) carry roles and the snapshot fingerprint. In-cluster
+    exports (origin cluster) carry only the dump: roles come from a verified Mac export
+    given with --roles-from, and the comparison runs against the live source instead.
+    """
+    if manifest.get("kind") != "driftplain-home-server-postgres-export":
+        raise DatabaseError("manifest is not a home-server postgres export; refusing")
+    if manifest.get("origin") == "cluster":
+        return {"origin": "cluster", "objects": CLUSTER_RESTORE_OBJECTS, "roles_in_bundle": False,
+                "fingerprint_in_bundle": False}
+    return {"origin": manifest.get("origin", "home"), "objects": RESTORE_OBJECTS, "roles_in_bundle": True,
+            "fingerprint_in_bundle": True}
 
 # Read/output settings that make `row::text` deterministic across the two servers.
 SESSION_SETTINGS = ("SET LOCAL TimeZone = 'UTC';", "SET LOCAL DateStyle = 'ISO, YMD';",
@@ -857,8 +874,12 @@ def target_shell_without_cluster():
     return None, remote_prefix, {"context": TARGET_CONTEXT, "server": TARGET_SERVER}
 
 
-def run_restore(shell, identity, directory, timeout):
-    """Roles (app roles only) -> pg_restore into an EMPTY database -> fingerprint -> compare."""
+def run_restore(shell, identity, directory, timeout, roles_dir=None, source_fingerprint=None):
+    """Roles (app roles only) -> pg_restore into an EMPTY database -> fingerprint -> compare.
+
+    `roles_dir` supplies globals.sql.age when the export carries none; `source_fingerprint`
+    replaces the bundled fingerprint (taken live from the source at restore time).
+    """
     timings = {}
     # The target must be EMPTY: never restore over data, never restore twice.
     relations = shell.run(["psql", "-U", "postgres", "-d", DATABASE, "-At", "-X", "-c", RELATION_COUNT_SQL], timeout=60)
@@ -866,7 +887,7 @@ def run_restore(shell, identity, directory, timeout):
         raise DatabaseError("target database already contains relations; refusing")
 
     t0 = time.monotonic()
-    globals_sql = decrypt_to_bytes(identity, directory / "globals.sql.age").decode()
+    globals_sql = decrypt_to_bytes(identity, (roles_dir or directory) / "globals.sql.age").decode()
     roles_sql = filter_roles(globals_sql)
     shell.run(["psql", "-U", "postgres", "-d", "postgres", "-X", "-q", "-v", "ON_ERROR_STOP=1", "--single-transaction"],
               payload=roles_sql.encode(), timeout=120, error_file=directory / "roles.stderr")
@@ -887,20 +908,51 @@ def run_restore(shell, identity, directory, timeout):
     finally:
         session.close()
     timings["fingerprint_seconds"] = round(time.monotonic() - t0, 3)
-    source_fp = json.loads(decrypt_to_bytes(identity, directory / "fingerprint.json.age"))
-    return {"comparison": compare_fingerprints(source_fp, target_fp), "timings": timings,
-            "target_fingerprint": target_fp}
+    if (directory / "fingerprint.json.age").exists():
+        source_fp, basis = json.loads(decrypt_to_bytes(identity, directory / "fingerprint.json.age")), "export snapshot"
+    elif source_fingerprint is not None:
+        source_fp, basis = source_fingerprint, "live source at restore time"
+    else:
+        return {"comparison": {"match": None, "basis": "none: the export carries no fingerprint and no live source was read"},
+                "timings": timings, "target_fingerprint": target_fp}
+    comparison = compare_fingerprints(source_fp, target_fp)
+    comparison["basis"] = basis
+    return {"comparison": comparison, "timings": timings, "target_fingerprint": target_fp}
+
+
+def live_source_fingerprint(timeout):
+    """Fingerprint of the home production instance now (REPEATABLE READ, read only)."""
+    shell, _remote_prefix, source = target_shell()
+    session = PsqlSession(shell, DATABASE, timeout=timeout)
+    try:
+        session.execute("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY;")
+        return fingerprint(session), source
+    finally:
+        session.close()
 
 
 def restore(args):
     directory = Path(args.restore_dir)
     manifest = json.loads((directory / "manifest.json").read_text())
-    verify_manifest(manifest, directory, RESTORE_OBJECTS)
+    plan = restore_plan(manifest)
+    verify_manifest(manifest, directory, plan["objects"])
+    roles_dir = None
+    if not plan["roles_in_bundle"]:
+        if not args.roles_from:
+            raise DatabaseError("in-cluster exports carry no roles; pass --roles-from <verified Mac export or restore dir>")
+        roles_dir = Path(args.roles_from)
+        roles_manifest = json.loads((roles_dir / "manifest.json").read_text())
+        if roles_manifest.get("origin") not in ("home", "aws"):
+            raise DatabaseError("--roles-from must point at a Mac export (origin home/aws); refusing")
+        verify_manifest(roles_manifest, roles_dir, ("globals.sql.age",))
+    source_fp, live_source = None, None
+    if not plan["fingerprint_in_bundle"] and args.target == "disposable":
+        source_fp, live_source = live_source_fingerprint(args.timeout)
     namespace, cluster = restore_target(args.target)
     shell, remote_prefix, target = target_shell(namespace, cluster)
     identity = recovery_identity(args.identity_source)
     started = now()
-    outcome = run_restore(shell, identity, directory, args.timeout)
+    outcome = run_restore(shell, identity, directory, args.timeout, roles_dir=roles_dir, source_fingerprint=source_fp)
     del identity
     comparison, timings = outcome["comparison"], outcome["timings"]
     finished = now()
@@ -923,14 +975,16 @@ def restore(args):
         "restore_dir": str(directory), "target": target, "target_kind": args.target,
         "started_at": started.isoformat(),
         "finished_at": finished.isoformat(), "restore_seconds": round((finished - started).total_seconds(), 3),
-        "timings": timings, "source_snapshot": manifest["snapshot"], "source_wal_lsn": manifest["wal_lsn"],
+        "timings": timings, "source_snapshot": manifest.get("snapshot"), "source_wal_lsn": manifest.get("wal_lsn"),
+        "export_origin": plan["origin"], "roles_from": str(roles_dir) if roles_dir else None,
+        "comparison_source": live_source,
         "target_database_bytes": int(size_bytes), "storage": bindings, "comparison": comparison,
         "encrypted_manifest_objects": manifest["objects"],
     }
     write_private(directory / "restore-result.json", json.dumps(result, indent=2, sort_keys=True).encode())
     print(json.dumps(result, indent=2))
-    if not comparison["match"]:
-        raise DatabaseError("restored database does not match the export snapshot; see restore-result.json")
+    if comparison["match"] is False:
+        raise DatabaseError("restored database does not match the source fingerprint; see restore-result.json")
 
 
 def restore_target(kind):
@@ -1030,6 +1084,8 @@ def main():
         if name == "restore":
             p.add_argument("--target", choices=("production", "disposable"), default="production",
                            help="production = app/modelmatch-postgres (must be empty); disposable = the throwaway check target")
+            p.add_argument("--roles-from", default=None,
+                           help="Mac export/restore dir supplying globals.sql.age for an in-cluster (dump-only) export")
     p = sub.add_parser("disposable-target"); p.add_argument("action", choices=("create", "delete"))
     args = parser.parse_args()
     {"export": export, "upload": upload, "download": download, "install-owner-secret": install_owner_secret,

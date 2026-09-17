@@ -9,12 +9,12 @@ check, how to turn the gated pieces on, and in which order.
 
 | Component | Where | State | Config / status |
 |---|---|---|---|
-| Hourly encrypted backup of the home CNPG instance | Mac LaunchAgent `dev.driftplain.home-server-backup` → `home-server-backup-schedule.py run` | **Running** (hourly; first run of each UTC day is `daily` with the credential bundle) | `~/.local/share/driftplain/home-server-backups/schedule.json`, status `schedule-status.json` |
+| Hourly encrypted backup of the home CNPG instance | Mac LaunchAgent `dev.driftplain.home-server-backup` → `home-server-backup-schedule.py run` | **Running** (hourly; the daily run carries roles, fingerprint and the credential bundle, which the in-cluster export lacks; keep on until that gap is decided) | `~/.local/share/driftplain/home-server-backups/schedule.json`, status `schedule-status.json` |
 | Daily identity maintenance (deadlines, CRL refresh, sealing-key re-backup, renewal no-op) | Mac LaunchAgent `dev.driftplain.home-server-maintenance` (09:15 local + at load) | **Running**; one standing warning (`backup_required` in the ledger) | `maintenance.json`, status `maintenance-status.json`, log `maintenance.log` |
 | Leaf renewal | Mac LaunchAgent `dev.driftplain.home-server-renewal` | **Staged, disabled** (Keychain readback denied non-interactively) | `~/.local/share/driftplain/home-server-identity/renewal.json` |
 | Monitoring (kube-prometheus-stack 85.2.2, Prometheus 2 d / 1 GiB, Grafana, 10 home rules) | home child `monitoring` (+ `monitoring-dashboards`) | **Running**, all 15 scrape pools up | gitops `argocd/home-server/apps/monitoring.yaml` |
 | Cluster heartbeat (pings only when no critical alert fires) | home child `heartbeat`, CronJob `*/5` | **Suspended** until the URL is sealed | gitops `charts/home-server-heartbeat/values.yaml` |
-| In-cluster backup CronJob (Roles Anywhere leaf) | home child `backup`, CronJob `23 * * * *` | **Suspended**; sessions enabled and owner credential sealed (September 17), waits for the public image digest | gitops `charts/home-server-backup/values.yaml`; image in `backup-image/` |
+| In-cluster backup CronJob (Roles Anywhere leaf) | home child `backup`, CronJob `23 * * * *` | **Running** hourly (gitops v0.27.0, image by digest, package public September 18); first run restored and verified | gitops `charts/home-server-backup/values.yaml`; image in `backup-image/` |
 | Cloudflare Tunnel connector | home child `cloudflared`, Deployment | **1 replica** with the sealed token (gitops v0.28.0) | gitops `charts/home-server-cloudflared/values.yaml` |
 | Cloudflare zones, tunnel, staging hosts | infra `cloudflare/` root | **Applied September 18**; zones pending delegation | [`../cloudflare/README.md`](../cloudflare/README.md) |
 | S3 retention lifecycle (hourly 1 d, daily 30 d, noncurrent/delete-marker cleanup) | infra `bootstrap/` | **Applied September 17** (three rules Enabled) | `hm5-backup-evidence.json` → `retention_plan` |
@@ -104,11 +104,15 @@ Done September 17: sessions enabled (identity root apply), the owner credential 
 `home-server-sealing-keys.py seal-backup-owner` (gitops v0.25.0), the helper image built for
 linux/amd64 and pushed as `ghcr.io/steve-droid/home-server-backup:2026.09.17`
 (`sha256:8ec804bd9d3ab16e0b1df0fec3aff2db7df6bb4bf8a3f968aa1ba77f4b64ffb7`; pg_dump 16.15, age
-1.2.1, aws-cli 1.45.24, signing helper 1.8.5, uid 10001). The GHCR package is still **private**
-(`gh api user/packages/container/home-server-backup --jq .visibility`), so the CronJob pod
-reports `ErrImagePull` until Steve switches it to public. Remaining: the
-package switch (the gitops PR with `enabled: true` + `image.digest` is merged, v0.27.0), one manual Job from the CronJob verified
-with a `disposable-target` restore, then `enabled: false` in the Mac `schedule.json`.
+1.2.1, aws-cli 1.45.24, signing helper 1.8.5, uid 10001). September 18: the GHCR package is public,
+the CronJob runs on schedule and a manual Job succeeded in 10 s
+(`postgres/hourly/cluster-20260917T214304Z/`, dump 93,760 bytes + manifest, SSE-S3, SHA-256
+checksums). That object was restored into the disposable target from S3 alone (receipt built from
+`list_object_versions` + the manifest; `restore --roles-from <Mac daily export> --target disposable`,
+roles from the verified Mac bundle, comparison against the live home source): match in all 16
+categories, 23 tables, 2.4 s. In-cluster objects carry the dump only, so a restore needs roles
+from a Mac export (`--roles-from`); the Mac schedule stays on until that gap is decided
+(see [S3-BACKUPS.md](S3-BACKUPS.md)).
 
 ### 4. Identity automation
 

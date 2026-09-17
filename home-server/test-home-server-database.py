@@ -131,6 +131,25 @@ class ManifestTests(unittest.TestCase):
             db.verify_manifest(self.manifest, self.dir)
 
 
+class RestorePlanTests(unittest.TestCase):
+    KIND = "driftplain-home-server-postgres-export"
+
+    def test_mac_export_restores_from_its_own_bundle(self):
+        plan = db.restore_plan({"kind": self.KIND, "origin": "home", "tier": "daily"})
+        self.assertEqual(plan["objects"], ("postgres.dump.age", "globals.sql.age", "fingerprint.json.age"))
+        self.assertTrue(plan["roles_in_bundle"] and plan["fingerprint_in_bundle"])
+
+    def test_cluster_export_needs_roles_elsewhere_and_a_live_comparison(self):
+        plan = db.restore_plan({"kind": self.KIND, "origin": "cluster", "tier": "hourly"})
+        self.assertEqual(plan["objects"], ("postgres.dump.age",))
+        self.assertFalse(plan["roles_in_bundle"])
+        self.assertFalse(plan["fingerprint_in_bundle"])
+
+    def test_foreign_manifest_is_refused(self):
+        with self.assertRaisesRegex(db.DatabaseError, "not a home-server postgres export"):
+            db.restore_plan({"kind": "something-else", "origin": "cluster"})
+
+
 class CompareTests(unittest.TestCase):
     def test_identical_fingerprints_match_and_publish_no_verifiers(self):
         result = db.compare_fingerprints(fake_fingerprint(), fake_fingerprint())
