@@ -160,6 +160,16 @@ runs a missed interval once at wake); the in-cluster CronJob with the write-only
 leaf (`postgres/hourly/`, `postgres/daily/`, `recovery/` PutObject only) replaces it once sessions
 are approved. The Mac copy uses the operator profile, so the private recovery key is never on home.
 
+**First in-cluster run (September 18):** sessions enabled, image public, CronJob on schedule; a
+manual Job uploaded `postgres/hourly/cluster-20260917T214304Z/` in 10 s. Restored from S3 alone
+into the disposable target with `restore --roles-from <Mac daily export> --identity-source aws
+--target disposable` (roles from the verified Mac bundle, comparison against the live home source,
+all 16 categories match, 23 tables, 2.4 s). **Open gap:** in-cluster exports carry only the dump
+(the owner role is not a superuser, so no `pg_dumpall --roles-only`, no snapshot fingerprint);
+the daily Mac export still supplies roles, fingerprint and the credential bundle. Keep the Mac
+schedule on, or reduce it to a daily run, until a roles source that does not depend on the Mac is
+chosen. See [hm5-backup-evidence.json](hm5-backup-evidence.json) `cronjob_first_run`.
+
 ## Next gates
 
 1. Complete: approved bucket foundation applied and live controls verified.

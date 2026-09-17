@@ -287,11 +287,51 @@
       "roles_seconds": 0.577
     }
   },
-  "slice": "E21/HM5 \u2014 backups: schedule, second independent restore, retention plan",
+  "slice": "E21/HM5 — backups: schedule, second independent restore, retention plan",
   "tests": {
     "bootstrap terraform test -var-file=dev.tfvars": "10 passed, 0 failed",
     "terraform validate": "valid",
     "test-home-server-backup-schedule.py": "9 tests OK",
     "test-home-server-database.py": "26 tests OK (2 Docker rehearsal skips)"
+  },
+  "cronjob_first_run": {
+    "date_utc": "2026-09-17T21:43Z",
+    "preconditions": [
+      "Roles Anywhere sessions enabled",
+      "GHCR package home-server-backup public (Steve, September 18)",
+      "CronJob enabled with image digest sha256:8ec804bd9d3ab16e0b1df0fec3aff2db7df6bb4bf8a3f968aa1ba77f4b64ffb7 (gitops v0.27.0)"
+    ],
+    "scheduled_run_observed": "postgres/hourly/cluster-20260917T212345Z/ (the CronJob's own schedule)",
+    "manual_job": {
+      "name": "hm5-first-run-214303",
+      "succeeded_seconds": 10,
+      "object": "postgres/hourly/cluster-20260917T214304Z/",
+      "dump_bytes": 93760,
+      "manifest_bytes": 486,
+      "sse": "AES256",
+      "checksum": "SHA256 FULL_OBJECT"
+    },
+    "independent_download": {
+      "receipt": "built from S3 alone (list_object_versions + manifest SHA-256s)",
+      "download_seconds": 1.52,
+      "manifest_verified": true
+    },
+    "disposable_restore": {
+      "tool": "home-server-database.py restore --roles-from export-20260917T181454Z --identity-source aws --target disposable",
+      "roles_source": "verified Mac daily export bundle (globals.sql.age)",
+      "comparison_basis": "live source at restore time (cluster exports carry no fingerprint)",
+      "match": true,
+      "categories": 16,
+      "tables_compared": 23,
+      "restore_seconds": 2.428,
+      "timings": {
+        "roles_seconds": 0.57,
+        "pg_restore_seconds": 0.837,
+        "fingerprint_seconds": 0.56
+      },
+      "target_database_bytes": 9646563,
+      "namespace_deleted": true
+    },
+    "open_gap": "in-cluster exports carry the dump only; roles/fingerprint/credential bundle still come from the Mac daily export"
   }
 }
