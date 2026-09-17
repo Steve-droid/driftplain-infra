@@ -3,7 +3,8 @@
 
 launchd runs `run` every hour (dev.driftplain.home-server-backup.plist). Each run:
   1. picks the tier — the first run of a UTC day is `daily` (carries the credential
-     bundle, retained 30 days); every other run is `hourly` (retained one day);
+     bundle, retained 30 days); every other run is `hourly` (retained one day), or a
+     recorded skip when `daily_only` is set (the in-cluster CronJob covers the hour);
   2. exports the home CNPG instance over SSH with home-server-database.py (one
      REPEATABLE READ snapshot, age-encrypted in pipes) and uploads it with single
      PUTs as the operator profile (the write-only Roles Anywhere identity is the
@@ -39,7 +40,8 @@ TIERS = ("hourly", "daily")
 NOTIFICATION = ('display notification "Hourly home database backup failed. Check schedule-status.json." '
                 'with title "Driftplain home-server"')
 CONFIG_DEFAULTS = {"enabled": False, "heartbeat_url": None, "keep_local_days": 2, "export_timeout": 900,
-                   "max_age_hours": 2, "notify": True}
+                   "max_age_hours": 2, "notify": True, "daily_only": False}
+DAILY_ONLY_MIN_AGE_HOURS = 25
 
 
 class ScheduleError(Exception):
@@ -61,6 +63,10 @@ def load_config(path):
     for key in ("keep_local_days", "export_timeout", "max_age_hours"):
         if not isinstance(config[key], int) or config[key] < 1:
             raise ScheduleError(f"{key} must be a positive integer")
+    if config["daily_only"] is not False and config["daily_only"] is not True:
+        raise ScheduleError("daily_only must be true or false")
+    if config["daily_only"] and config["max_age_hours"] < DAILY_ONLY_MIN_AGE_HOURS:
+        raise ScheduleError(f"max_age_hours must be at least {DAILY_ONLY_MIN_AGE_HOURS} when daily_only is set")
     return config
 
 
@@ -143,6 +149,13 @@ def run_once(config, tool=run_tool, clock=now, heartbeat=ping_heartbeat, notifie
     try:
         if not config["enabled"]:
             raise ScheduleError("schedule disabled in configuration")
+        if config["daily_only"] and tier != "daily":
+            # The in-cluster CronJob covers the hourly recovery point; the Mac only supplies the
+            # daily bundle (roles, fingerprint, credentials). No export, no upload, no heartbeat.
+            status["skipped_hourly_runs"] = status.get("skipped_hourly_runs", 0) + 1
+            write_status(status)
+            print(json.dumps({"ok": True, "tier": tier, "skipped": "daily_only: today's daily export is already uploaded"}, indent=2))
+            return 0
         export = tool(["export", "--source", "home", "--tier", tier, "--timeout", str(config["export_timeout"])],
                       config["export_timeout"] + 120)
         receipt = tool(["upload", "--export-dir", export["export_dir"]], 600)

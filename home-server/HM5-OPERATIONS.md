@@ -9,7 +9,7 @@ check, how to turn the gated pieces on, and in which order.
 
 | Component | Where | State | Config / status |
 |---|---|---|---|
-| Hourly encrypted backup of the home CNPG instance | Mac LaunchAgent `dev.driftplain.home-server-backup` → `home-server-backup-schedule.py run` | **Running** (hourly; the daily run carries roles, fingerprint and the credential bundle, which the in-cluster export lacks; keep on until that gap is decided) | `~/.local/share/driftplain/home-server-backups/schedule.json`, status `schedule-status.json` |
+| Daily encrypted bundle from the Mac (roles, fingerprint, credential bundle) | Mac LaunchAgent `dev.driftplain.home-server-backup` → `home-server-backup-schedule.py run` (`daily_only: true` since September 18; the hourly slots skip) | **Running** (one daily upload; the hourly recovery point now comes from the in-cluster CronJob, whose export lacks roles, fingerprint and the credential bundle) | `~/.local/share/driftplain/home-server-backups/schedule.json`, status `schedule-status.json` |
 | Daily identity maintenance (deadlines, CRL refresh, sealing-key re-backup, renewal no-op) | Mac LaunchAgent `dev.driftplain.home-server-maintenance` (09:15 local + at load) | **Running**; one standing warning (`backup_required` in the ledger) | `maintenance.json`, status `maintenance-status.json`, log `maintenance.log` |
 | Leaf renewal | Mac LaunchAgent `dev.driftplain.home-server-renewal` | **Staged, disabled** (Keychain readback denied non-interactively) | `~/.local/share/driftplain/home-server-identity/renewal.json` |
 | Monitoring (kube-prometheus-stack 85.2.2, Prometheus 2 d / 1 GiB, Grafana, 10 home rules) | home child `monitoring` (+ `monitoring-dashboards`) | **Running**, all 15 scrape pools up | gitops `argocd/home-server/apps/monitoring.yaml` |
@@ -70,7 +70,7 @@ UptimeRobot Free (50 monitors, 5-minute checks, heartbeat monitors) or an equiva
 
 | Monitor | Type | Expected interval / grace | Where the URL goes |
 |---|---|---|---|
-| home-server backup | heartbeat | 60 min / 30 min | `schedule.json` → `heartbeat_url` |
+| home-server backup (Mac daily bundle) | heartbeat | 24 h / 6 h | `schedule.json` → `heartbeat_url` (pinged once a day in `daily_only` mode) |
 | home-server maintenance | heartbeat | 24 h / 6 h | `maintenance.json` → `heartbeat_url` |
 | home-server cluster | heartbeat | 5 min / 15 min | gitops heartbeat chart: `enabled: true` + `sealed.encryptedUrl` (seal the URL strict-scope for `monitoring/home-server-heartbeat`, key `url`, with `home-server-sealing-keys.py seal`) |
 | staging app / API (after the tunnel) | HTTPS keyword | 5 min | `https://staging.driftplain.dev/`, `https://api-staging.driftplain.dev/healthz` |

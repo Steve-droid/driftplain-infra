@@ -4,5 +4,6 @@
   "keep_local_days": 2,
   "export_timeout": 900,
   "max_age_hours": 2,
-  "notify": true
+  "notify": true,
+  "daily_only": false
 }
