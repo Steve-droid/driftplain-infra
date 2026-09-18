@@ -66,18 +66,22 @@ failures (macOS notification + non-zero exit) and withhold their heartbeats.
 
 ### 1. External monitor and heartbeats (account and the three heartbeat monitors created September 18)
 
-UptimeRobot Free (50 monitors, 5-minute checks, heartbeat monitors) or an equivalent. Create:
+Healthchecks.io (free tier; Steve's account, September 18) holds the three heartbeat checks. It
+monitors only inbound pings, so the two staging HTTPS checks need either a second free service
+(UptimeRobot Free) or an edge probe inside the cluster heartbeat job; open decision. Create:
 
 | Monitor | Type | Expected interval / grace | Where the URL goes |
 |---|---|---|---|
 | home-server backup (Mac daily bundle) | heartbeat | 24 h / 6 h | `schedule.json` → `heartbeat_url` (pinged once a day in `daily_only` mode) |
 | home-server maintenance | heartbeat | 24 h / 6 h | `maintenance.json` → `heartbeat_url` |
 | home-server cluster | heartbeat | 5 min / 15 min | gitops heartbeat chart: `enabled: true` + `sealed.encryptedUrl` (seal the URL strict-scope for `monitoring/home-server-heartbeat`, key `url`, with `home-server-sealing-keys.py seal-value`, value on stdin) |
-| staging app / API (still to add) | HTTPS keyword | 5 min | `https://staging.driftplain.dev/`, `https://api-staging.driftplain.dev/healthz` |
+| staging app / API (open: Healthchecks.io cannot probe URLs) | HTTPS keyword | 5 min | `https://staging.driftplain.dev/`, `https://api-staging.driftplain.dev/healthz` |
 
 Notification test (the HM5 acceptance item "alert tested"): done September 18. The CronJob was
 suspended at 22:29:57 UTC and resumed at 2026-09-17T22:56:18Z (26 minutes, past the 5-minute interval plus
-15-minute grace); the first ping after the resume succeeded at 2026-09-17T22:56:23Z. Every home app
+15-minute grace); the first ping after the resume succeeded at 2026-09-17T22:56:23Z. Steve confirmed the e-mails:
+DOWN at 22:46:04 UTC ("success signal did not arrive on time, grace time passed"), UP at
+22:56:21 UTC ("downtime lasted 10 minutes, 16 seconds"). Every home app
 self-heals, so a bare `suspend` patch is reverted within seconds; the test switches automation off
 on `home-server-root` and `heartbeat` first, patches the CronJob, and restores all three afterwards
 (steps and timestamps in [`hm5-monitor-evidence.json`](hm5-monitor-evidence.json); Steve confirms

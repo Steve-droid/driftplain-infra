@@ -1,7 +1,7 @@
 {
   "slice": "E21/HM5 external monitor and heartbeats",
   "recorded_at_utc": "2026-09-17T23:05:00Z",
-  "monitor_service": "UptimeRobot (Steve's account); three heartbeat monitors created September 18; URLs held only in ~/.config/driftplain/heartbeats.env (mode 0600) and the Mac configs",
+  "monitor_service": "Healthchecks.io free tier (Steve's account); three heartbeat checks created September 18; ping URLs held only in ~/.config/driftplain/heartbeats.env (mode 0600) and the Mac configs",
   "monitors": {
     "home-server backup": {
       "type": "heartbeat",
@@ -30,7 +30,7 @@
       "first_success_utc": "2026-09-17T22:26:06Z",
       "first_log_line": "heartbeat sent: no critical alert firing"
     },
-    "staging keyword monitors": "still to add (https://staging.driftplain.dev/, https://api-staging.driftplain.dev/healthz)"
+    "staging keyword monitors": "open: Healthchecks.io monitors inbound pings only; needs UptimeRobot Free or an edge probe in the cluster heartbeat job"
   },
   "notification_test": {
     "method": "automation off on Applications home-server-root and heartbeat (every home app self-heals), CronJob suspend=true, hold 26 min, restore in reverse; node-side script under nohup",
@@ -39,7 +39,11 @@
     "resumed_at_utc": "2026-09-17T22:56:18Z",
     "first_ping_after_resume_utc": "2026-09-17T22:56:23Z",
     "expected_down_at_utc": "about 2026-09-17T22:46Z (5-minute interval + 15-minute grace)",
-    "alert_emails": "down and up e-mails to Steve's inbox; confirmation recorded by Steve",
+    "alert_emails": {
+      "down": "2026-09-17T22:46:04Z, 'success signal did not arrive on time, grace time passed' (Steve confirmed from the inbox)",
+      "up": "2026-09-17T22:56:21Z, 'downtime lasted 10 minutes, 16 seconds'",
+      "result": "pass"
+    },
     "restored": "CronJob suspend=false; both Applications automated prune+selfHeal, Synced"
   },
   "decisions": {
