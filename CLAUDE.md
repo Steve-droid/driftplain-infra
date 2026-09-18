@@ -19,8 +19,10 @@ authorization for renewal/CRL signing, Roles Anywhere session enablement, bucket
 backup image build/publish. September 18 evening (infra v0.33.0, gitops v0.30.0): the external
 monitor is live (three heartbeat monitors; the cluster child pings every five minutes; notification
 test passed), modicum.cloud stays undelegated and Google sign-in stays production-only by Steve's
-decision. Remaining gates: the Keychain foreground run (`HM5-OPERATIONS.md` §4) and the staging
-keyword monitors. Next tags: infra v0.34.0, gitops v0.31.0.
+decision. Leaf renewal LaunchAgent running since
+September 18 23:02 UTC (Keychain authorized; infra v0.34.0). Remaining gates: the reviewed manual
+`update-crl` then `crl_publish: true`, and the staging keyword monitors. Next tags: infra v0.35.0,
+gitops v0.31.0.
 
 HM5 owns, in `home-server/`: the scheduled encrypted backup of the **home** CNPG instance
 (Mac launchd interim now: export over strict-key SSH, single-PUT upload with checksums,

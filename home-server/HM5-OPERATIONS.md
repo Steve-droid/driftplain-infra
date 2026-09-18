@@ -10,8 +10,8 @@ check, how to turn the gated pieces on, and in which order.
 | Component | Where | State | Config / status |
 |---|---|---|---|
 | Daily encrypted bundle from the Mac (roles, fingerprint, credential bundle) | Mac LaunchAgent `dev.driftplain.home-server-backup` → `home-server-backup-schedule.py run` (`daily_only: true` since September 18; the hourly slots skip) | **Running** (one daily upload; the hourly recovery point now comes from the in-cluster CronJob, whose export lacks roles, fingerprint and the credential bundle) | `~/.local/share/driftplain/home-server-backups/schedule.json`, status `schedule-status.json` |
-| Daily identity maintenance (deadlines, CRL refresh, sealing-key re-backup, renewal no-op) | Mac LaunchAgent `dev.driftplain.home-server-maintenance` (09:15 local + at load) | **Running**; one standing warning (`backup_required` in the ledger) | `maintenance.json`, status `maintenance-status.json`, log `maintenance.log` |
-| Leaf renewal | Mac LaunchAgent `dev.driftplain.home-server-renewal` | **Staged, disabled** (Keychain readback denied non-interactively; LaunchAgent not installed yet, see §4) | `~/.local/share/driftplain/home-server-identity/renewal.json` |
+| Daily identity maintenance (deadlines, CRL refresh, sealing-key re-backup, renewal no-op) | Mac LaunchAgent `dev.driftplain.home-server-maintenance` (09:15 local + at load) | **Running**; the `backup_required` warning clears at the next run (flag cleared September 18) | `maintenance.json`, status `maintenance-status.json`, log `maintenance.log` |
+| Leaf renewal | Mac LaunchAgent `dev.driftplain.home-server-renewal` | **Running** since September 18 23:02 UTC (Keychain authorized; loaded with `launchctl load -w`; at login, 09:00 local, hourly retries; checks cached 20 h) | `~/.local/share/driftplain/home-server-identity/renewal.json` |
 | Monitoring (kube-prometheus-stack 85.2.2, Prometheus 2 d / 1 GiB, Grafana, 10 home rules) | home child `monitoring` (+ `monitoring-dashboards`) | **Running**, all 15 scrape pools up | gitops `argocd/home-server/apps/monitoring.yaml` |
 | Cluster heartbeat (pings only when no critical alert fires) | home child `heartbeat`, CronJob `*/5` | **Running** since September 18 22:26 UTC (gitops v0.30.0, sealed URL); notification test passed September 18 (`hm5-monitor-evidence.json`) | gitops `charts/home-server-heartbeat/values.yaml` |
 | In-cluster backup CronJob (Roles Anywhere leaf) | home child `backup`, CronJob `23 * * * *` | **Running** hourly (gitops v0.27.0, image by digest, package public September 18); first run restored and verified | gitops `charts/home-server-backup/values.yaml`; image in `backup-image/` |
@@ -118,15 +118,17 @@ from a Mac export (`--roles-from`); the Mac schedule stays on until that gap is 
 
 ### 4. Identity automation
 
-Keychain authorization is a foreground step on the Mac, because macOS shows the access prompt
-only to an interactive run (non-interactive readback fails today with OSStatus -25293). Set
-`renewal.json` `enabled: true`, run the LaunchAgent's own command once in a terminal (the identity
-venv `python3`, `home-server-renew.py --config renewal.json`), answer the prompt with **Always
-Allow** for that `python3`, and let the run finish: it re-uploads the encrypted issuer bundle
-(clearing the standing `backup_required` warning), finds no leaf due before November 14, and
-caches the check for 20 hours in `ledger.status.json`. Then install the LaunchAgent (copy
-`dev.driftplain.home-server-renewal.plist` to `~/Library/LaunchAgents/` and `launchctl load` it)
-and check the status file after the next 09:00 run. Then `crl_publish: true` with `crl_id` and `trust_anchor_arn` after one
+Done September 18: Steve set `renewal.json` `enabled: true` and ran the LaunchAgent's command
+once in a terminal (the identity venv `python3`, `home-server-renew.py --config renewal.json`).
+That run read the Keychain, verified the existing issuer bundle against S3 (the ledger digest already
+had a September 15 receipt, so nothing new was uploaded), cleared the standing `backup_required`
+flag, and then failed once with the tool's fixed message at a later step (cause not captured). A
+read-only replay of every later step passed, and the next run (23:01:54 UTC, non-interactive from
+a script) wrote `ledger.status.json` `status: ok`, so Keychain readback is authorized for that
+`python3`. The plist
+carries `Disabled: true`, so plain `launchctl load` fails with error 5; `launchctl load -w` loads it
+and records the override. Loaded 23:02 UTC; the load-time run exited 0. Both leaves expire
+December 14 and are not due before November 14. Next, `crl_publish: true` with `crl_id` and `trust_anchor_arn` after one
 reviewed manual `update-crl` ([ISSUER.md](ISSUER.md)). CRL 3 expires October 20, 2026; the
 maintenance job flags the refresh from October 10.
 
