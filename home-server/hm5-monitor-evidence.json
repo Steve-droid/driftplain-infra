@@ -47,7 +47,14 @@
     "google_sign_in": "production only (Steve, September 18)"
   },
   "not_done": [
-    "staging HTTPS keyword monitors",
-    "Keychain foreground authorization for the renewal LaunchAgent (HM5-OPERATIONS \u00a74)"
-  ]
+    "staging HTTPS keyword monitors"
+  ],
+  "leaf_renewal": {
+    "enabled_at_utc": "2026-09-17T22:59Z (Steve, foreground run)",
+    "issuer_bundle": "existing September 15 receipt verified against S3; no new upload; backup_required cleared",
+    "first_ok_status_utc": "2026-09-17T23:01:54Z (non-interactive; Keychain readback authorized)",
+    "launchagent": "dev.driftplain.home-server-renewal loaded 2026-09-17T23:02Z with launchctl load -w (plist Disabled: true); load-time run exit 0",
+    "leaves": "backup and bedrock expire 2026-12-14; not due before 2026-11-14",
+    "next": "reviewed manual update-crl, then crl_publish: true with crl_id and trust_anchor_arn (ISSUER.md)"
+  }
 }
