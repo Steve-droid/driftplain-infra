@@ -34,11 +34,10 @@
     "5_runtime_hosts_on_the_nlb": "driftplain.dev and api.driftplain.dev: A 35.154.100.253, trusted HTTPS 200, remote NLB addresses (see hm5-cloudflare-evidence.json delegation)"
   },
   "result": "pass",
-  "open": [
-    "external HTTPS keyword monitors for the staging hosts"
-  ],
+  "open": [],
   "decisions": {
     "google_sign_in": "production only (Steve, September 18); staging keeps password login",
     "modicum_cloud": "not delegated (Steve, September 18: the domain is not needed; the Cloudflare zone stays applied and unused until the HM8 review)"
-  }
+  },
+  "staging_keyword_checks": "edge probes inside the cluster heartbeat job since gitops v0.31.0 (2026-09-20); see hm5-monitor-evidence.json"
 }

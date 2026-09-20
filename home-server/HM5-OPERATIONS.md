@@ -67,15 +67,17 @@ failures (macOS notification + non-zero exit) and withhold their heartbeats.
 ### 1. External monitor and heartbeats (account and the three heartbeat monitors created September 18)
 
 Healthchecks.io (free tier; Steve's account, September 18) holds the three heartbeat checks. It
-monitors only inbound pings, so the two staging HTTPS checks need either a second free service
-(UptimeRobot Free) or an edge probe inside the cluster heartbeat job; open decision. Create:
+monitors only inbound pings, so the two staging HTTPS checks run as edge probes inside the cluster
+heartbeat job (gitops v0.31.0, September 20, Steve's choice over a second service): each URL is
+fetched through the Cloudflare edge and must answer 2xx with its keyword, or the ping is withheld
+and Healthchecks.io raises DOWN. Create:
 
 | Monitor | Type | Expected interval / grace | Where the URL goes |
 |---|---|---|---|
 | home-server backup (Mac daily bundle) | heartbeat | 24 h / 6 h | `schedule.json` → `heartbeat_url` (pinged once a day in `daily_only` mode) |
 | home-server maintenance | heartbeat | 24 h / 6 h | `maintenance.json` → `heartbeat_url` |
 | home-server cluster | heartbeat | 5 min / 15 min | gitops heartbeat chart: `enabled: true` + `sealed.encryptedUrl` (seal the URL strict-scope for `monitoring/home-server-heartbeat`, key `url`, with `home-server-sealing-keys.py seal-value`, value on stdin) |
-| staging app / API (open: Healthchecks.io cannot probe URLs) | HTTPS keyword | 5 min | `https://staging.driftplain.dev/`, `https://api-staging.driftplain.dev/healthz` |
+| staging app / API (edge probes in the cluster heartbeat, gitops v0.31.0) | HTTPS keyword (`Driftplain`, `ok`) | 5 min, folded into the cluster ping | `https://staging.driftplain.dev/`, `https://api-staging.driftplain.dev/healthz` (chart `edgeProbes`; first passing run 2026-09-20 with "edge probes ok") |
 
 Notification test (the HM5 acceptance item "alert tested"): done September 18. The CronJob was
 suspended at 22:29:57 UTC and resumed at 2026-09-17T22:56:18Z (26 minutes, past the 5-minute interval plus

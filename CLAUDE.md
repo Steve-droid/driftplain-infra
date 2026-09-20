@@ -21,8 +21,8 @@ monitor is live (three heartbeat monitors; the cluster child pings every five mi
 test passed), modicum.cloud stays undelegated and Google sign-in stays production-only by Steve's
 decision. Leaf renewal LaunchAgent running since
 September 18 23:02 UTC (Keychain authorized; infra v0.34.0). Remaining gates: the reviewed manual
-`update-crl` then `crl_publish: true`, and the staging keyword monitors. Next tags: infra v0.35.0,
-gitops v0.31.0.
+`update-crl` then `crl_publish: true`. The staging HTTPS checks run as edge probes in the cluster
+heartbeat (gitops v0.31.0, September 20). Next tags: infra v0.35.0, gitops v0.32.0.
 
 HM5 owns, in `home-server/`: the scheduled encrypted backup of the **home** CNPG instance
 (Mac launchd interim now: export over strict-key SSH, single-PUT upload with checksums,

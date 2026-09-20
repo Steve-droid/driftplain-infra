@@ -27,7 +27,7 @@ not a whole-account orphan audit or a current production-health claim.
 | IAM Roles Anywhere / local CA | Existing operator-managed issuer; no AWS Private CA | No additional Roles Anywhere service charge; ordinary AWS operations still billed |
 | Public GHCR | Selected public image packages | $0 under current public-package/container policy; CI runner/build costs are separate |
 | Cloudflare | Selected Free DNS/Tunnel, no paid add-ons | $0 plan assumption, verify selected account plan before provisioning |
-| Monitoring/notifications | HM5 will provision/test a free external HTTP and heartbeat monitor; UptimeRobot Free is a current candidate | $0 planning basis; no paid plan/SMS; account setup/delivery not yet proven |
+| Monitoring/notifications | Healthchecks.io free tier (three heartbeats); the staging HTTPS checks run inside the cluster heartbeat job | $0 planning basis; no paid plan/SMS; account setup/delivery not yet proven |
 
 Rates: [Route 53](https://aws.amazon.com/route53/pricing/),
 [Secrets Manager](https://aws.amazon.com/secrets-manager/pricing/),
@@ -106,7 +106,7 @@ intervals with 50 monitors: [UptimeRobot Free eligibility/features](https://help
 | One scheduled export set (dump + fingerprint + roles + manifest, age-encrypted) | 131,983 B hourly; the daily set adds the 998 B credential bundle | 720 hourly + 30 daily ≈ 99 MB retained under the planned lifecycle → ≈ $0.0025 storage + $0.00375 PUTs ≈ **$0.01** |
 | Cloudflare Free: two zones, named tunnel, cache rule, proxied staging hosts | free-plan features only ([cloudflare/README.md](../cloudflare/README.md)) | **$0** |
 | Route 53 during the overlap (both zones stay until the HM8 review) | 2 × $0.50 | **$1.00** |
-| External monitor (Healthchecks.io free tier; UptimeRobot Free if URL checks are added) | 3 heartbeat + 2 HTTPS monitors | **$0** |
+| External monitor (Healthchecks.io free tier) | 3 heartbeat monitors; the 2 HTTPS checks are in-cluster edge probes | **$0** |
 | Domains (Porkbun renewals) | unchanged | **$2.83** accrued |
 | Home electricity | still the 50 W × 720 h assumption; no wall measurement yet | ₪36 planning figure |
 
