@@ -30,7 +30,7 @@
       "first_success_utc": "2026-09-17T22:26:06Z",
       "first_log_line": "heartbeat sent: no critical alert firing"
     },
-    "staging keyword monitors": "open: Healthchecks.io monitors inbound pings only; needs UptimeRobot Free or an edge probe in the cluster heartbeat job"
+    "staging keyword monitors": "in-cluster edge probes (gitops v0.31.0, 2026-09-20): the heartbeat job fetches https://staging.driftplain.dev/ (keyword Driftplain) and https://api-staging.driftplain.dev/healthz (keyword ok) through the Cloudflare edge and withholds the ping on any failure; first passing job home-server-heartbeat-29832265 logged 'heartbeat sent: no critical alert firing, edge probes ok'"
   },
   "notification_test": {
     "method": "automation off on Applications home-server-root and heartbeat (every home app self-heals), CronJob suspend=true, hold 26 min, restore in reverse; node-side script under nohup",
@@ -50,9 +50,7 @@
     "modicum_cloud": "not delegated (Steve, September 18: the domain is not needed; the Cloudflare zone stays applied and unused until the HM8 review)",
     "google_sign_in": "production only (Steve, September 18)"
   },
-  "not_done": [
-    "staging HTTPS keyword monitors"
-  ],
+  "not_done": [],
   "leaf_renewal": {
     "enabled_at_utc": "2026-09-17T22:59Z (Steve, foreground run)",
     "issuer_bundle": "existing September 15 receipt verified against S3; no new upload; backup_required cleared",
