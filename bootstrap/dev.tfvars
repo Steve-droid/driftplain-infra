@@ -15,6 +15,9 @@ alert_email         = "stevelevit230@gmail.com" # config, not a secret
 
 # --- ECR repos (P5 adopted in the old account; P32 creates them fresh in 957261948820) ---
 ecr_repository_names = ["modelmatch-backend", "modelmatch-frontend", "modelmatch-agent", "modelmatch-agent-security"]
+# HM8 (September 22, 2026) stage 1: the 29 release images are on public GHCR (digests equal);
+# force_delete lets stage 2 remove the repositories with their images. Steve's decision.
+ecr_force_delete = true
 
 # --- Ingestion source bucket (P6) — APP CONTRACT: the backend reads it from S3_BUCKET (gitops values).
 # Renamed with the account suffix at P32 (2026-09-06): the bare name was still held by the closed

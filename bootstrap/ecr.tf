@@ -13,6 +13,7 @@ module "ecr" {
   source = "../modules/ecr"
 
   repository_names = var.ecr_repository_names
+  force_delete     = var.ecr_force_delete
   # mutability / scan / encryption / lifecycle numbers use the module defaults
   # (MUTABLE, scanOnPush=false, AES256, untagged>14d, keep last 10 tagged).
 }

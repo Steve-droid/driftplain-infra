@@ -43,3 +43,8 @@ variable "tagged_pattern_list" {
   type        = list(string)
   default     = ["*"]
 }
+
+variable "force_delete" {
+  description = "Delete the repository even when it still holds images (HM8 retirement: the history lives on GHCR)."
+  type        = bool
+}

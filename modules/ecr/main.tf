@@ -11,6 +11,9 @@ resource "aws_ecr_repository" "this" {
 
   name                 = each.value
   image_tag_mutability = var.image_tag_mutability
+  # HM8 (September 22, 2026): the release history is on public GHCR (every ECR tag copied,
+  # digests equal), so the repositories can be deleted with their images in one step.
+  force_delete = var.force_delete
 
   image_scanning_configuration {
     scan_on_push = var.scan_on_push

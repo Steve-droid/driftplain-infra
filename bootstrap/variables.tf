@@ -27,6 +27,11 @@ variable "ecr_repository_names" {
   type        = list(string)
 }
 
+variable "ecr_force_delete" {
+  description = "HM8 stage 1: allow deleting the ECR repositories with their images (release history copied to public GHCR, digests verified)."
+  type        = bool
+}
+
 variable "ingestion_bucket_name" {
   description = "S3 bucket for catalog-ingestion source docs (S5b). APP CONTRACT — must match the default of `s3_bucket` in modelmatch-backend/app/config.py; the P7 IRSA role-A policy scopes to its ARN."
   type        = string
