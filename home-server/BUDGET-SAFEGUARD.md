@@ -1,6 +1,14 @@
 # HM2 budget safeguard — applied September 13, 2026
 
-**Steve explicitly approved both cloud updates; applied and verified.** AWS remains production.
+**Steve explicitly approved both cloud updates; applied and verified.** AWS remained production
+until September 21, 2026.
+
+> **Outcome (September 21, 2026):** the 90 % ACTUAL trigger fired on September 18 at 23:16 UTC
+> (September gross usage later reached $121 against the $110 budget, all credit-covered) and the
+> CodeBuild teardown ran **as a dry run**, exactly as this safeguard intended. Compute was then
+> retired by hand on September 21 ([record](AWS-COMPUTE-RETIREMENT.md)); the Lambda stays at
+> `DRY_RUN=1` and the platform state is empty, so a future trigger exits 0 with nothing to do.
+> HM8 decides whether the budget/kill-switch chain is re-scoped or removed.
 Source publication was separately approved on September 13, 2026. Public routing changes
 and AWS destruction still require their own approval.
 

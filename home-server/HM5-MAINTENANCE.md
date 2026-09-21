@@ -9,7 +9,7 @@ procedures and the checks. Nothing here touches AWS production.
 
 | When | What | Who / how |
 |---|---|---|
-| September 29, 2026 | AWS CNPG 1.29 end of life (production side) | HM7 consideration; home runs CNPG 1.30.0 |
+| ~~September 29, 2026~~ | ~~AWS CNPG 1.29 end of life (production side)~~ — moot: AWS compute retired September 21 ([record](AWS-COMPUTE-RETIREMENT.md)); home runs CNPG 1.30.0 | — |
 | from October 10, 2026 | CRL refresh due (`crl_refresh_before_days: 10`); CRL 3 expires **October 20, 13:28 UTC** | maintenance job signs and publishes once `crl_publish` is on; until then the manual [ISSUER.md](ISSUER.md) procedure |
 | ~October 15, 2026 | Sealed Secrets controller renews its sealing key (30-day cycle) | maintenance job runs `home-server-sealing-keys.py backup` automatically and withholds its heartbeat until the new key is backed up |
 | from November 14, 2026 | Leaf renewal window (backup + bedrock leaves expire **December 14, 2026**) | renewal LaunchAgent once enabled; otherwise `home-server-renew.py` by hand |
@@ -81,6 +81,12 @@ Root disk was 11.4 % used on September 17. Alerts at 70 % / 85 %. Growth points:
 at 1 GiB), the PostgreSQL PV, container images (`sudo k3s crictl rmi --prune`), the Mac's local
 export copies (`keep_local_days: 2`). S3 growth is bounded once the lifecycle is applied (planned in
 `bootstrap/`, apply is an approval); until then hourly objects accumulate at ≈ 130 KB each.
+
+The separate Kingston ext4 volume is mounted at `/srv/home-server-storage`; current workloads
+do not use it. During monthly maintenance run `sudo findmnt --verify`,
+`findmnt /srv/home-server-storage` and `df -hT / /srv/home-server-storage`. A missing Kingston
+does not block boot (`nofail`), so treat an absent mount as a maintenance fault rather than
+silently writing data into the empty mountpoint on the Samsung root disk.
 
 ## Tests to run before any maintenance PR
 

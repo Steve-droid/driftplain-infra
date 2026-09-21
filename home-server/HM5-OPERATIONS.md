@@ -1,8 +1,9 @@
 # HM5 operations runbook — sustainable public operation
 
-**Status September 17, 2026 (evening):** every HM5 component is built, tested and either running
-or gated on one of Steve's approvals/accounts. AWS still serves production; Route 53 is still
-authoritative; nothing at home is publicly routed yet. This runbook says what runs where, what to
+**Status September 21, 2026:** every HM5 component runs. **AWS compute was retired on
+September 21** ([record](AWS-COMPUTE-RETIREMENT.md)): production is offline, the final export is
+`postgres/final/aws-20260921T210119Z/`, and the home cluster is the only runtime. Only the two
+staging hostnames are routed at home; the runtime hostnames wait for HM7. This runbook says what runs where, what to
 check, how to turn the gated pieces on, and in which order.
 
 ## What runs where
@@ -140,7 +141,8 @@ maintenance job flags the refresh from October 10.
 
 ## Guardrails that never change here
 
-DRY_RUN=1; AWS production authoritative and writable; no public runtime hostname routed at home
+DRY_RUN=1; no AWS production exists any more (retired September 21; the final export is the
+source of truth until HM7 restores it at home); no public runtime hostname routed at home
 before HM7; never `noTLSVerify`; no Cloudflare Access on API/OAuth; secrets only as sealed
 manifests or Mac-held files with mode 0600; any `terraform apply`, DNS delegation, session
 enablement or bucket lifecycle apply is a separate explicit approval.
