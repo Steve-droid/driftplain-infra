@@ -15,7 +15,7 @@ restored into the home instance as production and `cloudflare/` routes `driftpla
 [home-server/HM7-CUTOVER.md](home-server/HM7-CUTOVER.md). The old Retain PV
 `pvc-7aba0fae-a8f2-4edc-a6fe-0c2c744e3edb` stays until HM8 decides. The demo bring-up skill and
 every "AWS is the origin / production is authoritative" sentence below are historical. Next: HM8
-(retained-services review); next tags infra v0.37.0, gitops v0.34.0.
+(retained-services review); next tags infra v0.38.0, gitops v0.35.0. The home backend is 1.0.25 (honest offline chat answer, built locally → GHCR; see HM7-CUTOVER.md §7).
 
 ## Claude Code continuation — HM5 sustainable public operation — September 17, 2026
 

@@ -2,7 +2,7 @@
   "slice": "E21/HM7 cutover to home",
   "kind": "driftplain-home-server-cutover-evidence",
   "recorded_at": "2026-09-21T22:05Z",
-  "result": "PASS — the final AWS export is the home production database and driftplain.dev / api.driftplain.dev serve from the home cluster through the Cloudflare tunnel; Google sign-in, mobile-data and the four edge probes pass",
+  "result": "PASS — the final AWS export is the home production database and driftplain.dev / api.driftplain.dev serve from the home cluster through the Cloudflare tunnel; Google sign-in, mobile-data and the four edge probes pass; the chat answers honestly that the assistant is offline (backend 1.0.25, September 22)",
   "approvals": {
     "cutover": "Steve, 2026-09-21 ~21:50 UTC (September 22 local): Cloudflare apply + gitops runtimeHostSet merge approved together after the plan and the restored-data validation were presented",
     "llm_blob_at_home": "Steve: fake client for the cutover (LLM_CLIENT=fake, BLOB_STORE=fake, $0); Roles Anywhere Bedrock is a follow-up slice",
@@ -121,7 +121,19 @@
     "Apply Cloudflare before the gitops host-set switch: the reverse order points config.js at an unresolvable host and fails the edge probes."
   ],
   "open": [
-    "Honest UI note for the fake LLM client at home (chat says 'try rephrasing' instead of 'assistant offline'): backend/frontend change + new image (no Jenkins since the retirement) — follow-up slice, or the Roles Anywhere Bedrock leaf.",
-    "HM8: retained-services review (Route 53 zones, old Retain PV, ECR, modicum.cloud zone)."
-  ]
+    "HM8: retained-services review (Route 53 zones, old Retain PV, ECR, modicum.cloud zone).",
+    "Live assistant at home = the Roles Anywhere Bedrock leaf (separate approval, paid calls)."
+  ],
+  "7_offline_chat_answer": {
+    "window_utc": "2026-09-22T22:20Z to 22:40Z",
+    "backend": "driftplain-backend PR #27 → 826db9e, tag v1.0.25: get_chat_llm_client returns no client for LLM_CLIENT=fake; post_chat answers the offline note (ok=false, refused=false, no trace, nothing persisted or metered) after the 404/403 owner contract; 1 new test, suite 628 passed / 8 skipped (pre-existing local demo-seed failure unrelated)",
+    "image": {
+      "ref": "ghcr.io/steve-droid/modelmatch-backend:1.0.25",
+      "digest": "sha256:df0d18b761b7efbb14c3e14267c5ccb80725cc3a418e8f09e83480314cc0a348",
+      "build": "docker buildx build --platform linux/amd64 on the Mac from the v1.0.25 merge commit (org.opencontainers.image.revision/version labels), pushed with the gh token (write:packages); docker v2 manifest, 11 layers, USER appuser; anonymous pull verified with an empty DOCKER_CONFIG"
+    },
+    "gitops": "driftplain-gitops PR #68 → 48cb293, tag v0.34.0: home backend digest pinned; frontend/agent pins unchanged; 69 tests",
+    "rollout": "ArgoCD modelmatch Synced/Healthy at revision 48cb293; Deployment on the new digest, 1/1 available at 22:37:34Z",
+    "edge_verification": "POST /projects/2/chat through api.driftplain.dev: 200, cf-cache-status DYNAMIC, answer = the offline note (231 chars, ok=false, 0 trace rows); history 3 → 3 messages (nothing persisted); edge validator runtime pair all_pass in 8.576 s"
+  }
 }
