@@ -100,6 +100,55 @@ class RunChecksTests(unittest.TestCase):
         self.assertNotIn(PASSWORD, dumped)
         self.assertNotIn("existing-ci-token", dumped)
 
+    def test_config_check_follows_the_selected_runtime_api_host(self):
+        # HM5/HM7: the umbrella's runtimeHostSet points config.js at a public API host; the
+        # validator must be told which one, and the private default still fails against it.
+        class Routed(FakeApp):
+            def request(self, method, host, path, headers=None, body=None):
+                if path == "/config.js":
+                    return 200, b'window.__APP_CONFIG__ = { apiBaseUrl: "https://api.driftplain.dev" };'
+                return super().request(method, host, path, headers, body)
+        ok, results = hv.run_checks(Routed().request, PASSWORD, config_api_host="api.driftplain.dev")
+        self.assertTrue(ok)
+        self.assertEqual(results["app_config_js"], {"pass": True, "status": 200, "expected_api_host": "api.driftplain.dev"})
+        ok, results = hv.run_checks(Routed().request, PASSWORD)
+        self.assertFalse(ok)
+        self.assertFalse(results["app_config_js"]["pass"])
+
+    def test_edge_mode_maps_hosts_and_adds_the_cors_and_cache_checks(self):
+        # HM7: the same checks run through the public edge; the private hostnames map to the
+        # public pair and two edge-only facts are recorded (CORS preflight, uncached API).
+        hosts = hv.parse_edge_hosts("app=driftplain.dev,api=api.driftplain.dev")
+        self.assertEqual(hosts, {hv.APP_HOST: "driftplain.dev", hv.API_HOST: "api.driftplain.dev"})
+        with self.assertRaises(hv.ValidationError):
+            hv.parse_edge_hosts("app=driftplain.dev")
+        self.assertEqual(hv.parse_headers(b"HTTP/2 200\r\nCF-Cache-Status: DYNAMIC\r\nserver: cloudflare\r\n"),
+                         {"cf-cache-status": "DYNAMIC", "server": "cloudflare"})
+
+        seen, response_headers = [], {}
+        def request(method, host, path, headers=None, body=None):
+            seen.append((method, host, path))
+            if method == "OPTIONS":
+                response_headers.clear(); response_headers.update({"access-control-allow-origin": headers["Origin"]})
+                return 200, b""
+            response_headers.clear(); response_headers.update({"cf-cache-status": "DYNAMIC", "server": "cloudflare"})
+            return 200, b'{"status":"ok"}'
+        ok, results = hv.run_edge_checks(request, lambda: response_headers, "https://driftplain.dev")
+        self.assertTrue(ok)
+        self.assertEqual(results["cors_preflight_from_public_app_origin"],
+                         {"pass": True, "status": 200, "allow_origin": "https://driftplain.dev"})
+        self.assertEqual(results["api_uncached_through_cloudflare"], {"pass": True, "status": 200, "cf_cache_status": "DYNAMIC"})
+        self.assertEqual([m for m, _, _ in seen], ["OPTIONS", "GET"])
+        self.assertTrue(all(host == hv.API_HOST for _, host, _ in seen))
+
+        def cached(method, host, path, headers=None, body=None):
+            response_headers.clear(); response_headers.update({"cf-cache-status": "HIT", "server": "cloudflare"})
+            return 200, b""
+        ok, results = hv.run_edge_checks(cached, lambda: response_headers, "https://driftplain.dev")
+        self.assertFalse(ok)
+        self.assertFalse(results["cors_preflight_from_public_app_origin"]["pass"])
+        self.assertFalse(results["api_uncached_through_cloudflare"]["pass"])
+
     def test_without_a_token_the_ingest_check_is_skipped_not_faked(self):
         app = FakeApp()
         ok, results = hv.run_checks(app.request, PASSWORD)

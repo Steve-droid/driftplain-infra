@@ -1,0 +1,127 @@
+{
+  "slice": "E21/HM7 cutover to home",
+  "kind": "driftplain-home-server-cutover-evidence",
+  "recorded_at": "2026-09-21T22:05Z",
+  "result": "PASS — the final AWS export is the home production database and driftplain.dev / api.driftplain.dev serve from the home cluster through the Cloudflare tunnel; Google sign-in, mobile-data and the four edge probes pass",
+  "approvals": {
+    "cutover": "Steve, 2026-09-21 ~21:50 UTC (September 22 local): Cloudflare apply + gitops runtimeHostSet merge approved together after the plan and the restored-data validation were presented",
+    "llm_blob_at_home": "Steve: fake client for the cutover (LLM_CLIENT=fake, BLOB_STORE=fake, $0); Roles Anywhere Bedrock is a follow-up slice",
+    "modicum_cloud": "stays un-routed and undelegated (unchanged decision of September 18)",
+    "not_done": "no PV deletion, no identity/custody change, no platform/ apply, no paid LLM call"
+  },
+  "1_empty_the_home_instance": {
+    "window_utc": "2026-09-21T21:30Z to 21:32Z",
+    "argocd": "automation disabled on home-server-root, modelmatch and modelmatch-postgres first (every app self-heals); backend scaled to 0",
+    "cnpg_cluster_deleted": "21:31:11Z to 21:31:18Z",
+    "old_volume": {
+      "pv": "pvc-7aba0fae-a8f2-4edc-a6fe-0c2c744e3edb",
+      "pv_uid": "58e53368-98a3-4c7b-b5b4-35fe13c3b85b",
+      "old_pvc_uid": "7aba0fae-a8f2-4edc-a6fe-0c2c744e3edb",
+      "state": "Released, reclaimPolicy Retain, directory intact (593M)",
+      "path": "/var/lib/rancher/k3s/storage/pvc-7aba0fae-a8f2-4edc-a6fe-0c2c744e3edb_app_modelmatch-postgres-1",
+      "decision": "kept; deleting it is a separate approval (HM8 review)"
+    },
+    "owner_secret": "install-owner-secret → action unchanged (the sealed value equals the bundle value)",
+    "rebuild": "postgres app automation re-enabled 21:31:49Z; CNPG bootstrap initdb healthy in about 30 s on the new PV"
+  },
+  "2_restore_the_final_export": {
+    "export": "postgres/final/aws-20260921T210119Z/ (origin aws, snapshot 00000004-00019534-1, WAL 1/28000000)",
+    "restore_dir": "~/.local/share/driftplain/home-server-backups/restore-20260921T210143Z (the September 21 disposable proof's run files were rotated to *.20260921T213428Z by the new rotate_run_files step)",
+    "identity_source": "aws (the Keychain readback is denied for the operator session, OSStatus -25293)",
+    "target": "production (--target production; the tool refuses an empty target name)",
+    "window_utc": "2026-09-21T21:34:28Z to 21:34:30Z",
+    "timings_seconds": {
+      "total": 2.438,
+      "roles": 0.58,
+      "pg_restore": 0.779,
+      "fingerprint": 0.606
+    },
+    "new_volume": {
+      "pv": "pvc-199e3046-482f-4a3f-8ef6-4843935d32d4",
+      "pvc_uid": "199e3046-482f-4a3f-8ef6-4843935d32d4",
+      "storage_class": "home-server-retain (Retain, local-path)"
+    },
+    "target_database_bytes": 9646563,
+    "comparison": {
+      "basis": "export snapshot",
+      "match": true,
+      "categories_matched": "16/16",
+      "tables": 23,
+      "rows": 2598,
+      "mismatches": 0
+    },
+    "app_return": "backend + root automation restored 21:34:47Z; backend Ready in about 20 s; 14/14 applications Synced/Healthy",
+    "private_validation": "home-server-validate.py --config-api-host api-staging.driftplain.dev: all_pass in 3.138 s (healthz, readyz db ok, config.js, index, 401, password login user 1, /auth/me, 4 projects [2,3,5,7], owner isolation 403/404 on [1,4,6,8,9,10], savings project 2: 5 runs / 2 banked / 66.67 % saved, findings run 31: 6, bogus token 401)"
+  },
+  "3_cloudflare_apply": {
+    "plan": "2 to add, 3 to change, 4 to destroy (identical on the fresh re-plan after a Mac restart)",
+    "window_utc": "2026-09-21T21:51:56Z to 21:52:03Z",
+    "added": [
+      "cloudflare_dns_record.tunnel[\"app\"] driftplain.dev (proxied, flattened apex CNAME → a27459ba-d201-4437-a963-f63ff3d49796.cfargotunnel.com)",
+      "cloudflare_dns_record.tunnel[\"api\"] api.driftplain.dev (proxied CNAME → the same tunnel)"
+    ],
+    "changed": [
+      "Google TXT proof comment",
+      "cache-bypass ruleset expression → both API hosts",
+      "tunnel ingress → four hostnames"
+    ],
+    "destroyed": [
+      "driftplain.dev and api.driftplain.dev NLB CNAME twins",
+      "modicum.cloud and api.modicum.cloud NLB CNAME twins"
+    ],
+    "moved_without_replacement": [
+      "staging[\"app\"] → tunnel[\"staging_app\"]",
+      "staging[\"api\"] → tunnel[\"staging_api\"]",
+      "mirrored TXT index 2 → 0"
+    ],
+    "tunnel_urls_output": {
+      "app": "https://driftplain.dev",
+      "api": "https://api.driftplain.dev",
+      "staging_app": "https://staging.driftplain.dev",
+      "staging_api": "https://api-staging.driftplain.dev"
+    },
+    "first_edge_answers": "api.driftplain.dev /healthz and /readyz 200 (db ok) within a minute; apex 200 via 1.1.1.1 (the house resolver had cached NODATA from a pre-apply probe, see lessons)"
+  },
+  "4_gitops_runtime_host_set": {
+    "pr": "driftplain-gitops PR #66 → 247c6e8, tag v0.33.0",
+    "change": "runtimeHostSet: driftplain; additionalHosts.driftplain enabled (driftplain.dev / api.driftplain.dev); staging kept; heartbeat edge probes = runtime pair + staging pair",
+    "converged_utc": "2026-09-21T21:57:53Z (pods rolled 21:57:40Z)",
+    "rendered_at_home": {
+      "frontend_API_BASE_URL": "https://api.driftplain.dev",
+      "backend_PUBLIC_BASE_URL": "https://api.driftplain.dev",
+      "backend_CORS_ALLOW_ORIGINS": "https://app.home-server.driftplain.dev,https://driftplain.dev,https://staging.driftplain.dev",
+      "ingress_objects_added": [
+        "modelmatch-app-driftplain",
+        "modelmatch-app-driftplain-routes",
+        "modelmatch-api-driftplain",
+        "modelmatch-api-driftplain-routes",
+        "modelmatch-api-driftplain-auth"
+      ]
+    }
+  },
+  "5_external_validation": {
+    "tool": "home-server-validate.py --edge app=driftplain.dev,api=api.driftplain.dev --config-api-host api.driftplain.dev --edge-resolve 172.67.213.44 (Cloudflare anycast; certificate verified by the system trust store)",
+    "started_utc": "2026-09-21T22:00:06Z",
+    "runtime_pair": "all_pass in 9.564 s: healthz, readyz db ok, index 510 B, config.js → api.driftplain.dev, 401 unauthenticated, password login user 1, /auth/me, 4 projects, owner isolation 403/404, savings project 2 (5 runs, 2 banked, 66.67 % saved, Haiku 4.5 vs Sonnet 4.5), findings run 31: 6, bogus token 401, CORS preflight from https://driftplain.dev allowed (200, allow-origin echoed), API uncached (cf-cache-status DYNAMIC, server cloudflare)",
+    "staging_pair_regression": "all_pass in 8.496 s (config.js now names api.driftplain.dev on staging too — the runtime host set is global)",
+    "edge_certificate": "Let's Encrypt (CN=YE2) for driftplain.dev + *.driftplain.dev, valid 2026-09-17 to 2026-12-16 (Cloudflare-managed universal certificate)",
+    "http_to_https": "http://driftplain.dev/ → 301 https://driftplain.dev/; http://api.driftplain.dev/healthz → 301 https://…",
+    "chat_exchange": "POST /projects/2/chat through api.driftplain.dev: 200, cf-cache-status DYNAMIC, stored (history 1 → 3 messages); the fake LLM client answers with the generic catalog-lookup failure text (88 chars, ok=false, no paid call) — see open items",
+    "google_sign_in": "PASS — Steve signed in with Google at https://driftplain.dev (confirmed 2026-09-21 ~22:14 UTC; the authorized origin is unchanged from P38r, the backend origin check accepts https://driftplain.dev via CORS_ALLOW_ORIGINS)",
+    "outside_the_lan": "PASS — Steve loaded https://driftplain.dev on mobile data (off Wi-Fi) and opened a project dashboard (confirmed 2026-09-21 ~22:10 UTC); the validator itself reached the Cloudflare anycast edge, never the LAN address"
+  },
+  "6_monitoring": {
+    "heartbeat_probes": "four edge probes since gitops v0.33.0 (driftplain.dev/, api.driftplain.dev/healthz, staging pair)",
+    "negative_cache_incident": "the house ISP resolver (213.57.2.5 / 2a00:a040:3:2::162, used by the node and the Mac) cached NODATA for the apex from a pre-apply probe at 21:51Z (SOA minimum 1800 s); the 22:00Z heartbeat withheld ('Could not resolve host: driftplain.dev'); last success 21:55Z, grace 15 min → expected false DOWN at about 22:15Z, recovery once the cache expires at about 22:20Z",
+    "recovery": "the apex resolved at home at 22:20:09Z; heartbeat jobs 22:00/22:05/22:10/22:15 withheld, job 22:20:00Z succeeded ('no critical alert firing, edge probes ok'); Healthchecks cluster monitor DOWN window ≈ 22:15–22:20 UTC (false alarm, self-inflicted)"
+  },
+  "lessons": [
+    "Never probe a not-yet-created public hostname from the home network before the apply: the ISP resolver caches the negative answer for the zone's SOA minimum (1800 s) and the in-cluster edge probes inherit it.",
+    "Re-running a restore from the same directory needs the previous run's diagnostics rotated (rotate_run_files), otherwise decrypt_into refuses to overwrite them.",
+    "Apply Cloudflare before the gitops host-set switch: the reverse order points config.js at an unresolvable host and fails the edge probes."
+  ],
+  "open": [
+    "Honest UI note for the fake LLM client at home (chat says 'try rephrasing' instead of 'assistant offline'): backend/frontend change + new image (no Jenkins since the retirement) — follow-up slice, or the Roles Anywhere Bedrock leaf.",
+    "HM8: retained-services review (Route 53 zones, old Retain PV, ECR, modicum.cloud zone)."
+  ]
+}

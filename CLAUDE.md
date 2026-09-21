@@ -9,9 +9,13 @@ because Steve's AWS credits were running out. Read
 evidence, the remaining-resource inventory and the monthly estimate. `bootstrap/`, `dns/`
 (now `records_enabled = false`), `cloudflare/` and `home-server/identity` persist. Never
 re-apply `platform/` as incidental work; `home-server-database.py export --source aws` can no
-longer run; HM7 restores `postgres/final/aws-20260921T210119Z/` into the home instance and
-routes the runtime hostnames through the tunnel. The demo bring-up skill and every "AWS is the
-origin / production is authoritative" sentence below are historical.
+longer run. **HM7 (September 22, infra v0.36.0):** `postgres/final/aws-20260921T210119Z/` is
+restored into the home instance as production and `cloudflare/` routes `driftplain.dev` /
+`api.driftplain.dev` through the tunnel (`tunnel_hosts`; the NLB twins are gone) — see
+[home-server/HM7-CUTOVER.md](home-server/HM7-CUTOVER.md). The old Retain PV
+`pvc-7aba0fae-a8f2-4edc-a6fe-0c2c744e3edb` stays until HM8 decides. The demo bring-up skill and
+every "AWS is the origin / production is authoritative" sentence below are historical. Next: HM8
+(retained-services review); next tags infra v0.37.0, gitops v0.34.0.
 
 ## Claude Code continuation — HM5 sustainable public operation — September 17, 2026
 

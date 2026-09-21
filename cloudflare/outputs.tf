@@ -16,8 +16,9 @@ output "tunnel_id" {
   value = var.tunnel_enabled ? cloudflare_zero_trust_tunnel_cloudflared.home_server[0].id : null
 }
 
-output "staging_urls" {
-  value = { for role, host in cloudflare_dns_record.staging : role => "https://${host.name}" }
+output "tunnel_urls" {
+  description = "Per role, the public URL served by the home cluster through the tunnel."
+  value       = { for role, host in cloudflare_dns_record.tunnel : role => "https://${host.name}" }
 }
 
 output "tunnel_token" {

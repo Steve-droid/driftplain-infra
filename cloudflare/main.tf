@@ -1,29 +1,36 @@
-# E21/HM5 — Cloudflare authoritative DNS for both domains (AWS stays the origin) plus the named
-# tunnel and the public STAGING hostnames served by the home cluster.
+# E21/HM5+HM7 — Cloudflare authoritative DNS for both domains plus the named tunnel and every
+# public hostname served by the home cluster: the runtime pair (driftplain.dev,
+# api.driftplain.dev — cut over from AWS in HM7 after the September 21 compute retirement) and
+# the staging pair (staging.driftplain.dev, api-staging.driftplain.dev — HM5).
 #
-# Sequence (each arrow is a separate reviewed step; delegation and apply are explicit approvals):
-#   Route 53 export/diff → this root creates the zones with identical DNS-only records → plan review
-#   → Steve delegates driftplain.dev at Porkbun (modicum.cloud later) → verification → the in-cluster
-#   connector (driftplain-gitops charts/home-server-cloudflared) joins the tunnel → staging hosts
-#   are exercised. The runtime hostnames (driftplain.dev, api.driftplain.dev, modicum.cloud …)
-#   remain CNAME twins of the Route 53 aliases until HM7.
+# Sequence (each arrow was a separate reviewed step; delegation and apply are explicit approvals):
+#   Route 53 export/diff → this root creates the zones with identical DNS-only twins → plan review
+#   → Steve delegated driftplain.dev at Porkbun (September 18; modicum.cloud stays undelegated)
+#   → the in-cluster connector (driftplain-gitops charts/home-server-cloudflared) joined the
+#   tunnel → staging hosts exercised → HM7: the runtime pair became tunnel hosts (the dangling
+#   NLB CNAME twins disappeared from the Route 53 render). modicum.cloud / api.modicum.cloud are
+#   NOT routed (Steve, September 18); HM8 decides that zone.
 #
 # Origin TLS is verified end to end: the connector dials the F5 ingress over HTTPS, checks the
-# certificate against the mounted home-server-ca pool with the private staging SNI, and never
+# certificate against the mounted home-server-ca pool with the private branded SNI, and never
 # sets noTLSVerify. No Cloudflare Access sits in front of the API or OAuth callbacks. The API
-# staging host is served uncached so chat streaming and auth headers pass through untouched.
+# hosts are served uncached so chat streaming and auth headers pass through untouched.
 
 locals {
   zone_records = merge([for zone, records in var.zone_records : {
     for idx, record in records : "${zone}/${record.type}/${record.name}/${idx}" => merge(record, { zone = zone })
   }]...)
 
-  mirrored_names = { for zone, records in var.zone_records : zone => toset([for r in records : r.name]) }
-  staging_hosts  = var.tunnel_enabled ? var.staging_hosts : {}
+  # Address-bearing twins (A/AAAA/CNAME) a tunnel host may not collide with; a TXT proof at the
+  # apex coexists with the flattened apex CNAME.
+  mirrored_address_names = { for zone, records in var.zone_records : zone =>
+    toset([for r in records : r.name if contains(["A", "AAAA", "CNAME"], r.type)])
+  }
+  tunnel_hosts = var.tunnel_enabled ? var.tunnel_hosts : {}
 
-  # Zones that need a "bypass cache" rule: any staging host with cache = false.
+  # Zones that need a "bypass cache" rule: any tunnel host with cache = false.
   uncached_hosts = { for zone in var.zones : zone =>
-    sort([for role, host in local.staging_hosts : host.hostname if host.zone == zone && !host.cache])
+    sort([for role, host in local.tunnel_hosts : host.hostname if host.zone == zone && !host.cache])
   }
 }
 
@@ -39,7 +46,7 @@ resource "cloudflare_zone" "product" {
   }
 }
 
-# ── DNS-only twins of the Route 53 records (AWS origin until HM7) ─────────────────────────────
+# ── DNS-only twins of the retained Route 53 records (ownership proofs; no runtime address) ───
 resource "cloudflare_dns_record" "mirrored" {
   for_each = local.zone_records
   zone_id  = cloudflare_zone.product[each.value.zone].id
@@ -52,7 +59,7 @@ resource "cloudflare_dns_record" "mirrored" {
   lifecycle {
     precondition {
       condition     = !each.value.proxied
-      error_message = "Mirrored records stay DNS-only (grey cloud): AWS is the origin until HM7."
+      error_message = "Mirrored records stay DNS-only (grey cloud): only tunnel hosts are proxied."
     }
     precondition {
       condition     = each.value.name == each.value.zone || endswith(each.value.name, ".${each.value.zone}")
@@ -98,13 +105,13 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "home_server" {
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.home_server[0].id
   config = {
     ingress = concat(
-      [for role in sort(keys(local.staging_hosts)) : {
-        hostname = local.staging_hosts[role].hostname
+      [for role in sort(keys(local.tunnel_hosts)) : {
+        hostname = local.tunnel_hosts[role].hostname
         service  = var.home_ingress_origin
         origin_request = {
           ca_pool            = var.home_origin_ca_pool_path
-          origin_server_name = local.staging_hosts[role].origin_server_name
-          http_host_header   = local.staging_hosts[role].origin_server_name
+          origin_server_name = local.tunnel_hosts[role].origin_server_name
+          http_host_header   = local.tunnel_hosts[role].origin_server_name
           no_tls_verify      = false
           connect_timeout    = 10
           tls_timeout        = 10
@@ -122,23 +129,41 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "home_server" {
   }
 }
 
-resource "cloudflare_dns_record" "staging" {
-  for_each = local.staging_hosts
+# HM7 renamed the resource and the staging keys, and the re-rendered twin file re-indexed the
+# Google TXT proof (the NLB twins before it disappeared); the moved blocks keep the September 18
+# records instead of recreating them.
+moved {
+  from = cloudflare_dns_record.mirrored["driftplain.dev/TXT/driftplain.dev/2"]
+  to   = cloudflare_dns_record.mirrored["driftplain.dev/TXT/driftplain.dev/0"]
+}
+
+moved {
+  from = cloudflare_dns_record.staging["app"]
+  to   = cloudflare_dns_record.tunnel["staging_app"]
+}
+
+moved {
+  from = cloudflare_dns_record.staging["api"]
+  to   = cloudflare_dns_record.tunnel["staging_api"]
+}
+
+resource "cloudflare_dns_record" "tunnel" {
+  for_each = local.tunnel_hosts
   zone_id  = cloudflare_zone.product[each.value.zone].id
   name     = each.value.hostname
   type     = "CNAME"
   content  = "${cloudflare_zero_trust_tunnel_cloudflared.home_server[0].id}.cfargotunnel.com"
   ttl      = 1 # automatic; proxied records ignore the TTL
   proxied  = true
-  comment  = "HM5 staging host served by the home cluster through the named tunnel"
+  comment  = each.value.comment
   lifecycle {
     precondition {
-      condition     = endswith(each.value.hostname, ".${each.value.zone}")
-      error_message = "A staging host must be a subdomain of its zone."
+      condition     = each.value.hostname == each.value.zone || endswith(each.value.hostname, ".${each.value.zone}")
+      error_message = "A tunnel host must be its zone's apex (flattened CNAME) or a subdomain of it."
     }
     precondition {
-      condition     = !contains(local.mirrored_names[each.value.zone], each.value.hostname)
-      error_message = "Staging hosts must not collide with the mirrored runtime records (public cutover is HM7)."
+      condition     = !contains(local.mirrored_address_names[each.value.zone], each.value.hostname)
+      error_message = "A tunnel host must not collide with a mirrored A/AAAA/CNAME twin (re-render records.tfvars.json first)."
     }
     precondition {
       condition     = endswith(each.value.origin_server_name, ".home-server.driftplain.dev")
@@ -147,16 +172,17 @@ resource "cloudflare_dns_record" "staging" {
   }
 }
 
-# ── API staging is never cached: chat streams and auth headers pass through unchanged ────────
+# ── API hosts are never cached: chat streams and auth headers pass through unchanged ─────────
 resource "cloudflare_ruleset" "bypass_cache" {
   for_each = { for zone, hosts in local.uncached_hosts : zone => hosts if length(hosts) > 0 }
   zone_id  = cloudflare_zone.product[each.key].id
-  name     = "home-server staging: API uncached"
-  kind     = "zone"
-  phase    = "http_request_cache_settings"
+  # The name is immutable in provider v5 (a rename replaces the ruleset); it predates HM7.
+  name  = "home-server staging: API uncached"
+  kind  = "zone"
+  phase = "http_request_cache_settings"
   rules = [{
     action      = "set_cache_settings"
-    description = "Bypass the cache for the API staging host (streaming, auth, OAuth callbacks)"
+    description = "Bypass the cache for the API hosts (streaming, auth, OAuth callbacks)"
     enabled     = true
     expression  = "(http.host in {${join(" ", [for h in each.value : "\"${h}\""])}})"
     action_parameters = {

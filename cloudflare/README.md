@@ -1,13 +1,18 @@
-# Cloudflare authoritative DNS + the home-server tunnel (E21/HM5)
+# Cloudflare authoritative DNS + the home-server tunnel (E21/HM5, HM7)
+
+**HM7 (September 22, 2026): the runtime pair `driftplain.dev` / `api.driftplain.dev` joins the
+tunnel.** AWS compute was retired on September 21 ([decision record](../home-server/AWS-COMPUTE-RETIREMENT.md)),
+so the four NLB CNAME twins point at a deleted load balancer and are dropped; the tunnel now
+carries four hostnames (runtime + staging) to the same two private ingress names. The apply is
+a separate approval (plan below); modicum.cloud stays un-routed and undelegated. Cutover evidence
+and runbook: [`../home-server/HM7-CUTOVER.md`](../home-server/HM7-CUTOVER.md).
 
 **Applied September 18, 2026 (18 resources). `driftplain.dev` delegated and active September 18; `modicum.cloud` stays undelegated by decision (September 18).** Zones
 `driftplain.dev` (`c9ee1f87408620ad3191e7a97ee8fa0d`) and `modicum.cloud`
-(`b0d05c69806c8d36f85a1e89b118ca08`) answer on `fatima.ns.cloudflare.com` / `seth.ns.cloudflare.com`
-with the same values as Route 53 for every twin; tunnel `driftplain-home-server`
-(`a27459ba-d201-4437-a963-f63ff3d49796`) serves `staging.driftplain.dev` and
-`api-staging.driftplain.dev` through the gitops connector (v0.28.0). Delegating either domain at
-Porkbun is a separate explicit approval, so Route 53 (`../dns/`) stays authoritative and AWS stays
-the origin for every runtime hostname; the staging hosts resolve publicly only after delegation.
+(`b0d05c69806c8d36f85a1e89b118ca08`) answer on `fatima.ns.cloudflare.com` / `seth.ns.cloudflare.com`;
+tunnel `driftplain-home-server` (`a27459ba-d201-4437-a963-f63ff3d49796`) has served
+`staging.driftplain.dev` and `api-staging.driftplain.dev` through the gitops connector (v0.28.0)
+since then. Route 53 (`../dns/`) keeps the retained zones (aliases disabled) until the HM8 review.
 Evidence: [`../home-server/hm5-cloudflare-evidence.json`](../home-server/hm5-cloudflare-evidence.json).
 The scoped API token lives in `~/.config/driftplain/cloudflare.env` (mode 0600, sourced by the
 operator, never printed or committed).
@@ -15,19 +20,23 @@ operator, never printed or committed).
 This fifth Terraform root has its own state key, `cloudflare/terraform.tfstate`. It owns:
 
 - **both zones** (`driftplain.dev`, `modicum.cloud`) as full-setup zones with **DNS-only twins**
-  of every non-provider Route 53 record (the four NLB aliases become CNAMEs to the same NLB with
-  Cloudflare's apex flattening; the Google ownership TXT proof is carried over; apex NS/SOA are
-  Cloudflare's own). Both Route 53 zones are `NOT_SIGNING` (no DNSSEC, no DS at the parent), so
-  nothing has to be unsigned before delegation.
+  of every non-provider Route 53 record. Since HM7 that is only the Google ownership TXT proof:
+  the NLB aliases were dropped with the load balancer, and a twin that carried an address
+  (A/AAAA/CNAME) may not collide with a tunnel hostname (precondition). Apex NS/SOA are
+  Cloudflare's own. Both Route 53 zones are `NOT_SIGNING` (no DNSSEC, no DS at the parent).
 - the zone posture: `ssl=strict`, `min_tls_version=1.2`, `always_use_https=on`.
-- the **named tunnel** `driftplain-home-server` (remotely managed config) whose only ingress rules
-  are the staging hosts `staging.driftplain.dev` → `app.home-server.driftplain.dev` and
-  `api-staging.driftplain.dev` → `api.home-server.driftplain.dev`, both dialing the F5
-  nginx-ingress ClusterIP Service over HTTPS with `caPool=/etc/cloudflared/ca/home-server-ca.crt`
-  and the private SNI/Host header, `noTLSVerify=false`, catch-all `http_status:404`. The API host
-  gets a cache-bypass rule. No Cloudflare Access anywhere.
-- the proxied staging CNAMEs to `<tunnel>.cfargotunnel.com` and the `tunnel_token` output the
-  operator seals for the GitOps connector (`driftplain-gitops charts/home-server-cloudflared`).
+- the **named tunnel** `driftplain-home-server` (remotely managed config) whose ingress rules are
+  the `tunnel_hosts` of `dev.tfvars`: runtime `driftplain.dev` / `api.driftplain.dev` (HM7) and
+  staging `staging.driftplain.dev` / `api-staging.driftplain.dev` (HM5), app hosts →
+  `app.home-server.driftplain.dev`, API hosts → `api.home-server.driftplain.dev`, all dialing the
+  F5 nginx-ingress ClusterIP Service over HTTPS with `caPool=/etc/cloudflared/ca/home-server-ca.crt`
+  and the private SNI/Host header (the SNI must end in `.home-server.driftplain.dev`),
+  `noTLSVerify=false`, catch-all `http_status:404`. The API hosts share one cache-bypass rule
+  (its Cloudflare name keeps the original "staging" wording because the name is immutable).
+  No Cloudflare Access anywhere.
+- the proxied tunnel CNAMEs to `<tunnel>.cfargotunnel.com` (the apex is a flattened CNAME) and
+  the `tunnel_token` output the operator seals for the GitOps connector
+  (`driftplain-gitops charts/home-server-cloudflared`). `tunnel_urls` lists the routed URLs by role.
 
 Inputs have no defaults; every command passes **two** var-files: `dev.tfvars` (scalars) and
 `records.tfvars.json` (the rendered record twins). The account ID and token are environment only.
@@ -55,10 +64,12 @@ terraform -chdir=cloudflare init -input=false
 terraform -chdir=cloudflare plan -var-file=dev.tfvars -var-file=records.tfvars.json -out=cloudflare.tfplan
 ```
 
-Expected first plan: 2 zones, 5 mirrored records, 6 zone settings, 1 tunnel + 1 config,
-2 staging CNAMEs, 1 cache ruleset — **19 additions, 0 changes, 0 destroys**. `tunnel_enabled=false`
-drops the last five (13 additions) if the tunnel is to follow the delegation. Zones carry
-`prevent_destroy`. Mocked tests (no account, no network):
+The S3 backend needs `AWS_PROFILE=saa`. First plan (September 18): 2 zones, 5 mirrored records,
+6 zone settings, 1 tunnel + 1 config, 2 staging CNAMEs, 1 cache ruleset — 19 additions. HM7 plan
+(September 22): **2 to add** (the runtime CNAMEs `tunnel["app"]`, `tunnel["api"]`), **3 to change**
+(TXT comment, bypass expression, tunnel ingress), **4 to destroy** (the dangling NLB twins); the
+staging records and the TXT proof move to their new addresses without replacement (`moved` blocks).
+Zones carry `prevent_destroy`. Mocked tests (no account, no network):
 
 ```sh
 terraform -chdir=cloudflare test -var-file=dev.tfvars -var-file=records.tfvars.json
@@ -87,7 +98,14 @@ terraform -chdir=cloudflare test -var-file=dev.tfvars -var-file=records.tfvars.j
    connector restart rolled in 16 s with the edge answering throughout; CORS preflight from
    `https://staging.driftplain.dev` is allowed. Results in
    [`../home-server/hm5-staging-evidence.json`](../home-server/hm5-staging-evidence.json). Google
-   sign-in on staging stays a separate authorization; the runtime hostnames are untouched until HM7.
+   sign-in on staging stays a separate authorization.
+6. HM7 (September 22, after the final export was restored and validated at home): approval →
+   `terraform apply cloudflare.tfplan` (runtime CNAMEs resolve to the tunnel; the 404 catch-all
+   answers until the gitops merge) → merge the gitops `runtimeHostSet: driftplain` bump (ingress
+   rules for the runtime pair, `API_BASE_URL`/`PUBLIC_BASE_URL`, CORS, four edge probes) → validate
+   from outside the LAN. Order matters: applying gitops first would point staging's `config.js`
+   at an unresolvable `api.driftplain.dev` and fail the edge probes. Results in
+   [`../home-server/HM7-CUTOVER.md`](../home-server/HM7-CUTOVER.md).
 
 Quick-tunnel witness (no account needed) proving the connector image, the mounted CA pool and the
 verified-TLS path: [`../home-server/hm5-quick-tunnel-witness.yaml`](../home-server/hm5-quick-tunnel-witness.yaml)

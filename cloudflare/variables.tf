@@ -19,7 +19,7 @@ variable "zones" {
 }
 
 variable "zone_records" {
-  description = "Per zone, the DNS-only twins of the Route 53 records (rendered by dns/scripts/route53-cloudflare-sync.py into records.tfvars.json; AWS stays the origin)."
+  description = "Per zone, the DNS-only twins of the retained Route 53 records (rendered by dns/scripts/route53-cloudflare-sync.py into records.tfvars.json; ownership proofs only since the runtime hosts moved to the tunnel)."
   type = map(list(object({
     name    = string
     type    = string
@@ -31,7 +31,7 @@ variable "zone_records" {
 }
 
 variable "tunnel_enabled" {
-  description = "Create the named tunnel, its ingress rules and the proxied staging hostnames."
+  description = "Create the named tunnel, its ingress rules and the proxied tunnel hostnames."
   type        = bool
 }
 
@@ -40,14 +40,19 @@ variable "tunnel_name" {
   type        = string
 }
 
-variable "staging_hosts" {
-  description = "Public staging hostnames routed through the tunnel to the home ingress; the runtime hostnames are never listed here before HM7."
+variable "tunnel_hosts" {
+  description = "Public hostnames routed through the tunnel to the home ingress (the runtime pair since HM7 plus the HM5 staging pair), keyed by role; each names its zone, the private origin SNI and whether the edge may cache it."
   type = map(object({
     zone               = string
     hostname           = string
     origin_server_name = string
     cache              = bool
+    comment            = string
   }))
+  validation {
+    condition     = length(distinct([for h in var.tunnel_hosts : h.hostname])) == length(var.tunnel_hosts)
+    error_message = "Every tunnel host must be a distinct hostname."
+  }
 }
 
 variable "home_ingress_origin" {

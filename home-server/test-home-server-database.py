@@ -238,6 +238,30 @@ class SessionAndRefusalTests(unittest.TestCase):
         with self.assertRaisesRegex(db.DatabaseError, "already contains relations"):
             db.run_restore(FakeShell(["true"]), b"AGE-SECRET-KEY-1" + b"Q" * 58 + b"\n", Path("/nonexistent"), 5)
 
+    def test_rerun_from_the_same_directory_keeps_the_previous_run_files(self):
+        # HM7: one verified restore directory feeds the disposable proof and then production;
+        # the earlier run's diagnostics/result move aside instead of aborting the new run.
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            for name in ("pg_restore.stderr", "restore-result.json"):
+                (directory / name).write_bytes(b"previous")
+            (directory / "manifest.json").write_bytes(b"{}")
+            # A refused run (non-empty target) touches nothing.
+            with self.assertRaisesRegex(db.DatabaseError, "already contains relations"):
+                db.run_restore(FakeShell(["true"]), b"AGE-SECRET-KEY-1" + b"Q" * 58 + b"\n", directory, 5)
+            self.assertEqual(sorted(p.name for p in directory.iterdir()),
+                             ["manifest.json", "pg_restore.stderr", "restore-result.json"])
+            moved = db.rotate_run_files(directory)
+            self.assertEqual(moved, ["pg_restore.stderr", "restore-result.json"])
+            names = sorted(p.name for p in directory.iterdir())
+            self.assertEqual(len(names), 3)
+            self.assertNotIn("pg_restore.stderr", names)
+            self.assertNotIn("restore-result.json", names)
+            for kept in (n for n in names if n != "manifest.json"):
+                self.assertRegex(kept, r"^(pg_restore\.stderr|restore-result\.json)\.\d{8}T\d{6}Z$")
+                self.assertEqual((directory / kept).read_bytes(), b"previous")
+            self.assertEqual(db.rotate_run_files(directory), [])
+
     def test_target_pod_shell_quotes_sql_for_the_remote_shell(self):
         # ssh joins trailing arguments with spaces for the remote shell: SQL with quotes and
         # parentheses must arrive as ONE psql argument there, never as shell syntax (exit 2).

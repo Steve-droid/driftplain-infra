@@ -24,7 +24,7 @@ variables {
   cloudflare_account_id = "0123456789abcdef0123456789abcdef"
 }
 
-run "both_zones_mirror_route53_dns_only" {
+run "both_zones_mirror_the_retained_route53_records_dns_only" {
   command = apply
   assert {
     condition     = keys(cloudflare_zone.product) == ["driftplain.dev", "modicum.cloud"]
@@ -35,18 +35,16 @@ run "both_zones_mirror_route53_dns_only" {
     error_message = "Zones are full-setup (authoritative) zones; partial CNAME setup is a paid plan."
   }
   assert {
-    condition     = length(cloudflare_dns_record.mirrored) == 5
-    error_message = "The rendered twins are four NLB aliases (CNAME) plus the Google TXT proof."
+    condition     = length(cloudflare_dns_record.mirrored) == 1
+    error_message = "After the AWS compute retirement the only Route 53 twin is the Google TXT proof (no NLB aliases)."
   }
   assert {
     condition     = alltrue([for r in cloudflare_dns_record.mirrored : !r.proxied])
-    error_message = "Mirrored (runtime) records stay DNS-only: AWS is the origin until HM7."
+    error_message = "Mirrored records stay DNS-only."
   }
   assert {
-    condition = alltrue([for r in cloudflare_dns_record.mirrored :
-      r.type != "CNAME" || endswith(r.content, ".elb.ap-south-1.amazonaws.com")
-    ])
-    error_message = "Every mirrored CNAME must point at the existing AWS ingress NLB."
+    condition     = !anytrue([for r in cloudflare_dns_record.mirrored : contains(["A", "AAAA", "CNAME"], r.type)])
+    error_message = "No mirrored twin carries an address any more: the runtime hosts are tunnel hosts."
   }
   assert {
     condition     = length([for r in cloudflare_dns_record.mirrored : r if r.type == "TXT" && startswith(r.content, "\"google-site-verification=")]) == 1
@@ -62,19 +60,31 @@ run "both_zones_mirror_route53_dns_only" {
   }
 }
 
-run "tunnel_routes_only_staging_hosts_with_verified_origin_tls" {
+run "tunnel_routes_the_runtime_and_staging_pairs_with_verified_origin_tls" {
   command = apply
   assert {
     condition     = length(cloudflare_zero_trust_tunnel_cloudflared.home_server) == 1 && cloudflare_zero_trust_tunnel_cloudflared.home_server[0].config_src == "cloudflare"
     error_message = "One remotely managed tunnel."
   }
   assert {
-    condition     = length(cloudflare_dns_record.staging) == 2 && alltrue([for r in cloudflare_dns_record.staging : r.proxied && r.type == "CNAME" && endswith(r.content, ".cfargotunnel.com")])
-    error_message = "Staging hosts are proxied CNAMEs to the tunnel."
+    condition     = length(cloudflare_dns_record.tunnel) == 4 && alltrue([for r in cloudflare_dns_record.tunnel : r.proxied && r.type == "CNAME" && endswith(r.content, ".cfargotunnel.com")])
+    error_message = "Tunnel hosts are proxied CNAMEs to the tunnel."
   }
   assert {
-    condition     = toset([for r in cloudflare_dns_record.staging : r.name]) == toset(["staging.driftplain.dev", "api-staging.driftplain.dev"])
-    error_message = "Only the two staging hostnames are routed; no runtime host before HM7."
+    condition     = keys(cloudflare_dns_record.tunnel) == ["api", "app", "staging_api", "staging_app"]
+    error_message = "The runtime pair (HM7) and the staging pair (HM5) are the tunnel roles."
+  }
+  assert {
+    condition     = toset([for r in cloudflare_dns_record.tunnel : r.name]) == toset(["driftplain.dev", "api.driftplain.dev", "staging.driftplain.dev", "api-staging.driftplain.dev"])
+    error_message = "Exactly the runtime and staging hostnames of driftplain.dev are routed; modicum.cloud is not."
+  }
+  assert {
+    condition     = cloudflare_dns_record.tunnel["app"].name == "driftplain.dev" && cloudflare_dns_record.tunnel["app"].proxied
+    error_message = "The apex is a proxied (flattened) CNAME to the tunnel."
+  }
+  assert {
+    condition     = !anytrue([for r in cloudflare_dns_record.tunnel : endswith(r.name, "modicum.cloud")])
+    error_message = "modicum.cloud stays un-routed (Steve, September 18; HM8 decides the zone)."
   }
   assert {
     condition = alltrue([for rule in cloudflare_zero_trust_tunnel_cloudflared_config.home_server[0].config.ingress :
@@ -89,6 +99,16 @@ run "tunnel_routes_only_staging_hosts_with_verified_origin_tls" {
     error_message = "Every hostname rule dials the home ingress over TLS, verifies against home-server-ca with the private SNI, and never sets noTLSVerify."
   }
   assert {
+    condition = ({ for rule in cloudflare_zero_trust_tunnel_cloudflared_config.home_server[0].config.ingress :
+      rule.hostname => rule.origin_request.origin_server_name if rule.hostname != null }) == {
+      "driftplain.dev"             = "app.home-server.driftplain.dev"
+      "api.driftplain.dev"         = "api.home-server.driftplain.dev"
+      "staging.driftplain.dev"     = "app.home-server.driftplain.dev"
+      "api-staging.driftplain.dev" = "api.home-server.driftplain.dev"
+    }
+    error_message = "App hosts reach the private app ingress, API hosts the private API ingress."
+  }
+  assert {
     condition     = cloudflare_zero_trust_tunnel_cloudflared_config.home_server[0].config.ingress[length(cloudflare_zero_trust_tunnel_cloudflared_config.home_server[0].config.ingress) - 1].service == "http_status:404"
     error_message = "The catch-all rule answers 404: cluster administration and unknown hosts are not exposed."
   }
@@ -97,8 +117,16 @@ run "tunnel_routes_only_staging_hosts_with_verified_origin_tls" {
     error_message = "No Cloudflare Access on any route (API/OAuth flows stay untouched)."
   }
   assert {
-    condition     = keys(cloudflare_ruleset.bypass_cache) == ["driftplain.dev"] && cloudflare_ruleset.bypass_cache["driftplain.dev"].rules[0].action_parameters.cache == false && strcontains(cloudflare_ruleset.bypass_cache["driftplain.dev"].rules[0].expression, "\"api-staging.driftplain.dev\"")
-    error_message = "The API staging host bypasses the cache."
+    condition     = keys(cloudflare_ruleset.bypass_cache) == ["driftplain.dev"] && cloudflare_ruleset.bypass_cache["driftplain.dev"].rules[0].action_parameters.cache == false
+    error_message = "One cache-bypass ruleset on driftplain.dev."
+  }
+  assert {
+    condition     = cloudflare_ruleset.bypass_cache["driftplain.dev"].rules[0].expression == "(http.host in {\"api-staging.driftplain.dev\" \"api.driftplain.dev\"})"
+    error_message = "Both API hosts bypass the cache; the app hosts may be cached."
+  }
+  assert {
+    condition     = output.tunnel_urls == { app = "https://driftplain.dev", api = "https://api.driftplain.dev", staging_app = "https://staging.driftplain.dev", staging_api = "https://api-staging.driftplain.dev" }
+    error_message = "The output lists every routed URL by role."
   }
 }
 
@@ -108,11 +136,11 @@ run "tunnel_disabled_leaves_only_the_dns_mirror" {
     tunnel_enabled = false
   }
   assert {
-    condition     = length(cloudflare_zero_trust_tunnel_cloudflared.home_server) == 0 && length(cloudflare_dns_record.staging) == 0 && length(cloudflare_ruleset.bypass_cache) == 0
+    condition     = length(cloudflare_zero_trust_tunnel_cloudflared.home_server) == 0 && length(cloudflare_dns_record.tunnel) == 0 && length(cloudflare_ruleset.bypass_cache) == 0
     error_message = "Without the tunnel nothing is proxied; the zones and mirrored records remain."
   }
   assert {
-    condition     = length(cloudflare_dns_record.mirrored) == 5 && length(cloudflare_zone.product) == 2
+    condition     = length(cloudflare_dns_record.mirrored) == 1 && length(cloudflare_zone.product) == 2
     error_message = "The DNS mirror does not depend on the tunnel."
   }
   assert {
@@ -121,34 +149,96 @@ run "tunnel_disabled_leaves_only_the_dns_mirror" {
   }
 }
 
-run "reject_routing_a_runtime_host_before_hm7" {
+run "reject_a_tunnel_host_that_collides_with_an_address_twin" {
   command = plan
   variables {
-    staging_hosts = {
-      api = {
-        zone               = "driftplain.dev"
-        hostname           = "api.driftplain.dev"
-        origin_server_name = "api.home-server.driftplain.dev"
-        cache              = false
-      }
+    zone_records = {
+      "driftplain.dev" = [{
+        name    = "api.driftplain.dev"
+        type    = "CNAME"
+        content = "ingress.elb.ap-south-1.amazonaws.com"
+        ttl     = 300
+        proxied = false
+      }]
+      "modicum.cloud" = []
     }
   }
-  expect_failures = [cloudflare_dns_record.staging]
+  expect_failures = [cloudflare_dns_record.tunnel]
 }
 
-run "reject_a_staging_host_outside_its_zone" {
+run "apex_txt_proof_does_not_block_the_apex_tunnel_host" {
   command = plan
   variables {
-    staging_hosts = {
+    zone_records = {
+      "driftplain.dev" = [{
+        name    = "driftplain.dev"
+        type    = "TXT"
+        content = "\"google-site-verification=proof\""
+        ttl     = 300
+        proxied = false
+      }]
+      "modicum.cloud" = []
+    }
+  }
+  assert {
+    condition     = length(cloudflare_dns_record.mirrored) == 1
+    error_message = "The TXT proof at the apex coexists with the flattened apex CNAME."
+  }
+}
+
+run "reject_a_tunnel_host_outside_its_zone" {
+  command = plan
+  variables {
+    tunnel_hosts = {
       app = {
         zone               = "driftplain.dev"
         hostname           = "staging.modicum.cloud"
         origin_server_name = "app.home-server.driftplain.dev"
         cache              = true
+        comment            = "wrong zone"
       }
     }
   }
-  expect_failures = [cloudflare_dns_record.staging]
+  expect_failures = [cloudflare_dns_record.tunnel]
+}
+
+run "reject_a_foreign_origin_sni" {
+  command = plan
+  variables {
+    tunnel_hosts = {
+      app = {
+        zone               = "driftplain.dev"
+        hostname           = "driftplain.dev"
+        origin_server_name = "driftplain.dev"
+        cache              = true
+        comment            = "public SNI is not a private ingress name"
+      }
+    }
+  }
+  expect_failures = [cloudflare_dns_record.tunnel]
+}
+
+run "reject_duplicate_tunnel_hostnames" {
+  command = plan
+  variables {
+    tunnel_hosts = {
+      app = {
+        zone               = "driftplain.dev"
+        hostname           = "driftplain.dev"
+        origin_server_name = "app.home-server.driftplain.dev"
+        cache              = true
+        comment            = "one"
+      }
+      again = {
+        zone               = "driftplain.dev"
+        hostname           = "driftplain.dev"
+        origin_server_name = "app.home-server.driftplain.dev"
+        cache              = true
+        comment            = "two"
+      }
+    }
+  }
+  expect_failures = [var.tunnel_hosts]
 }
 
 run "reject_a_plaintext_origin" {
@@ -165,8 +255,8 @@ run "reject_a_proxied_mirror" {
     zone_records = {
       "driftplain.dev" = [{
         name    = "driftplain.dev"
-        type    = "CNAME"
-        content = "ingress.elb.ap-south-1.amazonaws.com"
+        type    = "TXT"
+        content = "\"google-site-verification=proof\""
         ttl     = 300
         proxied = true
       }]

@@ -9,7 +9,7 @@ mutates DNS, Cloudflare or AWS. Sub-commands:
                                            DNSSEC signing status, live NS/DS delegation
   render --export export.json --out cloudflare/records.tfvars.json
                                            the Cloudflare twin of every non-provider record
-                                           (Route 53 alias → DNS-only CNAME to the same NLB)
+                                           (DNS-only; a Route 53 alias → CNAME to its target)
   diff   --export export.json --records cloudflare/records.tfvars.json
                                            exit 1 when the committed twin set drifted from
                                            the live zones (missing / extra / changed)
@@ -104,7 +104,7 @@ def twins(zone: str, record: dict) -> list[dict]:
             "content": record["alias"],
             "ttl": ALIAS_TTL,
             "proxied": False,
-            "comment": "Mirror of the Route 53 alias to the AWS ingress NLB; AWS stays the origin until HM7",
+            "comment": "Mirror of a Route 53 alias (retained zone twin; the home tunnel serves the runtime hosts since HM7)",
         }]
     ttl = max(int(record.get("ttl") or MIN_TTL), MIN_TTL)
     return [{
@@ -113,7 +113,7 @@ def twins(zone: str, record: dict) -> list[dict]:
         "content": value,
         "ttl": ttl,
         "proxied": False,
-        "comment": f"Mirror of the Route 53 {record['type']} record; AWS stays the origin until HM7",
+        "comment": f"Mirror of the Route 53 {record['type']} record (retained zone twin until the HM8 review)",
     } for value in record["values"]]
 
 
