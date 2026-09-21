@@ -109,11 +109,24 @@ the last success at 21:55 and a 15-minute grace, Healthchecks was expected to re
 | Cloudflare root: `tunnel_hosts`, address-twin collision / SNI preconditions, `moved` blocks, 10 mocked runs; `records.tfvars.json` re-rendered (TXT only); sync tool wording | `../cloudflare/`, `../dns/scripts/` |
 | Runbooks: this file, `HM5-OPERATIONS.md` status/guardrails, `../cloudflare/README.md` | this directory |
 | Home profile `runtimeHostSet: driftplain` + probes (55 tests) | driftplain-gitops v0.33.0 |
+| Honest offline chat answer (+ test); local linux/amd64 build → GHCR 1.0.25; home digest pin | driftplain-backend v1.0.25, driftplain-gitops v0.34.0 |
+
+## 7. Honest offline chat answer (September 22, 22:20–22:40 UTC)
+
+With `LLM_CLIENT=fake` chat answered every question with the misleading "I wasn't able to look
+that up… try rephrasing" text. driftplain-backend PR #27 (v1.0.25) makes the chat client
+dependency return no client for the fake provider; the route keeps the 404/403 owner contract
+and answers "The grounded assistant is offline on this deployment: no language model is
+configured…" (`ok=false`, no trace, nothing persisted or metered). No Jenkins since the
+retirement, so the image was built on the Mac (`docker buildx build --platform linux/amd64`
+from the tag, OCI revision/version labels) and pushed as
+`ghcr.io/steve-droid/modelmatch-backend:1.0.25` = `sha256:df0d18b7…c0348` (anonymous pull
+verified); gitops v0.34.0 pins it in the home profile (frontend/agent pins unchanged). ArgoCD
+rolled the backend at 22:37 UTC; the chat exchange through `api.driftplain.dev` now returns the
+offline note (200, `cf-cache-status: DYNAMIC`, history unchanged at 3 messages) and the edge
+validator passes again (8.6 s). The Roles Anywhere Bedrock leaf remains the way to a live
+assistant at home (separate approval, paid calls).
 
 ## Open after HM7
 
-- **Honest UI note for the fake LLM at home:** chat currently answers with the generic
-  "I wasn't able to look that up… try rephrasing" text. Making it say the assistant is offline
-  needs a backend/frontend change and a new image (Jenkins is gone; local build → GHCR), or the
-  Roles Anywhere Bedrock leaf. Follow-up slice.
 - **HM8** retained-services review: Route 53 zones, the old Retain PV, ECR, the modicum.cloud zone.
