@@ -20,10 +20,6 @@ state, backups, DNS, identity and a budget. This repo owns both sides.
 | Cloudflare | authoritative DNS for `driftplain.dev` and the named tunnel to the private ingress | [`cloudflare/`](cloudflare/) |
 | AWS `957261948820`, `ap-south-1` | S3 (Terraform state, encrypted Postgres backups, ingestion sources), Secrets Manager (the backup recovery key), Route 53 (two zones; `driftplain.dev` is delegated to Cloudflare), IAM Roles Anywhere (the home node's short-lived identity), Budgets + SNS email | [`bootstrap/`](bootstrap/), [`dns/`](dns/) |
 
-Retained AWS spend is about $2 to $3 a month. The budget emails at 80 % and 100 % of $10 gross.
-Release images are on public GHCR (`ghcr.io/steve-droid/modelmatch-*`, the project's old name),
-pushed by GitHub Actions from the app repos.
-
 ## Layout
 
 ```
