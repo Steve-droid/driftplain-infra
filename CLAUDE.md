@@ -1,5 +1,18 @@
 # CLAUDE.md — driftplain-infra
 
+## AWS compute retired — September 21, 2026
+
+The `platform/` stack no longer exists (empty state): EKS, nodes, NAT gateways, the ingress NLB,
+EBS volumes and the VPC were destroyed on September 21 after a verified final production export,
+because Steve's AWS credits were running out. Read
+[home-server/AWS-COMPUTE-RETIREMENT.md](home-server/AWS-COMPUTE-RETIREMENT.md) for the decision,
+evidence, the remaining-resource inventory and the monthly estimate. `bootstrap/`, `dns/`
+(now `records_enabled = false`), `cloudflare/` and `home-server/identity` persist. Never
+re-apply `platform/` as incidental work; `home-server-database.py export --source aws` can no
+longer run; HM7 restores `postgres/final/aws-20260921T210119Z/` into the home instance and
+routes the runtime hostnames through the tunnel. The demo bring-up skill and every "AWS is the
+origin / production is authoritative" sentence below are historical.
+
 ## Claude Code continuation — HM5 sustainable public operation — September 17, 2026
 
 Read [the HM5 handoff](../docs/session-handoffs/E21-home-hosting/2026-09-17-hm5-sustainable-public-operation.md)

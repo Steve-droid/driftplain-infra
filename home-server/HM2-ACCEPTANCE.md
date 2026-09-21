@@ -27,6 +27,16 @@ production teardown remain outside this work. Bootstrap evidence is published th
 | Recurring costs/ownership | Steve accepted $10/month retained services/domains plus ₪36/month power as conservative planning assumptions, excluding AWS overlap and paid LLM calls. Exact wall readings/account renewals remain pre-cutover checks. [Worksheet](HOME-SERVER-COSTS.md) includes measured ECR/S3 quantities and sources |
 | Source-data safeguard | DRY_RUN=1 retained. No automated teardown, identity/key replacement or production mutation |
 
+### September 21 storage-decision supersession
+
+The accepted HM2 row above records the September 15 state. Steve later explicitly directed
+that the unused Kingston SSD be dedicated to Ubuntu. Its Omarchy EFI/LUKS layout was erased
+and replaced by a separate ext4 volume at `/srv/home-server-storage`; current K3s/CNPG data
+remains on the Samsung disk. This does not change the one-node/no-HA claim or S3 backup design.
+Stale Windows, Limine and Kingston-disk UEFI entries were removed, with Ubuntu first and both
+firmware and GRUB timeouts set to zero. A September 21 coordinated reboot verified unattended
+Ubuntu selection, the persistent Kingston mount and healthy workload recovery.
+
 ## CRL correction and complete history
 
 AWS rejected the initially generated empty CRL with `ValidationException`: it requires

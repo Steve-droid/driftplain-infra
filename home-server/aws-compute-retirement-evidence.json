@@ -1,0 +1,305 @@
+{
+  "slice": "E21 \u2014 AWS compute retirement",
+  "kind": "driftplain-aws-compute-retirement-evidence",
+  "recorded_at": "2026-09-21T21:16:04Z",
+  "result": "PASS \u2014 platform/ destroyed (39 resources), orphan check clean, Route 53 aliases removed, final export restore-proven at home; retained services \u2248 $2/month",
+  "decision": {
+    "approved_by": "Steve, September 21, 2026 (AWS commands approved up front)",
+    "reason": "AWS credits would run out before the home migration completes; September gross $121.30 vs $110 budget at \u2248 $8.35/day",
+    "kill_switch_dry_run_fired_at": "2026-09-18T23:16:00Z",
+    "record": "AWS-COMPUTE-RETIREMENT.md"
+  },
+  "write_freeze": {
+    "at": "2026-09-21T21:00:51Z",
+    "method": "ArgoCD root + modelmatch automated sync disabled; backend Deployment scaled to 0; API 502"
+  },
+  "final_export": {
+    "stamp": "20260921T210119Z",
+    "origin": "aws",
+    "source_context": "arn:aws:eks:ap-south-1:957261948820:cluster/modelmatch",
+    "snapshot": "00000004-00019534-1",
+    "snapshot_at_utc": "2026-09-21T21:01:21.083601Z",
+    "wal_lsn": "1/28000000",
+    "isolation": "REPEATABLE READ; pg_dump --snapshot; same-snapshot fingerprint",
+    "export_seconds": 12.71,
+    "tables": 23,
+    "rows": 2598,
+    "alembic_version": [
+      "a4b5c6d7e8f9"
+    ],
+    "server_version": "16.10 (Debian 16.10-1.pgdg13+1)",
+    "object_sizes": {
+      "postgres.dump.age": 93912,
+      "globals.sql.age": 1890,
+      "fingerprint.json.age": 33813,
+      "app-credentials.json.age": 998
+    },
+    "upload": {
+      "bucket": "modelmatch-home-server-backups-957261948820",
+      "uploaded_at": "2026-09-21T21:01:39Z",
+      "keys": [
+        "postgres/daily/aws-20260921T210119Z/manifest.json",
+        "postgres/daily/aws-20260921T210119Z/postgres.dump.age",
+        "postgres/daily/aws-20260921T210119Z/globals.sql.age",
+        "postgres/daily/aws-20260921T210119Z/fingerprint.json.age",
+        "recovery/app-credentials/aws-20260921T210119Z.json.age"
+      ],
+      "version_ids": {
+        "manifest.json": "HexBPhL9Dv6GfVWZbR8TlResVR2qgVGo",
+        "postgres.dump.age": "eLzGaW.uHW7bOj31EB4utKwe8b9rthwd",
+        "globals.sql.age": "kz_pGaq0zt4F8gPyLffI7sytCRAUFx2n",
+        "fingerprint.json.age": "9TrGe5HpZN59DS2ckvcRdiIh7hg.KJBJ",
+        "app-credentials.json.age": "6uC.0R_891jOGbfX9Lh9CFPd24IJW68U"
+      }
+    },
+    "independent_download": {
+      "dir": "restore-20260921T210143Z",
+      "verified": "S3 checksum + manifest"
+    },
+    "lifecycle_free_copies": {
+      "prefix": "postgres/final/aws-20260921T210119Z/",
+      "credentials": "recovery/final/aws-20260921T210119Z.app-credentials.json.age",
+      "version_ids": {
+        "manifest.json": "a4KJ_d9.b7gJkYHo8taGoO_wODv73SSc",
+        "postgres.dump.age": "ajBBcLym_Ddgx37AVrVomINO_A2DBKmC",
+        "globals.sql.age": "jWmW61sbuRdxxAhHHkk5IUZVHLi4rtGJ",
+        "fingerprint.json.age": "p1zbXkPUU8xFBG.3gbrQsAxKn4nZ1hoP",
+        "app-credentials.json.age": "TynuQOVHwtzkacyhu3pWgFmyEzJYzCk3"
+      },
+      "checksums": "equal to the daily originals"
+    },
+    "restore_proof": {
+      "target": "home disposable (home-server-restore-check, context driftplain-home)",
+      "restore_seconds": 2.436,
+      "finished_at": "2026-09-21T21:02:52Z",
+      "match": true,
+      "categories_compared": 16,
+      "categories_matched": 16,
+      "disposable_deleted": true
+    }
+  },
+  "graceful_pre_delete": {
+    "at": "2026-09-21T21:03:37Z",
+    "argocd_apps_deleted": [
+      "modelmatch-postgres",
+      "nginx-ingress"
+    ],
+    "nlb_and_cnpg_ebs_gone_by": "2026-09-21T21:04:03Z"
+  },
+  "teardown": {
+    "script": "scripts/teardown-platform.sh",
+    "mode": "LIVE (DRY_RUN=0)",
+    "started_at": "2026-09-21T21:04:12Z",
+    "node_lifecycle_hook": "two nodes stuck in Terminate-LC-Hook; complete-lifecycle-action CONTINUE at 21:11:00Z",
+    "terraform_destroy": {
+      "resources_destroyed": 39,
+      "eks_cluster_delete_seconds": 139,
+      "completed_at": "2026-09-21T21:15:30Z"
+    },
+    "orphan_check": {
+      "nat_gateways": 0,
+      "unattached_eips": 0,
+      "load_balancers_v2": 0,
+      "load_balancers_classic": 0,
+      "available_ebs_volumes": 0,
+      "result": "OK"
+    },
+    "rc": 0,
+    "elapsed_seconds": 686,
+    "terraform_state_addresses": {
+      "platform": 0,
+      "bootstrap": 53,
+      "dns": 3,
+      "cloudflare": 19,
+      "home-server/identity": 8
+    }
+  },
+  "dns": {
+    "applied_at": "2026-09-21T21:13:05Z",
+    "change": "records_enabled = false",
+    "records_destroyed": [
+      "modicum.cloud A",
+      "api.modicum.cloud A",
+      "driftplain.dev A",
+      "api.driftplain.dev A"
+    ],
+    "kept": [
+      "both hosted zones",
+      "driftplain.dev Google verification TXT"
+    ]
+  },
+  "home_cluster": {
+    "touched": false,
+    "argocd_apps_synced_healthy": 14,
+    "mac_daily_backup_source": "home instance (unaffected)"
+  },
+  "inventory_after": {
+    "recorded_at": "2026-09-21T21:16:04Z",
+    "region": "ap-south-1",
+    "compute": {
+      "eks_clusters": [],
+      "ec2_instances_not_terminated": [],
+      "nat_gateways_live": [],
+      "elastic_ips": [],
+      "load_balancers_v2": [],
+      "load_balancers_classic": [],
+      "ebs_volumes": [],
+      "ebs_snapshots_owned": [],
+      "amis_owned": [],
+      "vpcs": [
+        {
+          "id": "vpc-0306f1c455cac05a1",
+          "default": true,
+          "cidr": "172.31.0.0/16"
+        }
+      ],
+      "security_groups_non_default": [],
+      "enis": [],
+      "vpc_endpoints": [],
+      "autoscaling_groups": [],
+      "launch_templates": [],
+      "cloudwatch_log_groups": [
+        {
+          "name": "/aws/codebuild/modelmatch-platform-teardown",
+          "storedBytes": 26965,
+          "retention": 90
+        }
+      ]
+    },
+    "persistent": {
+      "s3_buckets": [
+        {
+          "name": "modelmatch-home-server-backups-957261948820",
+          "objects": 148,
+          "bytes": 5716347
+        },
+        {
+          "name": "modelmatch-ingestion-sources-957261948820",
+          "objects": 0,
+          "bytes": 0
+        },
+        {
+          "name": "modelmatch-tfstate-957261948820",
+          "objects": 5,
+          "bytes": 167451
+        }
+      ],
+      "ecr_repositories": [
+        {
+          "name": "modelmatch-backend",
+          "images": 10,
+          "bytes": 981778271
+        },
+        {
+          "name": "modelmatch-frontend",
+          "images": 10,
+          "bytes": 259693777
+        },
+        {
+          "name": "modelmatch-agent-security",
+          "images": 4,
+          "bytes": 503521455
+        },
+        {
+          "name": "modelmatch-agent",
+          "images": 5,
+          "bytes": 353689084
+        }
+      ],
+      "secrets_manager": [
+        "modelmatch/app",
+        "modelmatch/home-server/recovery-key-v1"
+      ],
+      "route53_zones": [
+        {
+          "name": "modicum.cloud.",
+          "records": 2
+        },
+        {
+          "name": "driftplain.dev.",
+          "records": 3
+        }
+      ],
+      "kms_customer_keys": [
+        "71900a99-9af2-4e75-bc21-20ef651b5502"
+      ],
+      "kms_aliases": [],
+      "rolesanywhere_trust_anchors": [
+        "modelmatch-home-server-issuer-v1"
+      ],
+      "rolesanywhere_profiles": [
+        {
+          "name": "modelmatch-home-server-bedrock",
+          "enabled": true
+        },
+        {
+          "name": "modelmatch-home-server-backup",
+          "enabled": true
+        }
+      ],
+      "iam_roles_custom": [
+        "modelmatch-budget-killswitch",
+        "modelmatch-home-server-backup",
+        "modelmatch-home-server-bedrock",
+        "modelmatch-platform-teardown-codebuild"
+      ],
+      "lambda_functions": [
+        {
+          "name": "modelmatch-budget-killswitch",
+          "dry": "1"
+        }
+      ],
+      "codebuild_projects": [
+        "modelmatch-platform-teardown"
+      ],
+      "sns_topics": [
+        "modelmatch-budget-alerts"
+      ],
+      "budgets": [
+        {
+          "name": "modelmatch-monthly-cost",
+          "limit": "110.0",
+          "actual": "121.295"
+        }
+      ],
+      "cloudwatch_alarms": [],
+      "eventbridge_rules": [
+        "AutoScalingManagedRule",
+        "modelmatch-platform-teardown-state"
+      ],
+      "dynamodb_tables": []
+    }
+  },
+  "cost": {
+    "september_gross_usd_to_sep21": {
+      "total": 121.3,
+      "EC2-Other": 44.06,
+      "EKS": 34.95,
+      "EC2-Compute": 25.63,
+      "ELB": 8.39,
+      "VPC": 6.88,
+      "Route53": 1.01,
+      "SecretsManager": 0.31,
+      "ECR": 0.04,
+      "Bedrock": 0.01
+    },
+    "september_net_usd": 0.0,
+    "daily_gross_before_usd": 8.35,
+    "retained_monthly_estimate_usd": {
+      "route53_zones": 1.0,
+      "secrets_manager": 0.8,
+      "ecr": 0.21,
+      "s3": 0.01,
+      "kill_switch_chain": 0.0,
+      "roles_anywhere": 0.0,
+      "total": 2.05
+    }
+  },
+  "guardrails": [
+    "DRY_RUN=1 kept",
+    "no platform apply or public cutover without explicit approval",
+    "identities/custody unchanged",
+    "S3 lifecycle unchanged; final/ prefix is lifecycle-free",
+    "no secret value, hash, row or key in Git/terminal/evidence"
+  ]
+}

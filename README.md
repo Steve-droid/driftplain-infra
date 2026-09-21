@@ -4,9 +4,11 @@
 
 **Home migration (September 12, 2026):** the separate [home K3s bootstrap and staged
 migration plan](home-server/README.md) has a verified private single-node foundation. See
-[test results](home-server/RESULTS.md). AWS still serves production; public cutover and teardown
-require separate verification and approval. Historical AWS instructions below do not
-authorize destroying production during this migration.
+[test results](home-server/RESULTS.md). **AWS compute was retired on September 21, 2026**
+(credits running out; final export verified first) — see
+[home-server/AWS-COMPUTE-RETIREMENT.md](home-server/AWS-COMPUTE-RETIREMENT.md). Only
+`bootstrap/`, `dns/`, `cloudflare/` and the home-server identity root still hold resources;
+the `platform/` instructions below are historical and a re-apply needs explicit scope.
 
 **E21/HM5 (September 17, 2026):** hourly encrypted home backups with a second independent
 restore, Mac maintenance schedules, the [Cloudflare DNS + tunnel root](cloudflare/README.md)

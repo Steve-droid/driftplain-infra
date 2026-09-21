@@ -4,7 +4,8 @@
 services/domains plus **₪36/month** electricity. Steve accepted conservative assumptions
 pending exact pre-cutover readings/renewal checks. This excludes AWS overlap and paid LLM
 use; it is not an enforced billing cap or an assertion of the measured complete bill.
-Existing AWS production keeps accruing compute charges until HM8 approval. The selected
+AWS production compute stopped accruing on September 21, 2026 (retired early; see
+[AWS-COMPUTE-RETIREMENT.md](AWS-COMPUTE-RETIREMENT.md) for the measured remaining-service estimate). The selected
 home service choices are in [HM2 decisions](HM2-DECISIONS.md); none adds a paid subscription
 here. No paid LLM calls occurred or are authorized.
 

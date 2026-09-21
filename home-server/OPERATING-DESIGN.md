@@ -68,7 +68,7 @@ is authorized by the safeguard. HM8 must replace the obsolete trigger after appr
 
 ## Host, data and recovery
 
-Keep Ubuntu Desktop, AC/lid settings and Kingston disk unchanged. Reserve `.93` at the
+Keep Ubuntu Desktop and AC/lid settings unchanged. Reserve `.93` at the
 router; instructions and the reusable drill are in [RECOVERY.md](RECOVERY.md).
 Steve saved the correct `.93`/Ethernet-MAC reservation on `brlan0` (screenshots verified).
 After his router power cycle, DHCP reacquired `.93` at 23:42:23 and SSH/pod networking
@@ -78,8 +78,17 @@ Use one CNPG PostgreSQL 16 instance on the Samsung filesystem. A dedicated home 
 must explicitly use `Retain`; use the existing K3s storage root
 `/var/lib/rancher/k3s/storage` with PVC-specific directories and node affinity. Record the
 actual bound directory/UID after provisioning. A requested PVC size is not a disk quota;
-alert at 70%/85% filesystem usage and bound logs/images. Do not hand-mount the second SSD.
+alert at 70%/85% filesystem usage and bound logs/images.
 Retain prevents ordinary reclaim deletion, not SSD failure, root deletion or K3s uninstall.
+
+**Storage update (September 21):** Steve superseded the unused-Kingston decision and
+authorized erasing its old Omarchy EFI/LUKS layout. The Kingston is now a separate ext4
+volume at `/srv/home-server-storage`, persisted by filesystem UUID with `nofail` and a
+10-second device timeout. This adds auxiliary Ubuntu capacity but does not extend `/`, move
+K3s/CNPG data, provide RAID, create physical HA or replace the off-machine S3 backup.
+Windows/Limine firmware entries were removed; Ubuntu remains first with zero firmware and
+GRUB timeouts. The September 21 coordinated reboot returned directly to Ubuntu, remounted
+the Kingston read/write and recovered K3s, Argo CD, CNPG and the staging edge paths.
 
 **Selected backup destination:** a dedicated S3 bucket in `ap-south-1`, in Steve's existing
 AWS account, so no additional platform/account is required. It is separate from state and
