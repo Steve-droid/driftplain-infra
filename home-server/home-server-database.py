@@ -874,6 +874,26 @@ def target_shell_without_cluster():
     return None, remote_prefix, {"context": TARGET_CONTEXT, "server": TARGET_SERVER}
 
 
+RUN_FILES = ("roles.stderr", "pg_restore.stderr", "psql.stderr", "restore-result.json")
+
+
+def rotate_run_files(directory):
+    """Keep a previous run's diagnostics/result (e.g. a disposable proof) beside the new run's.
+
+    One verified restore directory serves several targets (HM7: disposable proof, then
+    production); every run file is created exclusively, so an earlier run's copy moves to
+    `<name>.<UTC stamp>` instead of aborting the run with a suppressed FileExistsError.
+    """
+    suffix = stamp(now())
+    moved = []
+    for name in RUN_FILES:
+        path = Path(directory) / name
+        if path.exists():
+            path.rename(path.with_name(f"{name}.{suffix}"))
+            moved.append(name)
+    return moved
+
+
 def run_restore(shell, identity, directory, timeout, roles_dir=None, source_fingerprint=None):
     """Roles (app roles only) -> pg_restore into an EMPTY database -> fingerprint -> compare.
 
@@ -885,6 +905,7 @@ def run_restore(shell, identity, directory, timeout, roles_dir=None, source_fing
     relations = shell.run(["psql", "-U", "postgres", "-d", DATABASE, "-At", "-X", "-c", RELATION_COUNT_SQL], timeout=60)
     if relations.strip() != b"0":
         raise DatabaseError("target database already contains relations; refusing")
+    rotate_run_files(directory)
 
     t0 = time.monotonic()
     globals_sql = decrypt_to_bytes(identity, (roles_dir or directory) / "globals.sql.age").decode()

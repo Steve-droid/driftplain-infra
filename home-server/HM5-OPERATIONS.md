@@ -1,10 +1,12 @@
 # HM5 operations runbook — sustainable public operation
 
-**Status September 21, 2026:** every HM5 component runs. **AWS compute was retired on
-September 21** ([record](AWS-COMPUTE-RETIREMENT.md)): production is offline, the final export is
-`postgres/final/aws-20260921T210119Z/`, and the home cluster is the only runtime. Only the two
-staging hostnames are routed at home; the runtime hostnames wait for HM7. This runbook says what runs where, what to
-check, how to turn the gated pieces on, and in which order.
+**Status September 22, 2026:** every HM5 component runs. **AWS compute was retired on
+September 21** ([record](AWS-COMPUTE-RETIREMENT.md)) and **HM7 restored the final export
+`postgres/final/aws-20260921T210119Z/` into the home instance** (16/16 categories match; see
+[HM7-CUTOVER.md](HM7-CUTOVER.md)), so the home cluster is the only runtime and holds the
+production data. The runtime hostnames `driftplain.dev` / `api.driftplain.dev` route through the
+tunnel once the HM7 Cloudflare apply and gitops `runtimeHostSet` merge land (staging stays routed).
+This runbook says what runs where, what to check, how to turn the gated pieces on, and in which order.
 
 ## What runs where
 
@@ -17,7 +19,7 @@ check, how to turn the gated pieces on, and in which order.
 | Cluster heartbeat (pings only when no critical alert fires) | home child `heartbeat`, CronJob `*/5` | **Running** since September 18 22:26 UTC (gitops v0.30.0, sealed URL); notification test passed September 18 (`hm5-monitor-evidence.json`) | gitops `charts/home-server-heartbeat/values.yaml` |
 | In-cluster backup CronJob (Roles Anywhere leaf) | home child `backup`, CronJob `23 * * * *` | **Running** hourly (gitops v0.27.0, image by digest, package public September 18); first run restored and verified | gitops `charts/home-server-backup/values.yaml`; image in `backup-image/` |
 | Cloudflare Tunnel connector | home child `cloudflared`, Deployment | **1 replica** with the sealed token (gitops v0.28.0) | gitops `charts/home-server-cloudflared/values.yaml` |
-| Cloudflare zones, tunnel, staging hosts | infra `cloudflare/` root | **Applied September 18**; `driftplain.dev` delegated and active September 18, staging exercise passed; `modicum.cloud` will not be delegated (Steve, September 18: the domain is not needed; its zone stays applied and unused until the HM8 review) | [`../cloudflare/README.md`](../cloudflare/README.md) |
+| Cloudflare zones, tunnel, runtime + staging hosts | infra `cloudflare/` root | **Applied September 18**; `driftplain.dev` delegated and active September 18, staging exercise passed; HM7 adds the runtime pair and drops the dangling NLB twins; `modicum.cloud` will not be delegated (Steve, September 18: the domain is not needed; its zone stays applied and unused until the HM8 review) | [`../cloudflare/README.md`](../cloudflare/README.md) |
 | S3 retention lifecycle (hourly 1 d, daily 30 d, noncurrent/delete-marker cleanup) | infra `bootstrap/` | **Applied September 17** (three rules Enabled) | `hm5-backup-evidence.json` → `retention_plan` |
 | Roles Anywhere trust anchor + both profiles | infra `home-server/identity` | **Enabled September 17** (`home_server_sessions_enabled=true`); sessions: 1 h, leaf-bound | `dev.tfvars`; emergency denial = flag back to false + apply |
 
@@ -141,8 +143,8 @@ maintenance job flags the refresh from October 10.
 
 ## Guardrails that never change here
 
-DRY_RUN=1; no AWS production exists any more (retired September 21; the final export is the
-source of truth until HM7 restores it at home); no public runtime hostname routed at home
-before HM7; never `noTLSVerify`; no Cloudflare Access on API/OAuth; secrets only as sealed
+DRY_RUN=1; no AWS production exists any more (retired September 21; the home instance holds the
+restored final export since HM7 and the old Retain PV `pvc-7aba0fae-a8f2-4edc-a6fe-0c2c744e3edb`
+is kept until a separate approval deletes it); modicum.cloud stays un-routed; never `noTLSVerify`; no Cloudflare Access on API/OAuth; secrets only as sealed
 manifests or Mac-held files with mode 0600; any `terraform apply`, DNS delegation, session
 enablement or bucket lifecycle apply is a separate explicit approval.

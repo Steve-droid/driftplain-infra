@@ -14,6 +14,12 @@ with an EXISTING project token when one is supplied through the environment (nev
 a bogus token must be rejected). Nothing is seeded; the only write is the optional, clearly
 labelled CI run (`jenkins_build_id` hm4-validation-<stamp>) when a token is supplied.
 
+`--edge app=<host>,api=<host>` (HM7) runs the same checks through the public Cloudflare edge
+instead of the port-forward: the private hostnames map to the public pair, the system trust
+store verifies Cloudflare's certificate, and two edge-only checks are added (a CORS preflight
+from the public app origin must be allowed; the API must answer uncached, `cf-cache-status`
+DYNAMIC). The password still comes from the home Secret over SSH.
+
 Secrets: the demo login password is read from the home Secret over kubectl into memory only
 and sent in the login body; tokens live in memory; nothing secret is printed, logged or written.
 The JSON summary holds booleans, status codes, ids and dashboard aggregates only.
@@ -82,6 +88,74 @@ class CurlClient:
         return int(code), payload
 
 
+class EdgeClient:
+    """HTTPS through the public edge: private hostnames → the public pair, system trust store,
+    response headers kept (lower-cased) for the edge-only checks; bodies stay in memory."""
+
+    def __init__(self, host_map, resolve_ip=None):
+        self.host_map, self.resolve_ip = host_map, resolve_ip
+        self.last_headers = {}
+
+    def request(self, method, host, path, headers=None, body=None):
+        public = self.host_map[host]
+        argv = ["curl", "-sS", "--max-time", str(CURL_TIMEOUT), "-X", method, "-D", "-",
+                "-o", "-", "-w", "\n%{http_code}", f"https://{public}{path}"]
+        if self.resolve_ip:  # a resolver still holding the pre-cutover negative answer; TLS is still verified
+            argv += ["--resolve", f"{public}:443:{self.resolve_ip}"]
+        for key, value in (headers or {}).items():
+            argv += ["-H", f"{key}: {value}"]
+        if body is not None:
+            argv += ["-H", "Content-Type: application/json", "--data-binary", "@-"]
+        try:
+            result = subprocess.run(argv, input=(json.dumps(body).encode() if body is not None else None),
+                                    capture_output=True, timeout=CURL_TIMEOUT + 5)
+        except subprocess.TimeoutExpired:
+            raise ValidationError(f"TIMEOUT: {method} {public}{path}") from None
+        if result.returncode:
+            raise ValidationError(f"curl failed for {method} {public}{path} (exit {result.returncode}); output suppressed")
+        raw, _, code = result.stdout.rpartition(b"\n")
+        head, _, payload = raw.partition(b"\r\n\r\n")
+        self.last_headers = parse_headers(head)
+        return int(code), payload
+
+
+def parse_headers(head):
+    """`curl -D -` block → {lower-name: value}; the status line is skipped."""
+    out = {}
+    for line in head.decode(errors="replace").split("\r\n")[1:]:
+        name, sep, value = line.partition(":")
+        if sep:
+            out[name.strip().lower()] = value.strip()
+    return out
+
+
+def parse_edge_hosts(spec):
+    """`app=<host>,api=<host>` → {private app host: public app host, private api host: public api host}."""
+    pairs = dict(item.split("=", 1) for item in spec.split(",") if "=" in item)
+    if set(pairs) != {"app", "api"} or not all(pairs.values()):
+        raise ValidationError("--edge needs exactly app=<host>,api=<host>")
+    return {APP_HOST: pairs["app"], API_HOST: pairs["api"]}
+
+
+def run_edge_checks(request, headers_after, app_origin):
+    """Edge-only checks: the browser at the public app origin may call the API (CORS preflight
+    allowed), and API answers are never served from the Cloudflare cache."""
+    results, ok = {}, True
+    code, _ = request("OPTIONS", API_HOST, "/auth/login",
+                      headers={"Origin": app_origin, "Access-Control-Request-Method": "POST",
+                               "Access-Control-Request-Headers": "content-type"})
+    allowed = headers_after().get("access-control-allow-origin")
+    passed = code in (200, 204) and allowed == app_origin
+    results["cors_preflight_from_public_app_origin"] = {"pass": passed, "status": code, "allow_origin": allowed}
+    ok = ok and passed
+    code, _ = request("GET", API_HOST, "/healthz")
+    cache = headers_after().get("cf-cache-status")
+    passed = code == 200 and cache == "DYNAMIC" and headers_after().get("server") == "cloudflare"
+    results["api_uncached_through_cloudflare"] = {"pass": passed, "status": code, "cf_cache_status": cache}
+    ok = ok and passed
+    return ok, results
+
+
 def wait_port(port, seconds):
     deadline = time.monotonic() + seconds
     while time.monotonic() < deadline:
@@ -137,8 +211,13 @@ def config_js_points_at(body, api_host):
     return "window.__APP_CONFIG__" in text and f'"https://{api_host}"' in text
 
 
-def run_checks(request, password, ci_token=None, stamp=None):
-    """Drive the acceptance checks through `request(method, host, path, headers, body)`."""
+def run_checks(request, password, ci_token=None, stamp=None, config_api_host=API_HOST):
+    """Drive the acceptance checks through `request(method, host, path, headers, body)`.
+
+    `config_api_host` is the public API host the frontend's runtime config must name: the
+    private host during isolated validation (HM4), the selected `runtimeHostSet` API host once
+    the umbrella routes a public pair (staging in HM5, `api.driftplain.dev` after HM7).
+    """
     results, ok = {}, True
 
     def record(name, passed, **facts):
@@ -154,7 +233,8 @@ def run_checks(request, password, ci_token=None, stamp=None):
     code, body = request("GET", APP_HOST, "/")
     record("app_index", code == 200 and b"<div id=\"root\"" in body, status=code, bytes=len(body))
     code, body = request("GET", APP_HOST, "/config.js")
-    record("app_config_js", code == 200 and config_js_points_at(body, API_HOST), status=code)
+    record("app_config_js", code == 200 and config_js_points_at(body, config_api_host), status=code,
+           expected_api_host=config_api_host)
 
     code, body = request("GET", API_HOST, "/projects")
     record("projects_unauthenticated_rejected", code == 401, status=code)
@@ -227,24 +307,44 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--port", type=int, default=8443)
     parser.add_argument("--out", help="private JSON result file (default: backups root)")
+    parser.add_argument("--config-api-host", default=API_HOST,
+                        help="API host the frontend config.js must name (the umbrella's runtimeHostSet API host)")
+    parser.add_argument("--edge", metavar="app=<host>,api=<host>",
+                        help="run through the public Cloudflare edge with these public hostnames (HM7)")
+    parser.add_argument("--edge-resolve", metavar="IP",
+                        help="pin the public hostnames to this Cloudflare anycast address (certificate still verified)")
     args = parser.parse_args(argv)
+    edge_hosts = parse_edge_hosts(args.edge) if args.edge else None
     started = db.now()
     _, remote_prefix, target = db.target_shell_without_cluster()
     service = home_json(remote_prefix, ["-n", INGRESS_NAMESPACE, "get", "svc", INGRESS_SERVICE])
     cluster_ip = service["spec"]["clusterIP"]
     if service["spec"].get("type") != "ClusterIP":
         raise ValidationError("the home ingress Service is not ClusterIP; refusing")
-    ca_pem = base64.b64decode(home_json(remote_prefix, ["-n", CA_NAMESPACE, "get", "secret", CA_SECRET])["data"]["ca.crt"])
     app_secret = home_json(remote_prefix, ["-n", db.NAMESPACE, "get", "secret", db.APP_SECRET])["data"]
     password = base64.b64decode(app_secret["DEMO_SEED_PASSWORD"]).decode()
     ci_token = os.environ.get(CI_TOKEN_ENV) or None
-    with tempfile.TemporaryDirectory(prefix="hm4-validate-") as tmp:
-        ca_path = Path(tmp) / "home-server-ca.crt"
-        ca_path.write_bytes(ca_pem)
-        with Forward(args.port, cluster_ip):
-            ok, results = run_checks(CurlClient(args.port, ca_path).request, password, ci_token, db.stamp(started))
+    if edge_hosts:
+        client = EdgeClient(edge_hosts, args.edge_resolve)
+        ok, results = run_checks(client.request, password, ci_token, db.stamp(started),
+                                 config_api_host=args.config_api_host)
+        edge_ok, edge_results = run_edge_checks(client.request, lambda: client.last_headers,
+                                               f"https://{edge_hosts[APP_HOST]}")
+        ok, results = ok and edge_ok, {**results, **edge_results}
+        hosts = {"app": edge_hosts[APP_HOST], "api": edge_hosts[API_HOST], "config_api": args.config_api_host,
+                 "path": "public edge (Cloudflare → tunnel → ingress)", "resolved_to": args.edge_resolve}
+    else:
+        ca_pem = base64.b64decode(home_json(remote_prefix, ["-n", CA_NAMESPACE, "get", "secret", CA_SECRET])["data"]["ca.crt"])
+        with tempfile.TemporaryDirectory(prefix="hm4-validate-") as tmp:
+            ca_path = Path(tmp) / "home-server-ca.crt"
+            ca_path.write_bytes(ca_pem)
+            with Forward(args.port, cluster_ip):
+                ok, results = run_checks(CurlClient(args.port, ca_path).request, password, ci_token, db.stamp(started),
+                                         config_api_host=args.config_api_host)
+        hosts = {"app": APP_HOST, "api": API_HOST, "config_api": args.config_api_host,
+                 "path": "SSH port-forward to the ClusterIP ingress"}
     finished = db.now()
-    summary = {"target": target, "ingress_cluster_ip": cluster_ip, "hosts": {"app": APP_HOST, "api": API_HOST},
+    summary = {"target": target, "ingress_cluster_ip": cluster_ip, "hosts": hosts,
                "started_at": started.isoformat(), "seconds": round((finished - started).total_seconds(), 3),
                "all_pass": ok, "checks": results}
     out = Path(args.out) if args.out else db.private_dir(db.BACKUPS_ROOT) / f"hm4-validation-{db.stamp(started)}.json"
