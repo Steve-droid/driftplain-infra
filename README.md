@@ -9,7 +9,7 @@ over the checkout and reports vulnerabilities. The dashboard shows the money sav
 quality holds.
 
 This repo is the Terraform and operator tooling. Since September 22, 2026 the app runs on a
-single-node K3s cluster at home behind a Cloudflare tunnel. AWS keeps only persistent services:
+single-node K3s cluster on a home Ubuntu server behind a Cloudflare tunnel. AWS keeps only persistent services:
 state, backups, DNS, identity and a budget. This repo owns both sides.
 
 ## What runs where
