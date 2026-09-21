@@ -30,14 +30,6 @@ resource "aws_secretsmanager_secret_policy" "home_server_recovery_key" {
         Action    = ["secretsmanager:GetSecretValue", "secretsmanager:BatchGetSecretValue"]
         Resource  = "*"
         Condition = { ArnNotEquals = { "aws:PrincipalArn" = var.home_server_recovery_operator_arn } }
-      },
-      {
-        Sid       = "DenyPlatformTeardownAccess"
-        Effect    = "Deny"
-        Principal = "*"
-        Action    = "secretsmanager:*"
-        Resource  = "*"
-        Condition = { ArnEquals = { "aws:PrincipalArn" = aws_iam_role.platform_teardown.arn } }
       }
     ]
   })

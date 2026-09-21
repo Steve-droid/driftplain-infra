@@ -5,12 +5,6 @@ mock_provider "aws" {
   mock_data "aws_partition" { defaults = { partition = "aws" } }
 }
 mock_provider "aws" { alias = "us_east_1" }
-mock_provider "archive" {}
-override_resource {
-  override_during = plan
-  target          = aws_iam_role.platform_teardown
-  values          = { arn = "arn:aws:iam::957261948820:role/modelmatch-platform-teardown-codebuild" }
-}
 override_resource {
   override_during = plan
   target          = aws_secretsmanager_secret.home_server_recovery_key
@@ -30,10 +24,9 @@ run "protected_operator_recovery_metadata" {
     condition = (
       jsondecode(aws_secretsmanager_secret_policy.home_server_recovery_key.policy).Statement[0].Effect == "Deny" &&
       jsondecode(aws_secretsmanager_secret_policy.home_server_recovery_key.policy).Statement[0].Condition.ArnNotEquals["aws:PrincipalArn"] == var.home_server_recovery_operator_arn &&
-      jsondecode(aws_secretsmanager_secret_policy.home_server_recovery_key.policy).Statement[1].Action == "secretsmanager:*" &&
-      jsondecode(aws_secretsmanager_secret_policy.home_server_recovery_key.policy).Statement[1].Condition.ArnEquals["aws:PrincipalArn"] == aws_iam_role.platform_teardown.arn
+      length(jsondecode(aws_secretsmanager_secret_policy.home_server_recovery_key.policy).Statement) == 1
     )
-    error_message = "Only the operator may read the key; teardown must have no access."
+    error_message = "Only the operator may read the key; no other principal is granted or named (HM8)."
   }
 }
 run "reject_runtime_secret_reuse" {

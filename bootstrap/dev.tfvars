@@ -10,14 +10,8 @@ aws_region = "ap-south-1"
 state_bucket_name = "modelmatch-tfstate-957261948820"
 
 # --- Budget + alerting (P2) ---
-budget_limit_amount = "110"                     # USD/month GROSS (credits not netted out); alerts only — Budgets never caps spend. 80%/90% ACTUAL + 100% FORECASTED
+budget_limit_amount = "10"                      # USD/month GROSS (credits not netted out); alerts only — Budgets never caps spend. 80%/100% ACTUAL + 100% FORECASTED. HM8 (September 22, 2026): retained services only, ~$2–3/month
 alert_email         = "stevelevit230@gmail.com" # config, not a secret
-
-# --- ECR repos (P5 adopted in the old account; P32 creates them fresh in 957261948820) ---
-ecr_repository_names = ["modelmatch-backend", "modelmatch-frontend", "modelmatch-agent", "modelmatch-agent-security"]
-# HM8 (September 22, 2026) stage 1: the 29 release images are on public GHCR (digests equal);
-# force_delete lets stage 2 remove the repositories with their images. Steve's decision.
-ecr_force_delete = true
 
 # --- Ingestion source bucket (P6) — APP CONTRACT: the backend reads it from S3_BUCKET (gitops values).
 # Renamed with the account suffix at P32 (2026-09-06): the bare name was still held by the closed
@@ -31,15 +25,3 @@ home_server_recovery_operator_arn    = "arn:aws:iam::957261948820:user/steve"
 # HM5 reviewed retention: hourly one day, daily 30 days; recovery/ keeps every version. Apply = separate approval.
 home_server_backup_hourly_retention_days = 1
 home_server_backup_daily_retention_days  = 30
-
-# --- P34b budget kill switch (2026-09-07) — Budgets 90% ACTUAL -> SNS -> Lambda -> CodeBuild teardown ---
-killswitch_lambda_dry_run        = "1" # E21 migration safeguard: plan-only; live apply requires Steve's approval. Keep budget alerts and token caps.
-killswitch_trigger_percent       = 90  # must match the 90% ACTUAL notification in budget.tf
-killswitch_build_timeout_minutes = 45
-killswitch_log_retention_days    = 90
-
-codebuild_image              = "aws/codebuild/amazonlinux-x86_64-standard:5.0"
-terraform_version            = "1.15.5"                                                           # same as the laptop (S3-native locking needs >= 1.10)
-terraform_sha256_linux_amd64 = "702b2136af6728c8ff037f843dd2dbce2b7ad88786b7381d1d72aefa250f601c" # from releases.hashicorp.com SHA256SUMS, 2026-09-07
-infra_repo_url               = "https://github.com/Steve-droid/driftplain-infra.git"
-infra_repo_branch            = "main"

@@ -50,6 +50,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "home_server_backu
 resource "aws_s3_bucket_policy" "home_server_backups" {
   bucket = aws_s3_bucket.home_server_backups.id
   # No access grants here: uploads/restores require a separately authorized IAM identity.
+  # HM8 (September 22, 2026): the DenyPlatformTeardownAccess statement went with the kill-switch
+  # teardown role it named; no automated principal can reach this bucket any more.
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -60,14 +62,6 @@ resource "aws_s3_bucket_policy" "home_server_backups" {
         Action    = "s3:*"
         Resource  = [local.home_server_backup_bucket_arn, "${local.home_server_backup_bucket_arn}/*"]
         Condition = { Bool = { "aws:SecureTransport" = "false" } }
-      },
-      {
-        Sid       = "DenyPlatformTeardownAccess"
-        Effect    = "Deny"
-        Principal = "*"
-        Action    = "s3:*"
-        Resource  = [local.home_server_backup_bucket_arn, "${local.home_server_backup_bucket_arn}/*"]
-        Condition = { ArnEquals = { "aws:PrincipalArn" = aws_iam_role.platform_teardown.arn } }
       }
     ]
   })
