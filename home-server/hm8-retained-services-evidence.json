@@ -1,0 +1,162 @@
+{
+  "slice": "HM8",
+  "kind": "retained-services-review",
+  "recorded_at": "2026-09-21T23:35:00Z",
+  "result": "ECR and the kill-switch chain removed; budget $10 gross; releases publish to GHCR from GitHub Actions; modelmatch/app scheduled for deletion; old home PV removed; Route 53 zones kept",
+  "decisions": {
+    "route53": "keep both zones",
+    "ecr_and_ci": "GHCR history + GitHub Actions, delete ECR",
+    "kill_switch": "remove the chain, budget to $10",
+    "old_copies": "retire both",
+    "recovery_key": "custody, untouched"
+  },
+  "1_ghcr_history": {
+    "tags_total": 29,
+    "copied": 25,
+    "already_present": 4,
+    "failed": 0,
+    "digests_equal": true,
+    "per_repo": {
+      "modelmatch-backend": 10,
+      "modelmatch-frontend": 10,
+      "modelmatch-agent": 5,
+      "modelmatch-agent-security": 4
+    }
+  },
+  "2_ci_publishing": {
+    "backend_pr": 28,
+    "frontend_pr": 26,
+    "workflows": [
+      "release-image.yml (backend)",
+      "release-agent-images.yml (backend)",
+      "release-image.yml (frontend)"
+    ],
+    "first_dispatch": {
+      "run": 35665755066,
+      "result": "write_package denied (packages not linked to the repo)"
+    },
+    "after_package_access_grant": {
+      "backend": {
+        "run": 35666779480,
+        "conclusion": "success",
+        "tag": "0.0.0-ci-test-2"
+      },
+      "frontend": {
+        "run": 35666782798,
+        "conclusion": "success",
+        "tag": "0.0.0-ci-test-1"
+      },
+      "agents": {
+        "run": 35666875842,
+        "conclusion": "success",
+        "tag": "0.0.0-ci-test-1"
+      }
+    },
+    "throwaway_tags_deleted": false,
+    "why": "CLI token lacks delete:packages; delete from the package UI"
+  },
+  "3_bootstrap": {
+    "stage1": {
+      "applied_at": "2026-09-21T23:12Z",
+      "plan": "0 to add, 4 to change, 0 to destroy",
+      "change": "ecr force_delete=true"
+    },
+    "stage2": {
+      "applied_at": "2026-09-21T23:13Z",
+      "plan": "0 to add, 3 to change, 24 to destroy",
+      "apply": "0 added, 3 changed, 24 destroyed",
+      "destroyed": [
+        "aws_ecr_repository x4",
+        "aws_ecr_lifecycle_policy x4",
+        "aws_lambda_function.killswitch",
+        "aws_lambda_permission.killswitch_from_budget_topic",
+        "aws_iam_role.killswitch_lambda",
+        "aws_iam_role_policy.killswitch_lambda",
+        "aws_iam_role_policy_attachment.killswitch_lambda_logs",
+        "aws_cloudwatch_log_group.killswitch_lambda",
+        "aws_sns_topic_subscription.budget_alerts_killswitch",
+        "aws_codebuild_project.platform_teardown",
+        "aws_iam_role.platform_teardown",
+        "aws_iam_role_policy.platform_teardown_guardrails",
+        "aws_iam_role_policy_attachment.platform_teardown_admin",
+        "aws_cloudwatch_log_group.platform_teardown",
+        "aws_sns_topic.killswitch_events",
+        "aws_sns_topic_policy.killswitch_events",
+        "aws_cloudwatch_event_rule.platform_teardown_state",
+        "aws_cloudwatch_event_target.platform_teardown_state_sns"
+      ],
+      "changed": {
+        "aws_budgets_budget.monthly_cost": "limit 110 -> 10; 90% ACTUAL -> 100% ACTUAL",
+        "aws_s3_bucket_policy.home_server_backups": "DenyPlatformTeardownAccess removed",
+        "aws_secretsmanager_secret_policy.home_server_recovery_key": "DenyPlatformTeardownAccess removed"
+      }
+    },
+    "terraform_test": "10 passed, 0 failed",
+    "state_resources_after": 24,
+    "budget_after": {
+      "limit_usd": "10.0",
+      "actual_usd_this_month_gross": "124.417",
+      "include_credit": false,
+      "notifications": [
+        [
+          "ACTUAL",
+          80
+        ],
+        [
+          "ACTUAL",
+          100
+        ],
+        [
+          "FORECASTED",
+          100
+        ]
+      ]
+    }
+  },
+  "4_retired_copies": {
+    "modelmatch_app": {
+      "scheduled_at": "2026-09-21T23:13:22Z",
+      "deletion_date": "2026-10-21T23:13:22Z",
+      "recovery_window_days": 30
+    },
+    "remaining_entries": [
+      "modelmatch/home-server/recovery-key-v1"
+    ],
+    "home_pv": {
+      "deleted": "pvc-7aba0fae-a8f2-4edc-a6fe-0c2c744e3edb",
+      "directory_removed": true,
+      "size": "593M",
+      "production_pv": "pvc-199e3046-482f-4a3f-8ef6-4843935d32d4",
+      "cnpg": "Cluster in healthy state",
+      "root_disk_used": "8%"
+    }
+  },
+  "5_verification": {
+    "ecr_repositories": 0,
+    "lambda_functions_us_east_1": 0,
+    "codebuild_projects": 0,
+    "sns_topics": [
+      "arn:aws:sns:us-east-1:957261948820:modelmatch-budget-alerts"
+    ],
+    "budget_topic_subscriptions": [
+      "email"
+    ],
+    "ghcr_tags_anonymous": {
+      "modelmatch-backend": 12,
+      "modelmatch-frontend": 11,
+      "modelmatch-agent": 6,
+      "modelmatch-agent-security": 5,
+      "note": "each includes one 0.0.0-ci-test tag"
+    },
+    "live": {
+      "https://driftplain.dev/": 200,
+      "https://api.driftplain.dev/readyz": 200
+    }
+  },
+  "retained_monthly_cost_estimate_usd": "2-3",
+  "open": [
+    "delete the four 0.0.0-ci-test-* GHCR tags",
+    "platform/ and jenkins/ still reference ecr_repository_* outputs (rebuild scope)",
+    "HM6 wording, then P39"
+  ]
+}

@@ -2,11 +2,18 @@
 
 Started September 12, 2026. This implements **E21 — durable home hosting** in the
 [active backlog](../../docs/planning/02-showcase-backlog.md), which must finish before P39.
-Driftplain will stay online and be maintained; it has no showcase expiry date. **AWS remains production until verified
-cutover and Steve's explicit teardown approval.** Steve approved the completed foundation
-and workspace consolidation on September 12, 2026; subsequent slices retain their review gates.
+Driftplain will stay online and be maintained; it has no showcase expiry date. AWS compute
+was retired on September 21, 2026 and production moved here at HM7; Steve approved each slice
+at its review gate.
 
-## Current slice: HM5 sustainable public operation (in progress since September 17)
+## Status — September 22, 2026
+
+HM5, HM7 and HM8 are complete: production serves from this cluster
+([HM7-CUTOVER.md](HM7-CUTOVER.md)); the retained AWS services, ownership and availability limits
+are in [HM8-RETAINED-SERVICES.md](HM8-RETAINED-SERVICES.md); day-to-day operation is
+[HM5-OPERATIONS.md](HM5-OPERATIONS.md). The sections below are the build record in slice order.
+
+## HM5 sustainable public operation (complete September 18)
 
 Runbooks: [HM5-OPERATIONS.md](HM5-OPERATIONS.md) (what runs where, checks, how to enable the
 gated pieces), [HM5-MAINTENANCE.md](HM5-MAINTENANCE.md) (calendar, upgrades, Mac runtime copy),
@@ -238,7 +245,6 @@ do not reset the firewall or touch the completed lid/power configuration.
 - [Embedded etcd](https://docs.k3s.io/datastore/ha-embedded)
 - Current release/HLD/backlog: umbrella `docs/showcase/p38r/README.md`,
   `docs/planning/hld.md`, `docs/planning/02-showcase-backlog.md` (canonical workspace paths).
-- Initiating handoff: umbrella `docs/session-handoffs/phase2-showcase/2026-09-12-home-kubernetes-migration.md`.
 
 ## Workspace and planning update
 

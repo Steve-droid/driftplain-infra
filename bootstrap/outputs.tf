@@ -28,18 +28,6 @@ output "budget_alerts_topic_arn" {
   value       = aws_sns_topic.budget_alerts.arn
 }
 
-# Re-exported from the ECR module so platform/ and gitops can resolve image locations via
-# terraform_remote_state on this bootstrap stack (no hardcoded registry URLs).
-output "ecr_repository_urls" {
-  description = "Map of ECR repository name -> repository URL (no tag)."
-  value       = module.ecr.repository_urls
-}
-
-output "ecr_repository_arns" {
-  description = "Map of ECR repository name -> repository ARN."
-  value       = module.ecr.repository_arns
-}
-
 # Ingestion bucket (P6). Read by platform/ via terraform_remote_state so the P7 IRSA role-A
 # policy can scope s3 access to this exact ARN — the app contract, not duplicated as a literal.
 output "ingestion_bucket_name" {
@@ -65,25 +53,4 @@ output "home_server_backup_bucket_arn" {
 output "home_server_recovery_key_secret_arn" {
   description = "Operator recovery-key secret metadata; private value is never read by Terraform."
   value       = aws_secretsmanager_secret.home_server_recovery_key.arn
-}
-
-# --- P34b budget kill switch (killswitch.tf) ---
-output "killswitch_codebuild_project" {
-  description = "CodeBuild project that tears down platform/ (the budget kill switch; also the P47 final teardown)."
-  value       = aws_codebuild_project.platform_teardown.name
-}
-
-output "killswitch_lambda_arn" {
-  description = "ARN of the us-east-1 Lambda subscribed to the budget topic (filters the 90% ACTUAL alert, starts the build)."
-  value       = aws_lambda_function.killswitch.arn
-}
-
-output "killswitch_events_topic_arn" {
-  description = "SNS topic (ap-south-1) that emails the teardown build's state changes."
-  value       = aws_sns_topic.killswitch_events.arn
-}
-
-output "killswitch_final_teardown_cmd" {
-  description = "P47: the real teardown, on demand (DRY_RUN=0 must be passed explicitly — the project default is a plan-only dry run)."
-  value       = "aws codebuild start-build --region ${var.aws_region} --project-name ${aws_codebuild_project.platform_teardown.name} --environment-variables-override name=DRY_RUN,value=0,type=PLAINTEXT"
 }

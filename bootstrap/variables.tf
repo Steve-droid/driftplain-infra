@@ -22,11 +22,6 @@ variable "alert_email" {
   type        = string
 }
 
-variable "ecr_repository_names" {
-  description = "ECR repositories managed by this stack (FE / BE / agent / agent-security). Imported in P5, recreated in P32; agent-security adopted in P38d."
-  type        = list(string)
-}
-
 variable "ingestion_bucket_name" {
   description = "S3 bucket for catalog-ingestion source docs (S5b). APP CONTRACT — must match the default of `s3_bucket` in modelmatch-backend/app/config.py; the P7 IRSA role-A policy scopes to its ARN."
   type        = string
@@ -80,51 +75,4 @@ variable "home_server_recovery_operator_arn" {
     condition     = can(regex("^arn:aws:iam::[0-9]{12}:(user|role)/.+$", var.home_server_recovery_operator_arn))
     error_message = "Use an explicit IAM user or role ARN, not a wildcard or STS session ARN."
   }
-}
-
-# --- P34b budget kill switch (killswitch.tf) ---
-
-variable "killswitch_lambda_dry_run" {
-  description = "DRY_RUN value the kill-switch Lambda passes to the teardown build: \"1\" = plan-only (test), \"0\" = the real teardown. Flipped to \"0\" once the dry-run tests pass."
-  type        = string
-}
-
-variable "killswitch_trigger_percent" {
-  description = "Budget percentage (ACTUAL) that arms the teardown. Must match the ACTUAL notification threshold in budget.tf that the Lambda filters on."
-  type        = number
-}
-
-variable "killswitch_build_timeout_minutes" {
-  description = "CodeBuild timeout for the platform teardown build (a full destroy takes ~15 min; every internal wait is separately capped)."
-  type        = number
-}
-
-variable "killswitch_log_retention_days" {
-  description = "CloudWatch retention for the kill-switch Lambda + teardown build logs (the trace is a portfolio artifact)."
-  type        = number
-}
-
-variable "codebuild_image" {
-  description = "Curated CodeBuild image for the teardown build (awscli + git + jq built in; terraform is installed from the pinned zip)."
-  type        = string
-}
-
-variable "terraform_version" {
-  description = "Terraform version installed in the teardown build — pin the same version the laptop runs."
-  type        = string
-}
-
-variable "terraform_sha256_linux_amd64" {
-  description = "SHA256 of terraform_<version>_linux_amd64.zip from the official SHA256SUMS; the build refuses a mismatch."
-  type        = string
-}
-
-variable "infra_repo_url" {
-  description = "Public HTTPS clone URL of this repo — the teardown build clones it (no credential needed)."
-  type        = string
-}
-
-variable "infra_repo_branch" {
-  description = "Branch the teardown build checks out."
-  type        = string
 }

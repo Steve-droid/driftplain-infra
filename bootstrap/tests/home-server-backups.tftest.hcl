@@ -11,7 +11,6 @@ mock_provider "aws" {
   }
 }
 mock_provider "aws" { alias = "us_east_1" }
-mock_provider "archive" {}
 
 run "private_versioned_destination" {
   command = plan
@@ -34,8 +33,12 @@ run "private_versioned_destination" {
     error_message = "Every public-access block must remain enabled."
   }
   assert {
-    condition     = var.killswitch_lambda_dry_run == "1"
-    error_message = "Preparing backups must not re-arm automatic source teardown."
+    # HM8: the only statement left is the TLS deny; no teardown principal exists to name.
+    condition = (
+      length(jsondecode(aws_s3_bucket_policy.home_server_backups.policy).Statement) == 1 &&
+      jsondecode(aws_s3_bucket_policy.home_server_backups.policy).Statement[0].Sid == "DenyInsecureTransport"
+    )
+    error_message = "The backup bucket policy denies insecure transport and grants nothing."
   }
 }
 
