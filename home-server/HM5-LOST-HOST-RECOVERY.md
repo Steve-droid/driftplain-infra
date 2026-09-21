@@ -33,8 +33,11 @@ PostgreSQL data (restored from S3), Prometheus history (2 days, not needed).
    after approval) if the connector was enabled; rotate the app JWT key when the app is re-sealed
    (step 5). The sealing-key backups and DB exports are age-encrypted; the recovery identity was
    never on the host.
-2. **Host.** Install Ubuntu, reserve `192.168.1.93` at the router, strict-key SSH + `sudo -n`,
-   UFW/Tailscale per [REMOTE-ACCESS.md](REMOTE-ACCESS.md). On the Mac, replace the old host key
+2. **Host.** Install Ubuntu on the Samsung disk, reserve `192.168.1.93` at the router,
+   strict-key SSH + `sudo -n`, UFW/Tailscale per [REMOTE-ACCESS.md](REMOTE-ACCESS.md).
+   If the Kingston is present, recreate its separate ext4 `/srv/home-server-storage` mount
+   only after confirming the Samsung is the boot/root disk; no recovery-critical data is
+   currently assigned to it. On the Mac, replace the old host key
    binding for `home-server` (the LaunchAgents use strict host-key checking and will fail closed
    until then).
 3. **Cluster.** README "Run": `prepare.sh` → `bootstrap.sh --check` → `sudo … --apply` →

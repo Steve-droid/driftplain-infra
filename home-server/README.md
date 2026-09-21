@@ -151,7 +151,8 @@ was performed by this bootstrap. The service will remain online after the post.
 - Home: Ubuntu Desktop 26.04.1, Linux 7.0.0-31, x86_64 Ryzen 5600H, 22 GiB usable RAM
   (~14 GiB available), 422 GiB root disk free; cgroup v2; `/swap.img` 8 GiB/unused.
   Ethernet eno1 `192.168.1.93/24`, DHCP via `192.168.1.1`. No existing runtimes/cluster.
-  Root UUID `9ce972e8-f060-45fc-97fe-296664de6a7c`; Kingston LUKS SSD untouched.
+  Root UUID `9ce972e8-f060-45fc-97fe-296664de6a7c`; at this baseline the Kingston
+  still held its old, unmounted LUKS layout (superseded September 21 below).
 - Privileged preflight: UFW **inactive**, despite its systemd unit being enabled/active;
   IPv4 filter/NAT and IPv6 filter policies ACCEPT, no rules. Modules available; no
   listener on cluster ports; IP forwarding initially 0. Original report remains on Ubuntu.
@@ -182,6 +183,25 @@ was performed by this bootstrap. The service will remain online after the post.
   No source-document rows or stored Jenkins/BYOK references exist. The five CI token
   hashes must survive the restore unchanged. The in-memory adapters are still a product
   limitation for future uploads/credential writes, not missing migration payloads here.
+
+## Current storage and boot — September 21, 2026
+
+- Samsung `S4GLNX0T147074` remains the Ubuntu boot/root disk and holds K3s, CNPG and
+  all current workloads.
+- Kingston `50026B7382D6B8E9` was explicitly released for Ubuntu use. Its Omarchy
+  EFI/LUKS layout was erased and replaced by one ext4 partition (UUID
+  `bcce76c6-42a2-46ef-b35b-1327cbb6fbd9`), mounted from `/etc/fstab` at
+  `/srv/home-server-storage` with `nofail` and a 10-second device timeout. It provides
+  458 GiB usable auxiliary capacity; no application data has been moved there.
+- Stale Windows, Limine and Kingston-disk UEFI entries were removed. `Boot0000 Ubuntu`
+  is first, firmware timeout is zero, and GRUB is hidden with timeout zero. The remaining
+  internal-disk fallback points to Ubuntu's Samsung EFI partition; USB is last.
+- A coordinated reboot on September 21 changed the kernel boot ID and returned over SSH
+  without a boot-menu intervention. The Kingston remounted read/write from `fstab`; K3s,
+  all 14 Argo CD applications, CNPG and both staging URLs recovered healthy.
+- The pre-change partition table, firmware entries and `fstab` are root-only under
+  `/var/backups/home-server-storage-20260921T204600Z` on the Samsung disk, together with
+  the post-reboot verification record.
 
 ## Verification record
 

@@ -3,7 +3,10 @@
 Target: `steve@192.168.1.93`, hostname `home-server`, Ubuntu Desktop 26.04.1.
 Hardware: Ryzen 5 5600H (6 cores / 12 threads), 24 GB installed RAM.
 Ubuntu uses the Samsung 512 GB SSD. Steve confirmed Windows was intentionally removed.
-The Kingston SSD contains a separate LUKS partition and has not been changed.
+On September 21 Steve directed that the Kingston 500 GB SSD also be dedicated to Ubuntu.
+Its old Omarchy EFI/LUKS layout was removed and it is now one ext4 filesystem, mounted
+persistently at `/srv/home-server-storage`. K3s and CNPG remain on the Samsung root disk.
+A coordinated reboot verified direct Ubuntu boot and automatic remount on September 21.
 
 SSH key login from Steve's Mac was verified. Steve subsequently enabled passwordless `sudo -n`; see [RESULTS.md](RESULTS.md).
 
