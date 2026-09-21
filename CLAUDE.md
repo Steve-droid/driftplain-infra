@@ -1,26 +1,28 @@
 # CLAUDE.md — driftplain-infra
 
-## AWS compute retired — September 21, 2026
+## HM8 done — retained services reviewed — September 22, 2026
 
-The `platform/` stack no longer exists (empty state): EKS, nodes, NAT gateways, the ingress NLB,
-EBS volumes and the VPC were destroyed on September 21 after a verified final production export,
-because Steve's AWS credits were running out. Read
-[home-server/AWS-COMPUTE-RETIREMENT.md](home-server/AWS-COMPUTE-RETIREMENT.md) for the decision,
-evidence, the remaining-resource inventory and the monthly estimate. `bootstrap/`, `dns/`
-(now `records_enabled = false`), `cloudflare/` and `home-server/identity` persist. Never
-re-apply `platform/` as incidental work; `home-server-database.py export --source aws` can no
-longer run. **HM7 (September 22, infra v0.36.0):** `postgres/final/aws-20260921T210119Z/` is
-restored into the home instance as production and `cloudflare/` routes `driftplain.dev` /
-`api.driftplain.dev` through the tunnel (`tunnel_hosts`; the NLB twins are gone) — see
-[home-server/HM7-CUTOVER.md](home-server/HM7-CUTOVER.md). The old Retain PV
-`pvc-7aba0fae-a8f2-4edc-a6fe-0c2c744e3edb` stays until HM8 decides. The demo bring-up skill and
-every "AWS is the origin / production is authoritative" sentence below are historical. Next: HM8
-(retained-services review); next tags infra v0.38.0, gitops v0.35.0. The home backend is 1.0.25 (honest offline chat answer, built locally → GHCR; see HM7-CUTOVER.md §7).
+**The home cluster is the only runtime; AWS holds persistent services only.** `platform/` is
+empty state since September 21 ([decision](home-server/AWS-COMPUTE-RETIREMENT.md)); HM7 restored
+the final export at home and routed `driftplain.dev` / `api.driftplain.dev` through the tunnel
+([record](home-server/HM7-CUTOVER.md)); **HM8** ([record](home-server/HM8-RETAINED-SERVICES.md),
+infra v0.38.0) removed ECR (history on public GHCR, digests equal), the P34b kill-switch chain
+and the `archive` provider, set the budget to **$10/month gross** (80 % / 100 % ACTUAL + 100 %
+FORECASTED emails), scheduled `modelmatch/app` for deletion (October 21, 2026) and removed the old
+home PV. Releases now publish to GHCR from GitHub Actions on a tag (backend `release-image.yml`
+/ `release-agent-images.yml`, frontend `release-image.yml`); the gitops home profile pins digests.
+`bootstrap/` = state, ingestion and backup buckets, recovery-key entry, budget + SNS (24
+resources; `terraform test -var-file=dev.tfvars`). Route 53 keeps both zones by decision.
+`platform/` and `jenkins/` are dormant rebuild paths that still reference the removed
+`ecr_repository_*` outputs — rework them only under explicit rebuild scope. Never re-apply
+`platform/` as incidental work. Every "AWS is the origin / production is authoritative / ECR /
+kill switch" sentence below is historical. **Next: HM6 wording, then P39**; next tags infra
+v0.39.0, gitops v0.35.0 (v0.34.0 pins backend 1.0.25).
 
 ## Claude Code continuation — HM5 sustainable public operation — September 17, 2026
 
-Read [the HM5 handoff](../docs/session-handoffs/E21-home-hosting/2026-09-17-hm5-sustainable-public-operation.md)
-first and follow [umbrella instructions](../CLAUDE.md). HM3 and HM4 are complete:
+Follow [umbrella instructions](../CLAUDE.md) (the HM5 handoff was removed with the
+session-handoff archive at HM8; its content lives in the HM5 runbooks). HM3 and HM4 are complete:
 [HM3-RESTORE.md](home-server/HM3-RESTORE.md) / [HM4-HOME-APP.md](home-server/HM4-HOME-APP.md)
 and their evidence are authoritative; do not repeat the export/restore, the GHCR image copy,
 the sealing or the isolated validation. [HM2 acceptance](home-server/HM2-ACCEPTANCE.md)
@@ -94,9 +96,9 @@ it in platform retirement. Automatic leaf renewal is staged on the Mac, not inst
 **Status: ACTIVE** (activated P1, 2026-06-10). Terraform for Driftplain's AWS infrastructure.
 Region **`ap-south-1`**, account **`957261948820`**.
 
-> Part of the [Modicum portfolio build](../CLAUDE.md). Spec: `../docs/planning/architecture.md` §12,
-> the locked DevOps backlog `../docs/planning/01-devops-backlog.md` (Epic **E10**), and
-> `../docs/instructions/lesson-03` (Infrastructure) + `lesson-04` (FinOps).
+> Part of the [Driftplain portfolio build](../CLAUDE.md). Design: `../docs/planning/hld.md`
+> (the June DevOps backlog and the Develeap lesson texts were removed from the umbrella at HM8;
+> git history keeps them).
 
 ## Three stacks, three lifecycles (the central design rule)
 

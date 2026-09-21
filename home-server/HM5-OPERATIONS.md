@@ -1,12 +1,14 @@
 # HM5 operations runbook — sustainable public operation
 
-**Status September 22, 2026:** every HM5 component runs. **AWS compute was retired on
-September 21** ([record](AWS-COMPUTE-RETIREMENT.md)) and **HM7 restored the final export
-`postgres/final/aws-20260921T210119Z/` into the home instance** (16/16 categories match; see
-[HM7-CUTOVER.md](HM7-CUTOVER.md)), so the home cluster is the only runtime and holds the
-production data. The runtime hostnames `driftplain.dev` / `api.driftplain.dev` route through the
-tunnel once the HM7 Cloudflare apply and gitops `runtimeHostSet` merge land (staging stays routed).
-This runbook says what runs where, what to check, how to turn the gated pieces on, and in which order.
+**Status September 22, 2026:** every HM5 component runs; the home cluster is the only runtime
+and holds the production data. AWS compute was retired on September 21
+([record](AWS-COMPUTE-RETIREMENT.md)), HM7 restored the final export
+`postgres/final/aws-20260921T210119Z/` at home and routed `driftplain.dev` /
+`api.driftplain.dev` through the tunnel ([HM7-CUTOVER.md](HM7-CUTOVER.md)), and HM8 reviewed
+what AWS still holds ([HM8-RETAINED-SERVICES.md](HM8-RETAINED-SERVICES.md): ownership, the
+measured availability limits, retained cost about $2–3/month, releases from GitHub Actions to
+GHCR). This runbook says what runs where, what to check, how to turn the gated pieces on, and
+in which order.
 
 ## What runs where
 
@@ -19,7 +21,7 @@ This runbook says what runs where, what to check, how to turn the gated pieces o
 | Cluster heartbeat (pings only when no critical alert fires) | home child `heartbeat`, CronJob `*/5` | **Running** since September 18 22:26 UTC (gitops v0.30.0, sealed URL); notification test passed September 18 (`hm5-monitor-evidence.json`) | gitops `charts/home-server-heartbeat/values.yaml` |
 | In-cluster backup CronJob (Roles Anywhere leaf) | home child `backup`, CronJob `23 * * * *` | **Running** hourly (gitops v0.27.0, image by digest, package public September 18); first run restored and verified | gitops `charts/home-server-backup/values.yaml`; image in `backup-image/` |
 | Cloudflare Tunnel connector | home child `cloudflared`, Deployment | **1 replica** with the sealed token (gitops v0.28.0) | gitops `charts/home-server-cloudflared/values.yaml` |
-| Cloudflare zones, tunnel, runtime + staging hosts | infra `cloudflare/` root | **Applied September 18**; `driftplain.dev` delegated and active September 18, staging exercise passed; HM7 adds the runtime pair and drops the dangling NLB twins; `modicum.cloud` will not be delegated (Steve, September 18: the domain is not needed; its zone stays applied and unused until the HM8 review) | [`../cloudflare/README.md`](../cloudflare/README.md) |
+| Cloudflare zones, tunnel, runtime + staging hosts | infra `cloudflare/` root | **Applied September 18**; `driftplain.dev` delegated and active September 18, staging exercise passed; HM7 adds the runtime pair and drops the dangling NLB twins; `modicum.cloud` will not be delegated (Steve, September 18: the domain is not needed; its zone stays applied and unused; HM8 kept both zones) | [`../cloudflare/README.md`](../cloudflare/README.md) |
 | S3 retention lifecycle (hourly 1 d, daily 30 d, noncurrent/delete-marker cleanup) | infra `bootstrap/` | **Applied September 17** (three rules Enabled) | `hm5-backup-evidence.json` → `retention_plan` |
 | Roles Anywhere trust anchor + both profiles | infra `home-server/identity` | **Enabled September 17** (`home_server_sessions_enabled=true`); sessions: 1 h, leaf-bound | `dev.tfvars`; emergency denial = flag back to false + apply |
 
