@@ -53,15 +53,15 @@ The home node is reached over strict-key SSH (`ssh home-server`). The runbooks i
 [`home-server/`](home-server/README.md) cover bootstrap, restore from S3, identity renewals,
 lost-host recovery and the operating calendar. Start with
 [HM5-OPERATIONS.md](home-server/HM5-OPERATIONS.md) for what runs and what to check, and
-[HM7-CUTOVER.md](home-server/HM7-CUTOVER.md) for how production moved home.
+[HM7-CUTOVER.md](home-server/HM7-CUTOVER.md) for how production was migrated to the home server.
 
 ## History
 
-The graded June 2026 delivery ran on EKS: VPC with NAT per AZ, EKS with IRSA, ECR, a Jenkins
-controller on EC2, an ArgoCD app-of-apps and a budget kill switch. Phase 2 (September 2026)
-rebuilt it in this account, went public at `driftplain.dev`, then moved home when the credits ran
-out ([decision record](home-server/AWS-COMPUTE-RETIREMENT.md)). The review that removed ECR and
-the kill switch is [HM8-RETAINED-SERVICES.md](home-server/HM8-RETAINED-SERVICES.md).
+The June 2026 delivery ran on EKS: VPC with NAT per AZ, EKS with IRSA, ECR, a Jenkins
+controller on EC2, an ArgoCD app-of-apps and a budget kill switch. In September 2026 the app
+went public at `driftplain.dev` and was then migrated to a home Ubuntu server running K3s, to
+run and operate the same workload on-prem. The retained-services review that followed is
+[HM8-RETAINED-SERVICES.md](home-server/HM8-RETAINED-SERVICES.md).
 
 ## Conventions
 
