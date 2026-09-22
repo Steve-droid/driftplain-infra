@@ -1,72 +1,91 @@
-# Driftplain infra
+# Driftplain infrastructure
 
-[driftplain.dev](https://driftplain.dev) · [Frontend](https://github.com/Steve-droid/driftplain-frontend) · [Backend](https://github.com/Steve-droid/driftplain-backend) · [GitOps](https://github.com/Steve-droid/driftplain-gitops) · **Infra**
+[Project overview](https://github.com/Steve-droid/driftplain) · [Open the app](https://driftplain.dev) · [Frontend](https://github.com/Steve-droid/driftplain-frontend) · [Backend](https://github.com/Steve-droid/driftplain-backend) · [GitOps](https://github.com/Steve-droid/driftplain-gitops)
 
-Driftplain picks a cheaper LLM for code review from benchmark data and runs it in the user's CI
-on the user's own API key. There are two agents. The review agent makes one API call with the PR
-diff and the user's review preferences. The security agent runs an agentic loop with OpenCode
-over the checkout and reports vulnerabilities. The dashboard shows the money saved while review
-quality holds.
+This repo provisions the infrastructure behind Driftplain and contains the tools for operating
+it. Terraform manages AWS and Cloudflare resources. Shell and Python scripts handle home-server
+setup, backups, identity renewal and recovery.
 
-This repo is the Terraform and operator tooling. Since September 22, 2026 the app runs on a
-single-node K3s cluster on a home Ubuntu server behind a Cloudflare tunnel. AWS keeps only persistent services:
-state, backups, DNS, identity and a budget. This repo owns both sides.
+The app moved from AWS EKS to a single-node K3s cluster on an Ubuntu home server in September
+2026. Cloudflare Tunnel connects the public domains to the private cluster. AWS still provides
+storage and identity services; it no longer runs the application.
 
 ## What runs where
 
-| Where | What | Owned by |
-|---|---|---|
-| Home (K3s `driftplain-home`, one node) | the app, CloudNativePG Postgres, ArgoCD, cert-manager, F5 NGINX ingress, the tunnel connector, backup and heartbeat jobs | [`home-server/`](home-server/) and the [gitops home profile](https://github.com/Steve-droid/driftplain-gitops/tree/main/argocd/home-server) |
-| Cloudflare | authoritative DNS for `driftplain.dev` and the named tunnel to the private ingress | [`cloudflare/`](cloudflare/) |
-| AWS `957261948820`, `ap-south-1` | S3 (Terraform state, encrypted Postgres backups, ingestion sources), Secrets Manager (the backup recovery key), Route 53 (two zones; `driftplain.dev` is delegated to Cloudflare), IAM Roles Anywhere (the home node's short-lived identity), Budgets + SNS email | [`bootstrap/`](bootstrap/), [`dns/`](dns/) |
+| Location | Responsibilities |
+|---|---|
+| Home server | K3s, the frontend and API, PostgreSQL, ArgoCD, ingress, monitoring, backups and the tunnel connector. |
+| Cloudflare | Public DNS for `driftplain.dev` and the tunnel into the cluster. |
+| AWS | S3 for Terraform state, database backups and ingestion sources; the backup recovery key in Secrets Manager; IAM Roles Anywhere; retained Route 53 zones; budget email alerts. |
 
-## Layout
+This repo prepares the host and external services. The
+[GitOps repo](https://github.com/Steve-droid/driftplain-gitops) defines what runs inside Kubernetes.
 
-```
-bootstrap/    persistent AWS: state bucket, ingestion bucket, backup bucket and lifecycle,
-              recovery-key entry, budget and SNS. terraform test covers the backup and key contracts.
-dns/          Route 53 zones
-cloudflare/   Cloudflare zones, records and the home tunnel
-home-server/  the home node: bootstrap.sh, prepare.sh, verify.sh, identity (Roles Anywhere issuer and
-              leaf renewal), S3 backups and restore, maintenance, and the HM2 to HM8 records with evidence
-platform/     the retired EKS platform (VPC, EKS, IRSA, ArgoCD seed), kept as the rebuild path
-jenkins/      the retired Jenkins controller root, kept for reference
-modules/      vpc, eks, iam-irsa, jenkins-controller (own modules only)
-scripts/      teardown-platform.sh, discover-ingress-dns.py
-```
+## Main directories
 
-## Working with it
+Each Terraform directory below has its own state and input values.
 
-Every root is defaultless: `variables.tf` declares inputs only and each command passes the
-committed non-secret values explicitly.
+| Path | Purpose |
+|---|---|
+| [bootstrap](bootstrap/) | S3 buckets, backup retention, the recovery-key entry and AWS budget alerts. |
+| [cloudflare](cloudflare/) | DNS records and the named tunnel. |
+| [dns](dns/) | Retained Route 53 zones. Cloudflare now serves public DNS for `driftplain.dev`. |
+| [home-server/identity](home-server/identity/) | IAM Roles Anywhere resources. These exchange host certificates for short-lived AWS credentials used by backup and recovery tools. |
+| [home-server](home-server/) | Host setup, database restore, backup scheduling, certificate renewal, maintenance scripts and operating runbooks. |
+| [home-server/backup-image](home-server/backup-image/) | Container image used by the cluster's scheduled database backup job. |
+| [platform](platform/) | Terraform for the retired EKS deployment, including networking, cluster identity and ArgoCD setup. |
+| [jenkins](jenkins/) | Terraform for the retired Jenkins controller on EC2. |
+| [modules](modules/) | Reusable modules for the VPC, EKS, IAM roles and Jenkins controller. |
+| [scripts](scripts/) | Utilities from the AWS deployment, including ingress discovery and platform teardown. |
+
+## Operating the home server
+
+Start with the [operations guide](home-server/HM5-OPERATIONS.md) for routine checks,
+monitoring and maintenance. The main supporting guides are:
+
+- [Host setup](home-server/README.md): prepare Ubuntu and install K3s.
+- [S3 backups](home-server/S3-BACKUPS.md): encrypted backups and retention.
+- [Lost-host recovery](home-server/HM5-LOST-HOST-RECOVERY.md): rebuild the server and restore its data and credentials.
+- [Migration record](home-server/HM7-CUTOVER.md): move production data and public traffic from EKS.
+- [Retained AWS services](home-server/HM8-RETAINED-SERVICES.md): what remains in AWS and why.
+
+The cluster exports an encrypted database backup to S3 every hour. Operator-side jobs keep
+additional recovery material backed up and manage certificate renewal. Prometheus monitors
+the cluster, and a heartbeat job checks alerts and public endpoints before notifying an
+external uptime monitor that the service is healthy.
+
+The deployment depends on one machine, its power and its internet connection. Backups and
+restore procedures provide recovery; there is no second server for automatic failover.
+
+## Working with Terraform
+
+Use Terraform and AWS credentials for the intended account. `AWS_PROFILE` selects the local
+AWS profile. AWS resources are in `ap-south-1`.
+
+Input variables have no defaults. Each root keeps concrete, non-sensitive values in
+`dev.tfvars`, passed explicitly:
 
 ```bash
 terraform -chdir=bootstrap init
-terraform -chdir=bootstrap plan  -var-file=dev.tfvars
-terraform -chdir=bootstrap test  -var-file=dev.tfvars
+terraform -chdir=bootstrap plan -var-file=dev.tfvars
 ```
 
-`AWS_PROFILE` selects the credentials. `apply` is a reviewed, explicit step. State is in S3 with
-S3-native locking, one key per root.
+State is stored in S3 with native locking and a separate key for each root. Review the plan
+before applying it. The retired `platform/` and `jenkins/` roots are kept for reference;
+they are not part of routine home-server operation.
 
-The home node is reached over strict-key SSH (`ssh home-server`). The runbooks in
-[`home-server/`](home-server/README.md) cover bootstrap, restore from S3, identity renewals,
-lost-host recovery and the operating calendar. Start with
-[HM5-OPERATIONS.md](home-server/HM5-OPERATIONS.md) for what runs and what to check, and
-[HM7-CUTOVER.md](home-server/HM7-CUTOVER.md) for how production was migrated to the home server.
+## Checks
 
-## History
+Check Terraform formatting and run the mocked backup tests:
 
-The June 2026 delivery ran on EKS: VPC with NAT per AZ, EKS with IRSA, ECR, a Jenkins
-controller on EC2, an ArgoCD app-of-apps and a budget kill switch. In September 2026 the app
-went public at `driftplain.dev` and was then migrated to a home Ubuntu server running K3s, to
-run and operate the same workload on-prem. The retained-services review that followed is
-[HM8-RETAINED-SERVICES.md](home-server/HM8-RETAINED-SERVICES.md).
+```bash
+terraform fmt -check -recursive
+terraform -chdir=bootstrap init -backend=false
+terraform -chdir=bootstrap test -var-file=dev.tfvars
+```
 
-## Conventions
+The bootstrap tests check bucket protection, retention and recovery-key configuration without
+creating AWS resources. The `test*.py` files in [home-server/](home-server/) cover the operating
+tools. Live host checks and restore drills are documented in the runbooks.
 
-- Own modules only. Defaultless variables with an explicit `-var-file`. No secrets in tfvars or state.
-- `feature/<slice>-<description>`, then a PR to `main`. Conventional Commits. A SemVer tag per merged slice.
-- Nothing mutating runs unattended: no auto-apply, no scheduled destroy.
-
-Steve Levit, stevelevit230@gmail.com
+Resource names beginning with `modelmatch` remain from the project's original name.
