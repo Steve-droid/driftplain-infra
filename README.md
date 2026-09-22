@@ -88,4 +88,7 @@ The bootstrap tests check bucket protection, retention and recovery-key configur
 creating AWS resources. The `test*.py` files in [home-server/](home-server/) cover the operating
 tools. Live host checks and restore drills are documented in the runbooks.
 
-Resource names beginning with `modelmatch` remain from the project's original name.
+New application images use `driftplain-*` package names. Existing images are retained and
+version numbers continue across the rename; see the
+[image naming policy](https://github.com/Steve-droid/driftplain/blob/main/IMAGE-NAMING.md).
+Infrastructure resource names beginning with `modelmatch` remain unchanged.

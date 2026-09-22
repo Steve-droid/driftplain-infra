@@ -1,5 +1,19 @@
 # CLAUDE.md — driftplain-infra
 
+## Application image names (September 22, 2026)
+
+New releases use `ghcr.io/steve-droid/driftplain-backend`, `driftplain-frontend`,
+`driftplain-agent` and `driftplain-agent-security`. Follow the
+[image naming policy](https://github.com/Steve-droid/driftplain/blob/main/IMAGE-NAMING.md).
+Continue each existing version sequence; do not reset versions, reuse published tags or
+delete old `modelmatch-*` packages. The verified starting points are backend 1.1.1,
+frontend 1.1.0 and agents 1.1.3; check fresh tags before choosing the next version.
+
+Keep existing production image pins until the new packages are published, public and
+verified by an anonymous pull. Update both repository and digest for the first deployment
+under a new name. Preserve Kubernetes, database, volume and CI credential/environment names.
+This policy overrides older image-naming statements below; it does not authorize a deployment.
+
 ## HM8 done — retained services reviewed — September 22, 2026
 
 **The home cluster is the only runtime; AWS holds persistent services only.** `platform/` is
@@ -91,7 +105,7 @@ The enrolled public CA and disabled resources are verified; leaves/CRL/enablemen
 remain gated. Use explicit `-var-file=dev.tfvars` for fresh plans; never include
 it in platform retirement. Automatic leaf renewal is staged on the Mac, not installed.
 
-> Driftplain was previously Modicum / ModelMatch. The four public repositories use `driftplain-*`; existing infrastructure, images, database names, metrics and CI credential/environment identifiers retain `modelmatch` for compatibility. Modicum DNS is live; P38r added and delegated Driftplain without replacing that zone. Public Google ownership TXT proof lives in the same DNS state.
+> Driftplain was previously Modicum / ModelMatch. The four public repositories use `driftplain-*`; existing infrastructure, database names, metrics and CI credential/environment identifiers retain `modelmatch` for compatibility. New image releases follow the policy above. Modicum DNS is live; P38r added and delegated Driftplain without replacing that zone. Public Google ownership TXT proof lives in the same DNS state.
 
 **Status: ACTIVE** (activated P1, 2026-06-10). Terraform for Driftplain's AWS infrastructure.
 Region **`ap-south-1`**, account **`957261948820`**.
