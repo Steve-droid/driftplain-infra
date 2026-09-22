@@ -1,5 +1,35 @@
 # CLAUDE.md — driftplain-infra
 
+## Release versioning (September 22, 2026)
+
+Follow [SemVer 2.0.0](https://semver.org/) and the
+[release policy](https://github.com/Steve-droid/driftplain/blob/main/RELEASE-POLICY.md).
+These rules replace older per-slice tagging rules and fixed next-version suggestions.
+
+- **PATCH:** compatible bug fixes or dependency/security/packaging fixes needing a new artifact.
+- **MINOR:** new backward-compatible functionality or deprecation with continued compatibility.
+- **MAJOR:** a breaking supported API, CLI, configuration, user workflow or operational upgrade contract.
+- **No release:** documentation, comments, tests or internal tooling/refactoring alone, unless a
+  changed distributable is needed. Compatible internal/build changes that require an image get a patch.
+- Evaluate all relevant changes since the last release of that component. Use the highest bump;
+  reset patch for a minor, and minor/patch for a major. Commit prefixes and task numbers do not
+  choose the version. Record `previous -> next`, category and compatibility reason in the PR or release.
+- Fetch fresh tags and check published versions before choosing a number. Backend, frontend,
+  agents, infrastructure and GitOps have independent sequences. Both agents share one
+  `agent-vX.Y.Z` sequence; other component repos use `vX.Y.Z`. Keep existing 1.x sequences.
+- A completed task does not automatically need a tag. For an intentional release, tag the
+  reviewed main commit and create a GitHub Release even for patch/minor versions. Check for
+  concurrent releases before tagging. Publication and deployment are separate actions.
+- Never move, delete or overwrite a published tag/image to fix an incorrect bump. Backend
+  `1.1.1` remains published; its added public APIs warranted a minor. The next backend release
+  must be at least `1.2.0`, adjusted for any newer releases or breaking changes.
+- Continue versions across the image rename. Preserve old packages, current deployment pins
+  and all operational approval requirements. This policy itself requires no release tag.
+
+Infrastructure compatibility covers Terraform inputs/outputs, state/resource identity and
+operator commands. Optional new capabilities are minor. Manual state migration, disruptive
+stateful-resource replacement or breaking operator configuration is major; compatible fixes are patch.
+
 ## Application image names (September 22, 2026)
 
 New releases use `ghcr.io/steve-droid/driftplain-backend`, `driftplain-frontend`,
@@ -30,8 +60,7 @@ resources; `terraform test -var-file=dev.tfvars`). Route 53 keeps both zones by 
 `platform/` and `jenkins/` are dormant rebuild paths that still reference the removed
 `ecr_repository_*` outputs — rework them only under explicit rebuild scope. Never re-apply
 `platform/` as incidental work. Every "AWS is the origin / production is authoritative / ECR /
-kill switch" sentence below is historical. **Next: HM6 wording, then P39**; next tags infra
-v0.39.0, gitops v0.35.0 (v0.34.0 pins backend 1.0.25).
+kill switch" sentence below is historical. Version choices follow the release policy above.
 
 ## Claude Code continuation — HM5 sustainable public operation — September 17, 2026
 
@@ -55,7 +84,7 @@ test passed), modicum.cloud stays undelegated and Google sign-in stays productio
 decision. Leaf renewal LaunchAgent running since
 September 18 23:02 UTC (Keychain authorized; infra v0.34.0). Remaining gates: the reviewed manual
 `update-crl` then `crl_publish: true`. The staging HTTPS checks run as edge probes in the cluster
-heartbeat (gitops v0.31.0, September 20). Next tags: infra v0.35.0, gitops v0.32.0.
+heartbeat (gitops v0.31.0, September 20). Version choices follow the release policy above.
 
 HM5 owns, in `home-server/`: the scheduled encrypted backup of the **home** CNPG instance
 (Mac launchd interim now: export over strict-key SSH, single-PUT upload with checksums,
