@@ -96,3 +96,8 @@ silently writing data into the empty mountpoint on the Samsung root disk.
 | infra, home-server tools | `"$HOME_SERVER_PYTHON" home-server/test-home-server-{backup-schedule,maintenance,sealing-keys,database,issuer,renewal}.py` |
 | infra, Terraform | `terraform -chdir=<root> test -var-file=dev.tfvars` (`cloudflare/` adds `-var-file=records.tfvars.json`) |
 | infra, DNS | `dns/scripts/test-route53-cloudflare-sync.py`; before any Cloudflare plan: `export` → `diff` must print OK |
+## Prepared catalog refresh maintenance (September 24, 2026)
+
+Follow [CATALOG-REFRESH.md](CATALOG-REFRESH.md) before any future scheduler rollout.
+Monitor retained report-byte growth with existing DB/disk checks. B16 includes no
+destructive retention, installed scheduler or permission to change production.

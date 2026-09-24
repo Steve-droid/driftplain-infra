@@ -150,3 +150,8 @@ restored final export since HM7 and the old Retain PV `pvc-7aba0fae-a8f2-4edc-a6
 is kept until a separate approval deletes it); modicum.cloud stays un-routed; never `noTLSVerify`; no Cloudflare Access on API/OAuth; secrets only as sealed
 manifests or Mac-held files with mode 0600; any `terraform apply`, DNS delegation, session
 enablement or bucket lifecycle apply is a separate explicit approval.
+## Catalog refresh operator entry point (September 24, 2026)
+
+See [CATALOG-REFRESH.md](CATALOG-REFRESH.md) for B16's disabled scheduler, separate
+check/content freshness, pending reviews and bounded recovery. It is not installed
+or enabled, and requires separate migration/deployment/import authorization.

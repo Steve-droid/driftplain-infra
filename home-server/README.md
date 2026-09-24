@@ -267,3 +267,8 @@ The installed node/context `driftplain-home`, `/home/steve/.kube/driftplain-home
 performed. Historical evidence and previously uploaded immutable scripts describe the original
 namespace names and hashes. Upload a new immutable copy of the current source before a future
 drill; do not present the old live-run hashes as a verification of the renamed source.
+## Catalog refresh preparation (September 24, 2026)
+
+[B16 operations](CATALOG-REFRESH.md) documents the disabled per-source scheduler,
+health, report review and reversible snapshot selection. This is prepared source;
+installation, production imports/migrations and scheduler enablement remain gated.

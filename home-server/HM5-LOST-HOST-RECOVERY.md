@@ -84,3 +84,9 @@ Follow [HM3-RESTORE.md — Recovery from S3-only assets](HM3-RESTORE.md#recovery
 for the data path and [IDENTITY.md](IDENTITY.md#certificate-custody-renewal-and-recovery) for the
 issuer recovery bundle. The home cluster keeps running meanwhile; only the hourly backups and the
 daily maintenance stop, which the external heartbeat monitor reports within 30 minutes / 6 hours.
+## Catalog refresh recovery addition (September 24, 2026)
+
+If B16 has subsequently been deployed, keep its catalog schedules suspended during
+recovery. Restore immutable report bytes, accepted snapshots and operator audit
+with the database; follow [CATALOG-REFRESH.md](CATALOG-REFRESH.md) before separately
+approved manual checks or reenabling schedules. B16 delivery itself installs none.
