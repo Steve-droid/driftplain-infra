@@ -40,14 +40,14 @@ Each Terraform directory below has its own state and input values.
 
 ## Operating the home server
 
-Start with the [operations guide](home-server/HM5-OPERATIONS.md) for routine checks,
+Start with the [operations guide](home-server/docs/HM5-OPERATIONS.md) for routine checks,
 monitoring and maintenance. The main supporting guides are:
 
-- [Host setup](home-server/README.md): prepare Ubuntu and install K3s.
-- [S3 backups](home-server/S3-BACKUPS.md): encrypted backups and retention.
-- [Lost-host recovery](home-server/HM5-LOST-HOST-RECOVERY.md): rebuild the server and restore its data and credentials.
-- [Migration record](home-server/HM7-CUTOVER.md): move production data and public traffic from EKS.
-- [Retained AWS services](home-server/HM8-RETAINED-SERVICES.md): what remains in AWS and why.
+- [Host setup](home-server/docs/README.md): prepare Ubuntu and install K3s.
+- [S3 backups](home-server/docs/S3-BACKUPS.md): encrypted backups and retention.
+- [Lost-host recovery](home-server/docs/HM5-LOST-HOST-RECOVERY.md): rebuild the server and restore its data and credentials.
+- [Migration record](home-server/docs/HM7-CUTOVER.md): move production data and public traffic from EKS.
+- [Retained AWS services](home-server/docs/HM8-RETAINED-SERVICES.md): what remains in AWS and why.
 
 The cluster exports an encrypted database backup to S3 every hour. Operator-side jobs keep
 additional recovery material backed up and manage certificate renewal. Prometheus monitors

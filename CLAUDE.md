@@ -47,9 +47,9 @@ This policy overrides older image-naming statements below; it does not authorize
 ## HM8 done — retained services reviewed — September 22, 2026
 
 **The home cluster is the only runtime; AWS holds persistent services only.** `platform/` is
-empty state since September 21 ([decision](home-server/AWS-COMPUTE-RETIREMENT.md)); HM7 restored
+empty state since September 21 ([decision](home-server/docs/AWS-COMPUTE-RETIREMENT.md)); HM7 restored
 the final export at home and routed `driftplain.dev` / `api.driftplain.dev` through the tunnel
-([record](home-server/HM7-CUTOVER.md)); **HM8** ([record](home-server/HM8-RETAINED-SERVICES.md),
+([record](home-server/docs/HM7-CUTOVER.md)); **HM8** ([record](home-server/docs/HM8-RETAINED-SERVICES.md),
 infra v0.38.0) removed ECR (history on public GHCR, digests equal), the P34b kill-switch chain
 and the `archive` provider, set the budget to **$10/month gross** (80 % / 100 % ACTUAL + 100 %
 FORECASTED emails), scheduled `modelmatch/app` for deletion (October 21, 2026) and removed the old
@@ -66,9 +66,9 @@ kill switch" sentence below is historical. Version choices follow the release po
 
 Follow [umbrella instructions](../CLAUDE.md) (the HM5 handoff was removed with the
 session-handoff archive at HM8; its content lives in the HM5 runbooks). HM3 and HM4 are complete:
-[HM3-RESTORE.md](home-server/HM3-RESTORE.md) / [HM4-HOME-APP.md](home-server/HM4-HOME-APP.md)
+[HM3-RESTORE.md](home-server/docs/HM3-RESTORE.md) / [HM4-HOME-APP.md](home-server/docs/HM4-HOME-APP.md)
 and their evidence are authoritative; do not repeat the export/restore, the GHCR image copy,
-the sealing or the isolated validation. [HM2 acceptance](home-server/HM2-ACCEPTANCE.md)
+the sealing or the isolated validation. [HM2 acceptance](https://github.com/Steve-droid/driftplain-infra/blob/0d428cb5a8951272723ef79a4680b59a243aac65/home-server/HM2-ACCEPTANCE.md)
 supersedes earlier pending-state prose. Never re-enroll the CA.
 
 **HM5 status (September 17, evening; infra v0.26.0, gitops v0.23.0):** landed — hourly Mac
@@ -119,7 +119,7 @@ or additional tasks. Keep answers concise.
 
 ## Home migration override — September 12, 2026
 
-See `home-server/README.md` and `home-server/RESULTS.md` for the isolated home profile and live evidence.
+See `home-server/docs/README.md` and the [archived results](https://github.com/Steve-droid/driftplain-infra/blob/0d428cb5a8951272723ef79a4680b59a243aac65/home-server/RESULTS.md) for the isolated home profile and historical evidence.
 Steve authorized a single-node home K3s migration while keeping AWS production running.
 Do not apply the historical daily-destroy instructions during migration. Home local
 persistent storage is an intentional departure from EBS; production needs a reviewed
@@ -127,8 +127,8 @@ Retain policy and tested off-machine backup/restore before cutover. Keep AWS Ter
 and public DNS unchanged until their separately reviewed steps. Stop before commits.
 
 IAM Roles Anywhere is selected for home AWS identity. The separate persistent root
-`home-server/identity/` and [identity runbook](home-server/IDENTITY.md) describe the enrolled
-issuer and AWS deployment. The [September 14 apply](home-server/IDENTITY-APPLIED.md)
+`home-server/identity/` and [identity runbook](home-server/docs/IDENTITY.md) describe the enrolled
+issuer and AWS deployment. The [September 14 apply](https://github.com/Steve-droid/driftplain-infra/blob/0d428cb5a8951272723ef79a4680b59a243aac65/home-server/IDENTITY-APPLIED.md)
 provisioned eight resources after separate approval, with creation on and sessions off.
 The enrolled public CA and disabled resources are verified; leaves/CRL/enablement/scheduling
 remain gated. Use explicit `-var-file=dev.tfvars` for fresh plans; never include

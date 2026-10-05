@@ -1,11 +1,11 @@
 # Cloudflare authoritative DNS + the home-server tunnel (E21/HM5, HM7)
 
 **HM7 (September 22, 2026): the runtime pair `driftplain.dev` / `api.driftplain.dev` joins the
-tunnel.** AWS compute was retired on September 21 ([decision record](../home-server/AWS-COMPUTE-RETIREMENT.md)),
+tunnel.** AWS compute was retired on September 21 ([decision record](../home-server/docs/AWS-COMPUTE-RETIREMENT.md)),
 so the four NLB CNAME twins point at a deleted load balancer and are dropped; the tunnel now
 carries four hostnames (runtime + staging) to the same two private ingress names. The apply is
 a separate approval (plan below); modicum.cloud stays un-routed and undelegated. Cutover evidence
-and runbook: [`../home-server/HM7-CUTOVER.md`](../home-server/HM7-CUTOVER.md).
+and runbook: [`../home-server/docs/HM7-CUTOVER.md`](../home-server/docs/HM7-CUTOVER.md).
 
 **Applied September 18, 2026 (18 resources). `driftplain.dev` delegated and active September 18; `modicum.cloud` stays undelegated by decision (September 18).** Zones
 `driftplain.dev` (`c9ee1f87408620ad3191e7a97ee8fa0d`) and `modicum.cloud`
@@ -13,7 +13,7 @@ and runbook: [`../home-server/HM7-CUTOVER.md`](../home-server/HM7-CUTOVER.md).
 tunnel `driftplain-home-server` (`a27459ba-d201-4437-a963-f63ff3d49796`) has served
 `staging.driftplain.dev` and `api-staging.driftplain.dev` through the gitops connector (v0.28.0)
 since then. Route 53 (`../dns/`) keeps the retained zones (aliases disabled) until the HM8 review.
-Evidence: [`../home-server/hm5-cloudflare-evidence.json`](../home-server/hm5-cloudflare-evidence.json).
+Evidence: [`../home-server/hm5-cloudflare-evidence.json`](https://github.com/Steve-droid/driftplain-infra/blob/0d428cb5a8951272723ef79a4680b59a243aac65/home-server/hm5-cloudflare-evidence.json).
 The scoped API token lives in `~/.config/driftplain/cloudflare.env` (mode 0600, sourced by the
 operator, never printed or committed).
 
@@ -97,7 +97,7 @@ terraform -chdir=cloudflare test -var-file=dev.tfvars -var-file=records.tfvars.j
    login and a chat exchange all answer 200 through the edge with `cf-cache-status: DYNAMIC`; the
    connector restart rolled in 16 s with the edge answering throughout; CORS preflight from
    `https://staging.driftplain.dev` is allowed. Results in
-   [`../home-server/hm5-staging-evidence.json`](../home-server/hm5-staging-evidence.json). Google
+   [`../home-server/hm5-staging-evidence.json`](https://github.com/Steve-droid/driftplain-infra/blob/0d428cb5a8951272723ef79a4680b59a243aac65/home-server/hm5-staging-evidence.json). Google
    sign-in on staging stays a separate authorization.
 6. HM7 (September 22, after the final export was restored and validated at home): approval →
    `terraform apply cloudflare.tfplan` (runtime CNAMEs resolve to the tunnel; the 404 catch-all
@@ -105,8 +105,8 @@ terraform -chdir=cloudflare test -var-file=dev.tfvars -var-file=records.tfvars.j
    rules for the runtime pair, `API_BASE_URL`/`PUBLIC_BASE_URL`, CORS, four edge probes) → validate
    from outside the LAN. Order matters: applying gitops first would point staging's `config.js`
    at an unresolvable `api.driftplain.dev` and fail the edge probes. Results in
-   [`../home-server/HM7-CUTOVER.md`](../home-server/HM7-CUTOVER.md).
+   [`../home-server/docs/HM7-CUTOVER.md`](../home-server/docs/HM7-CUTOVER.md).
 
 Quick-tunnel witness (no account needed) proving the connector image, the mounted CA pool and the
-verified-TLS path: [`../home-server/hm5-quick-tunnel-witness.yaml`](../home-server/hm5-quick-tunnel-witness.yaml)
-and its evidence in `../home-server/hm5-quick-tunnel-evidence.json`.
+verified-TLS path: [`../home-server/hm5-quick-tunnel-witness.yaml`](https://github.com/Steve-droid/driftplain-infra/blob/0d428cb5a8951272723ef79a4680b59a243aac65/home-server/hm5-quick-tunnel-witness.yaml)
+and its [archived evidence](https://github.com/Steve-droid/driftplain-infra/blob/0d428cb5a8951272723ef79a4680b59a243aac65/home-server/hm5-quick-tunnel-evidence.json).

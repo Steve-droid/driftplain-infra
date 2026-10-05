@@ -11,11 +11,11 @@ launchd runs `run` once a day (dev.driftplain.home-server-maintenance.plist). Ea
   3. when the CRL is within `crl_refresh_before_days` of nextUpdate, runs
      home-server-issuer.py `crl` (Keychain-authorized signing, S3 backup, public PEM). With
      `crl_publish` it then runs the AWS update-crl + get-trust-anchor/get-crl readback and
-     home-server-issuer.py `verify-crl`; otherwise the refreshed PEM waits for the ISSUER.md
+     home-server-issuer.py `verify-crl`; otherwise the refreshed PEM waits for the docs/ISSUER.md
      update procedure and a warning stands until it is done;
   4. runs home-server-renew.py (a no-op while renewal.json keeps enabled=false), so enabling
      leaf renewal needs no second scheduler;
-  5. grades findings against the IDENTITY.md thresholds (leaf warn 30 d, escalate 14/7; CA
+  5. grades findings against the docs/IDENTITY.md thresholds (leaf warn 30 d, escalate 14/7; CA
      180/90; CRL 7/1), writes a sanitized status file (dates, day counts, names, public
      fingerprints, version IDs — never key material), posts a fixed macOS notification on
      any failure or critical finding, and pings the heartbeat URL only after a successful
@@ -251,7 +251,7 @@ def refresh_crl(config, tools, ledger_path, stamp, records_dir=None):
     action = {"action": "crl-refresh", "crl_number": number, "receipt_version_id": (result.get("receipt") or {}).get("version_id"),
               "published": False}
     if not config["crl_publish"]:
-        return action, {"level": "warning", "subject": "crl", "message": f"CRL {number} refreshed locally; the AWS update-crl step is pending (ISSUER.md)"}
+        return action, {"level": "warning", "subject": "crl", "message": f"CRL {number} refreshed locally; the AWS update-crl step is pending (docs/ISSUER.md)"}
     pem = ledger_path.parent / f"issuer-crl-{number}.pem"
     if not pem.is_file():
         raise MaintenanceError(f"published CRL file missing: {pem.name}")

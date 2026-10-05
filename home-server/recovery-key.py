@@ -234,5 +234,5 @@ if __name__ == "__main__":
         sys.exit(1)
     except (OSError, ValueError, KeyError):
         # Even parsing/SDK exceptions can embed secret values. Emit no traceback/input.
-        print("Recovery-key operation failed; private output suppressed. Preserve existing copies; consult RECOVERY-KEY.md.", file=sys.stderr)
+        print("Recovery-key operation failed; private output suppressed. Preserve existing copies; consult docs/RECOVERY-KEY.md.", file=sys.stderr)
         sys.exit(1)
