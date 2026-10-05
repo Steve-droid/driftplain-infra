@@ -464,5 +464,5 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except Exception:
-        print("Issuer operation failed; private diagnostics suppressed. Preserve custody and records; see ISSUER.md.", file=sys.stderr)
+        print("Issuer operation failed; private diagnostics suppressed. Preserve custody and records; see docs/ISSUER.md.", file=sys.stderr)
         sys.exit(1)

@@ -136,9 +136,9 @@ class HomeServerOperations:
     def remote(self, operation, identity, certificate=None):
         if operation not in ("status", "prepare", "install") or identity not in ("backup", "bedrock"):
             raise ValueError("unexpected remote operation")
-        command = ["/usr/bin/ssh", "-F", "/dev/null", "-o", "StrictHostKeyChecking=yes",
+        command = ["/usr/bin/ssh", "-o", "StrictHostKeyChecking=yes",
                    "-o", "BatchMode=yes", "-o", "IdentitiesOnly=yes", "-o", "ConnectTimeout=5",
-                   "-i", self.config["ssh_key"], "steve@192.168.1.93",
+                   "-i", self.config["ssh_key"], "home-server",
                    "sudo -n /usr/bin/python3 /opt/home-server/home-server-leaf.py " + operation + " " + identity]
         result = subprocess.run(command, input=certificate.encode() if certificate else None,
                                 capture_output=True, timeout=240)

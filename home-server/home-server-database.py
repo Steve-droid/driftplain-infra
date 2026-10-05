@@ -1121,5 +1121,5 @@ if __name__ == "__main__":
         sys.exit(1)
     except (OSError, ValueError, KeyError, subprocess.SubprocessError):
         print("home-server database operation failed; output suppressed. Preserve the export/restore "
-              "directories and consult HM3-RESTORE.md.", file=sys.stderr)
+              "directories and consult docs/HM3-RESTORE.md.", file=sys.stderr)
         sys.exit(1)

@@ -12,7 +12,7 @@
 #   • AWS CLI v1 1.45.24, which pins botocore 1.43.24 — the operator's tested SDK line —
 #     and honours credential_process for the Roles Anywhere profile (no static keys);
 #   • aws_signing_helper 1.8.5, Linux x86-64, verified against the published SHA-256
-#     recorded in IDENTITY.md ("Credential refresh and image contract").
+#     recorded in docs/IDENTITY.md ("Credential refresh and image contract").
 # Runs as uid/gid 10001 (hsbackup; Debian already owns the name "backup") with a read-only root filesystem (the chart mounts /work, /config,
 # /identity). No entrypoint: the chart runs `/bin/sh /config/backup.sh`.
 # python:3.12-slim-trixie multi-arch index, resolved September 17, 2026 (build review).
