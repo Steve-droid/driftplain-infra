@@ -40,6 +40,13 @@ tunnel_hosts = {
     cache              = false
     comment            = "HM5 staging host served by the home cluster through the named tunnel"
   }
+  rechev = {
+    zone               = "driftplain.dev"
+    hostname           = "rechev.driftplain.dev"
+    origin_server_name = "rechev.home-server.driftplain.dev"
+    cache              = true
+    comment            = "rechev-check static site served by the home cluster through the named tunnel"
+  }
 }
 
 # The connector runs inside the home cluster and dials the F5 nginx-ingress ClusterIP Service

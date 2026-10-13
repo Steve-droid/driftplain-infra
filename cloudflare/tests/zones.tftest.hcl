@@ -67,16 +67,16 @@ run "tunnel_routes_the_runtime_and_staging_pairs_with_verified_origin_tls" {
     error_message = "One remotely managed tunnel."
   }
   assert {
-    condition     = length(cloudflare_dns_record.tunnel) == 4 && alltrue([for r in cloudflare_dns_record.tunnel : r.proxied && r.type == "CNAME" && endswith(r.content, ".cfargotunnel.com")])
+    condition     = length(cloudflare_dns_record.tunnel) == 5 && alltrue([for r in cloudflare_dns_record.tunnel : r.proxied && r.type == "CNAME" && endswith(r.content, ".cfargotunnel.com")])
     error_message = "Tunnel hosts are proxied CNAMEs to the tunnel."
   }
   assert {
-    condition     = keys(cloudflare_dns_record.tunnel) == ["api", "app", "staging_api", "staging_app"]
-    error_message = "The runtime pair (HM7) and the staging pair (HM5) are the tunnel roles."
+    condition     = keys(cloudflare_dns_record.tunnel) == ["api", "app", "rechev", "staging_api", "staging_app"]
+    error_message = "The runtime pair (HM7), the staging pair (HM5) and the rechev-check site are the tunnel roles."
   }
   assert {
-    condition     = toset([for r in cloudflare_dns_record.tunnel : r.name]) == toset(["driftplain.dev", "api.driftplain.dev", "staging.driftplain.dev", "api-staging.driftplain.dev"])
-    error_message = "Exactly the runtime and staging hostnames of driftplain.dev are routed; modicum.cloud is not."
+    condition     = toset([for r in cloudflare_dns_record.tunnel : r.name]) == toset(["driftplain.dev", "api.driftplain.dev", "staging.driftplain.dev", "api-staging.driftplain.dev", "rechev.driftplain.dev"])
+    error_message = "Exactly the runtime, staging and rechev-check hostnames of driftplain.dev are routed; modicum.cloud is not."
   }
   assert {
     condition     = cloudflare_dns_record.tunnel["app"].name == "driftplain.dev" && cloudflare_dns_record.tunnel["app"].proxied
@@ -105,8 +105,9 @@ run "tunnel_routes_the_runtime_and_staging_pairs_with_verified_origin_tls" {
       "api.driftplain.dev"         = "api.home-server.driftplain.dev"
       "staging.driftplain.dev"     = "app.home-server.driftplain.dev"
       "api-staging.driftplain.dev" = "api.home-server.driftplain.dev"
+      "rechev.driftplain.dev"      = "rechev.home-server.driftplain.dev"
     }
-    error_message = "App hosts reach the private app ingress, API hosts the private API ingress."
+    error_message = "App hosts reach the private app ingress, API hosts the private API ingress, rechev its own private ingress."
   }
   assert {
     condition     = cloudflare_zero_trust_tunnel_cloudflared_config.home_server[0].config.ingress[length(cloudflare_zero_trust_tunnel_cloudflared_config.home_server[0].config.ingress) - 1].service == "http_status:404"
@@ -125,7 +126,7 @@ run "tunnel_routes_the_runtime_and_staging_pairs_with_verified_origin_tls" {
     error_message = "Both API hosts bypass the cache; the app hosts may be cached."
   }
   assert {
-    condition     = output.tunnel_urls == { app = "https://driftplain.dev", api = "https://api.driftplain.dev", staging_app = "https://staging.driftplain.dev", staging_api = "https://api-staging.driftplain.dev" }
+    condition     = output.tunnel_urls == { app = "https://driftplain.dev", api = "https://api.driftplain.dev", staging_app = "https://staging.driftplain.dev", staging_api = "https://api-staging.driftplain.dev", rechev = "https://rechev.driftplain.dev" }
     error_message = "The output lists every routed URL by role."
   }
 }
