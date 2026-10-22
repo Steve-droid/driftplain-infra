@@ -21,6 +21,7 @@ state before an operational change.
 | Certificate issuer, renewal, revocation and custody | [Issuer](ISSUER.md), [recovery key](RECOVERY-KEY.md) |
 | Retained services and costs | [AWS retirement](AWS-COMPUTE-RETIREMENT.md), [retained services](HM8-RETAINED-SERVICES.md), [costs](HOME-SERVER-COSTS.md) |
 | Runtime routing and cutover decisions | [Cutover record](HM7-CUTOVER.md) |
+| Current app versions and revert point | [October 22, 2026 rollout](ROLLOUT-2026-10-22.md) |
 | Prepared, disabled catalog refresh | [Catalog refresh](CATALOG-REFRESH.md) |
 
 Some runbooks include dated implementation results. Those results are historical
