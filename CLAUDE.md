@@ -82,8 +82,8 @@ backup image build/publish. September 18 evening (infra v0.33.0, gitops v0.30.0)
 monitor is live (three heartbeat monitors; the cluster child pings every five minutes; notification
 test passed), modicum.cloud stays undelegated and Google sign-in stays production-only by Steve's
 decision. Leaf renewal LaunchAgent running since
-September 18 23:02 UTC (Keychain authorized; infra v0.34.0). Remaining gates: the reviewed manual
-`update-crl` then `crl_publish: true`. The staging HTTPS checks run as edge probes in the cluster
+September 18 23:02 UTC (Keychain authorized; infra v0.34.0). The last gate closed November 2, 2026: the reviewed manual
+`update-crl` (CRL 4) then `crl_publish: true`; the maintenance job now publishes CRLs by itself. The staging HTTPS checks run as edge probes in the cluster
 heartbeat (gitops v0.31.0, September 20). Version choices follow the release policy above.
 
 HM5 owns, in `home-server/`: the scheduled encrypted backup of the **home** CNPG instance

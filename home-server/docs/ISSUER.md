@@ -170,8 +170,10 @@ If S3 fails, the revocation remains journaled, the command fails, and no new imp
 is published. Keep emergency session denies in place; retry `crl` to back up/publish the
 complete list. **Generating a CRL alone does not revoke anything in AWS.**
 
-For a separately approved import/update, obtain the exact anchor ARN/ID and workload role/
-profile IDs from the reviewed identity root outputs. Use account `957261948820`, region
+Since November 2, 2026 the maintenance job runs the update/enable/readback/verify sequence
+below by itself (`crl_publish: true`, [HM5-OPERATIONS.md](HM5-OPERATIONS.md) §4); run it by
+hand only as a fallback. For a separately approved import/update, obtain the exact anchor
+ARN/ID and workload role/profile IDs from the reviewed identity root outputs. Use account `957261948820`, region
 `ap-south-1`, operator profile `saa`. Confirm the anchor's certificate fingerprint matches
 the enrolled CA. `HOME_SERVER_CRL_FILE` is the latest generated public PEM file.
 

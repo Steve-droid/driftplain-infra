@@ -231,7 +231,9 @@ both leaves, CRL 3 with 32.8 days, one active sealing key already backed up and 
 warning that the ledger still marks an issuer backup as required. Remaining gates: authorize the
 identity venv Python for non-interactive Keychain readback (today OSStatus -25293 blocks both
 renewal and CRL signing from launchd), then `renewal.json enabled=true`, `crl_publish` after one
-reviewed manual update, and the external heartbeat URL. See [the evidence](https://github.com/Steve-droid/driftplain-infra/blob/0d428cb5a8951272723ef79a4680b59a243aac65/home-server/hm5-maintenance-evidence.json).
+reviewed manual update, and the external heartbeat URL. All of those gates closed: Keychain
+authorized, renewal enabled and heartbeat URL set on September 18; `crl_publish` on since
+November 2, 2026 after the reviewed manual update ([HM5-OPERATIONS.md](HM5-OPERATIONS.md) §4). See [the evidence](https://github.com/Steve-droid/driftplain-infra/blob/0d428cb5a8951272723ef79a4680b59a243aac65/home-server/hm5-maintenance-evidence.json).
 
 **Revocation:** a CRL (certificate revocation list) is the CA-signed list of revoked serials.
 Roles Anywhere checks CRLs imported into AWS; it does not fetch a URL in the certificate or
