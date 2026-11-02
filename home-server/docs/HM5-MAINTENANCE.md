@@ -5,17 +5,17 @@ with the Mac as operator workstation. Every change reaches the cluster through a
 Mac jobs are replaced by re-installing their runtime copy. This runbook lists the calendar, the
 procedures and the checks. Nothing here touches AWS production.
 
-## Calendar (as of September 17, 2026)
+## Calendar (as of November 2, 2026)
 
 | When | What | Who / how |
 |---|---|---|
 | ~~September 29, 2026~~ | ~~AWS CNPG 1.29 end of life (production side)~~ — moot: AWS compute retired September 21 ([record](AWS-COMPUTE-RETIREMENT.md)); home runs CNPG 1.30.0 | — |
-| from October 10, 2026 | CRL refresh due (`crl_refresh_before_days: 10`); CRL 3 expires **October 20, 13:28 UTC** | maintenance job signs and publishes once `crl_publish` is on; until then the manual [ISSUER.md](ISSUER.md) procedure |
+| from November 27, 2026 | CRL refresh due (`crl_refresh_before_days: 10`); CRL 5 expires **December 7, 10:24 UTC** | maintenance job signs, publishes and verifies by itself (`crl_publish: true` since November 2, 2026); the manual [ISSUER.md](ISSUER.md) procedure is the fallback only |
 | ~October 15, 2026 | Sealed Secrets controller renews its sealing key (30-day cycle) | maintenance job runs `home-server-sealing-keys.py backup` automatically and withholds its heartbeat until the new key is backed up |
-| from November 14, 2026 | Leaf renewal window (backup + bedrock leaves expire **December 14, 2026**) | renewal LaunchAgent once enabled; otherwise `home-server-renew.py` by hand |
+| from November 14, 2026 | Leaf renewal window (backup + bedrock leaves expire **December 14, 2026**); AWS e-mails its 45-day "End Entity certificate(s) expiring soon" notice daily from about October 30 until the renewal lands — expected, not a fault | renewal LaunchAgent (running since September 18); otherwise `home-server-renew.py` by hand |
 | September 12, 2027 / yearly | Domain renewals at Porkbun (driftplain.dev, modicum.cloud) | Steve; keep auto-renew on |
 | September 12, 2028 | `home-server-ca` (cluster CA) — 10-year, no action | — |
-| September 12, 2028 | Roles Anywhere issuer CA expiry (725 d left) | re-enrollment decision in 2028; never re-enroll casually |
+| September 12, 2028 | Roles Anywhere issuer CA expiry (680 d left) | re-enrollment decision in 2028; never re-enroll casually |
 | monthly | cloudflared, curl, kube-prometheus-stack, CNPG operator/PostgreSQL minor releases; Ubuntu security updates | procedures below |
 
 ## Procedures
@@ -77,8 +77,13 @@ to confirm `last exit code = 0`. Plist changes: `launchctl bootout` + `bootstrap
 
 ### Identity
 
-- **CRL refresh:** automatic once `crl_publish` is on; manual = `home-server-issuer.py crl` →
-  `aws --profile saa --region ap-south-1 rolesanywhere update-crl …` → `verify-crl` (ISSUER.md).
+- **CRL refresh:** automatic since November 2, 2026 (`crl_publish: true` with `crl_id` and
+  `trust_anchor_arn` in `maintenance.json`): within ten days of `nextUpdate` the maintenance job
+  signs the next CRL, runs `update-crl` → `enable-crl` → `get-crl`, checks the readback with
+  `verify-crl` and keeps both readbacks under
+  `~/.local/share/driftplain/home-server-backups/crl-records/`. Manual fallback =
+  `home-server-issuer.py crl` → `aws --profile saa --region ap-south-1 rolesanywhere update-crl …`
+  → `verify-crl` (ISSUER.md).
 - **Leaf renewal:** `home-server-renew.py` (renewal LaunchAgent) 30 days before expiry; the
   backup leaf lives in the `home-server-backup-identity` Secret and the CronJob mounts it fresh at
   each run; the bedrock leaf is unused until live Bedrock at home is approved.

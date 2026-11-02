@@ -15,8 +15,8 @@ in which order.
 | Component | Where | State | Config / status |
 |---|---|---|---|
 | Daily encrypted bundle from the Mac (roles, fingerprint, credential bundle) | Mac LaunchAgent `dev.driftplain.home-server-backup` → `home-server-backup-schedule.py run` (`daily_only: true` since September 18; the hourly slots skip) | **Running** (one daily upload; the hourly recovery point now comes from the in-cluster CronJob, whose export lacks roles, fingerprint and the credential bundle) | `~/.local/share/driftplain/home-server-backups/schedule.json`, status `schedule-status.json` |
-| Daily identity maintenance (deadlines, CRL refresh, sealing-key re-backup, renewal no-op) | Mac LaunchAgent `dev.driftplain.home-server-maintenance` (09:15 local + at load) | **Running**; the `backup_required` warning clears at the next run (flag cleared September 18) | `maintenance.json`, status `maintenance-status.json`, log `maintenance.log` |
-| Leaf renewal | Mac LaunchAgent `dev.driftplain.home-server-renewal` | **Running** since September 18 23:02 UTC (Keychain authorized; loaded with `launchctl load -w`; at login, 09:00 local, hourly retries; checks cached 20 h) | `~/.local/share/driftplain/home-server-identity/renewal.json` |
+| Daily identity maintenance (deadlines, CRL refresh, sealing-key re-backup, renewal no-op) | Mac LaunchAgent `dev.driftplain.home-server-maintenance` (09:15 local + at load) | **Running**; CRL refresh publishes to AWS by itself since November 2 (`crl_publish: true`; CRL 5 signed, published and verified that day) | `maintenance.json`, status `maintenance-status.json`, log `maintenance.log`, CRL readbacks `crl-records/` |
+| Leaf renewal | Mac LaunchAgent `dev.driftplain.home-server-renewal` | **Running** since September 18 23:02 UTC (Keychain authorized; loaded with `launchctl load -w`; at login, 09:00 local, hourly retries; checks cached 20 h); renews both leaves from November 14 (expiry December 14) — the daily AWS 45-day expiry e-mail until then is expected | `~/.local/share/driftplain/home-server-identity/renewal.json` |
 | Monitoring (kube-prometheus-stack 85.2.2, Prometheus 2 d / 1 GiB, Grafana, 10 home rules) | home child `monitoring` (+ `monitoring-dashboards`) | **Running**, all 15 scrape pools up | gitops `argocd/home-server/apps/monitoring.yaml` |
 | Cluster heartbeat (pings only when no critical alert fires) | home child `heartbeat`, CronJob `*/5` | **Running** since September 18 22:26 UTC (gitops v0.30.0, sealed URL); notification test passed September 18 (`hm5-monitor-evidence.json`) | gitops `charts/home-server-heartbeat/values.yaml` |
 | In-cluster backup CronJob (Roles Anywhere leaf) | home child `backup`, CronJob `23 * * * *` | **Running** hourly (gitops v0.27.0, image by digest, package public September 18); first run restored and verified | gitops `charts/home-server-backup/values.yaml`; image in `backup-image/` |
@@ -139,9 +139,29 @@ a script) wrote `ledger.status.json` `status: ok`, so Keychain readback is autho
 `python3`. The plist
 carries `Disabled: true`, so plain `launchctl load` fails with error 5; `launchctl load -w` loads it
 and records the override. Loaded 23:02 UTC; the load-time run exited 0. Both leaves expire
-December 14 and are not due before November 14. Next, `crl_publish: true` with `crl_id` and `trust_anchor_arn` after one
-reviewed manual `update-crl` ([ISSUER.md](ISSUER.md)). CRL 3 expires October 20, 2026; the
-maintenance job flags the refresh from October 10.
+December 14 and are not due before November 14.
+
+Done November 2, 2026: CRL publishing. AWS was still serving CRL 3 (expired October 20) because
+`crl_publish` was off and the reviewed manual update had not been run; sessions were unaffected
+(the backup subject's `lastSeen` was 10:23 UTC that morning), AWS was just checking revocations
+against a stale list. Steve approved the manual `update-crl` with the already-signed CRL 4 (10:06
+UTC: `update-crl` → `enable-crl` → `get-crl` → `verify-crl` exit 0; readbacks
+`crl-records/20261102T100632Z-*`), then `crl_publish: true` with `crl_id`
+`346c7fd3-e782-4500-a72c-53b8741ff543` and the trust-anchor ARN in `maintenance.json` (previous
+file kept as `maintenance.json.before-crl-publish-20261102`). One forced run with a temporary
+14-day threshold proved the automated path: it signed CRL 5 (ledger `crl_number` 5, valid to
+December 7, 10:24 UTC), published it at 10:24:33 UTC and `verify-crl` passed (readbacks
+`crl-records/20261102T102429Z-*`); the following steady-state run and `check` with the real
+config were clean. From now on the daily job refreshes and publishes the CRL by itself ten days
+before `nextUpdate` (next from November 27); the [ISSUER.md](ISSUER.md) commands are the manual
+fallback only. The same morning both LaunchAgents had reported a failure: the home server was
+powered off from November 1 23:45 to November 2 10:55 IST, so the 09:00 / 09:15 runs could not
+SSH. `launchctl kickstart gui/$(id -u)/<label>` after power-up cleared both (exit 0); the
+renewer prints one fixed failure message with no cause, so replay its read-only steps (Keychain
+read, ledger validation, `home-server-leaf.py status`) with tracebacks before suspecting AWS. The
+AWS Health notice "End Entity certificate(s) expiring soon" arrives daily from the 45-day mark
+(about October 30) and is expected until the renewal LaunchAgent renews both leaves from
+November 14.
 
 ## Guardrails that never change here
 
