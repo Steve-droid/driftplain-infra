@@ -12,6 +12,25 @@ the existing trusted LAN host identity with `HostKeyAlias 192.168.1.93` and
 `StrictHostKeyChecking yes`. The previous SSH config has a timestamped backup
 beside it. LAN SSH remains available.
 
+## LAN link: Wi-Fi only since November 9, 2026
+
+The server moved to Steve's room and Ethernet `eno1` is unplugged on purpose.
+It now uses Wi-Fi `wlo1` (MAC `10:6F:D9:26:0C:2B`). Verified that day:
+
+- Tailscale access (`ssh home-server`) is unchanged.
+- The K3s node address is `10.99.0.1` on the dummy interface `drift0`
+  (`driftplain-node-ip.service`), so the cluster does not depend on the LAN
+  address. The node stayed Ready through the switch.
+- The LAN address was `192.168.1.34`, an ordinary DHCP lease that can change.
+  The router reservation `192.168.1.93` belongs to the Ethernet MAC and is not
+  in use. For direct LAN SSH, check the current address first, or add a router
+  reservation for the Wi-Fi MAC.
+- `HostKeyAlias 192.168.1.93` in the Mac SSH config is only the name the host
+  key is stored under, so it stays as it is.
+- Signal was weak (-78 dBm on 5 GHz). The one backup failure on November 9 came
+  from the link change itself (DNS failed minutes after Ethernet dropped), not
+  from Wi-Fi quality, but watch for dropouts.
+
 The Mac's Tailscale address is `100.126.210.90`. These Tailscale addresses remain
 stable across Wi-Fi/hotspot changes while the devices remain registered.
 The server must remain powered and online. Device removal/re-registration or
@@ -32,7 +51,10 @@ sudo ufw allow in on tailscale0 from 100.126.210.90 to 100.78.82.22 port 22 prot
 sudo ufw allow in on eno1 to any port 41641 proto udp
 ```
 
-The latter permits encrypted Tailscale transport (IPv4 and IPv6). No router
+The latter permits encrypted Tailscale transport (IPv4 and IPv6). Matching
+rules exist on `wlo1` for Tailscale transport, LAN SSH from `192.168.1.0/24`
+and pod egress (confirmed with `ufw status verbose` on November 9, 2026), so
+the Wi-Fi-only setup needs no firewall change. No router
 port forwarding was configured. Existing default-deny incoming/routed rules
 remain. Only the Mac's IPv4 address has an SSH allow rule on `tailscale0`;
 the SSH alias deliberately uses IPv4. This restriction is enforced on the host,
@@ -53,7 +75,8 @@ without reviewing access controls, because Tailscale can then bypass UFW.
 The renewal transport in `home-server-renew.py` uses the `home-server` SSH alias
 as of October 5, 2026, including the configured Tailscale address and trusted host-key
 binding. Keep Tailscale connected for scheduled renewal checks. Other scripts that
-explicitly use `192.168.1.93` still need their transport reviewed if used while away.
+explicitly use `192.168.1.93` will fail while the server is on Wi-Fi only (see above)
+and need their transport moved to the `home-server` alias.
 
 To temporarily block Tailscale inbound access while retaining LAN recovery:
 `sudo tailscale set --shields-up=true`. Restore only after verifying the UFW
