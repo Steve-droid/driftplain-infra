@@ -56,13 +56,20 @@ effective, sleep targets remain masked, AC/lid settings survive, and management 
 Reboot success does not prove recovery after complete battery discharge or router failure.
 
 If SSH does not return, inspect the laptop locally before changing network/security config.
-Check Ethernet/link and DHCP lease on the router. Do not bypass host-key checking. The K3s
-`node-ip` is pinned to `.93`; another DHCP address requires restoring the reservation or a
-reviewed configuration change, not blindly substituting an address in commands. If SSH works
+Check the Wi-Fi link (`wlo1`; the server is Wi-Fi only since November 9, 2026) and the DHCP
+lease on the router. Do not bypass host-key checking. The K3s node address is `10.99.0.1` on
+the dummy interface `drift0`, so a different LAN address does not affect the cluster; it only
+changes the address used for direct LAN SSH. If SSH works
 but Kubernetes does not, inspect `sudo -n systemctl status k3s` and bounded journal output
 locally (avoid copying credentials into shared evidence). Do not rerun bootstrap or uninstall.
 
 ## LAN reservation and router recovery
+
+**Wi-Fi only since November 9, 2026:** Ethernet `eno1` is unplugged on purpose, so the
+reservation below is not in use. The server takes an ordinary DHCP lease on Wi-Fi `wlo1`
+(MAC `10:6F:D9:26:0C:2B`; `192.168.1.34` that day). No reservation exists for the Wi-Fi MAC;
+add one only if a fixed LAN address is wanted. The rest of this section describes the
+Ethernet reservation and applies again if the cable is reconnected.
 
 Router: `192.168.1.1`; interface `eno1`; permanent MAC `A8:B1:3B:73:F8:7A`;
 desired reservation `192.168.1.93`. Open the router while on the LAN, then find LAN/DHCP
